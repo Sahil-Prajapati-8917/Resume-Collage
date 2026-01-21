@@ -1,8 +1,11 @@
 import React, { useState, useEffect } from 'react'
 import { Plus, Trash2, AlertTriangle, Loader2 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
-import { Card, CardContent } from '@/components/ui/card'
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert'
+import { Input } from '@/components/ui/input'
+import { Label } from '@/components/ui/label'
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 
 const HiringForm = () => {
   const [formData, setFormData] = useState({
@@ -146,12 +149,14 @@ const HiringForm = () => {
 
   return (
     <div className="space-y-6">
-      <div className="bg-white rounded-lg shadow p-6">
-        <h1 className="text-2xl font-bold text-gray-900 mb-2">Create Hiring Form</h1>
-        <p className="text-gray-600">
+      <Card>
+        <CardHeader>
+          <CardTitle className="text-2xl">Create Hiring Form</CardTitle>
+        </CardHeader>
+        <CardContent>
           Define role requirements and evaluation criteria for AI-powered candidate assessment.
-        </p>
-      </div>
+        </CardContent>
+      </Card>
 
       {status.message && (
         <Alert variant={status.type === 'error' ? 'destructive' : 'default'} className={`mb-6 ${status.type === 'success' ? 'bg-green-50 text-green-800 border-green-200' : ''}`}>
@@ -165,96 +170,102 @@ const HiringForm = () => {
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         <div className="lg:col-span-2 space-y-6">
-          <div className="bg-white rounded-lg shadow p-6">
-            <h2 className="text-lg font-semibold text-gray-900 mb-4">Basic Information</h2>
-            <div className="mb-4">
-              <label className="block text-sm font-medium text-gray-700 mb-1">Form Name *</label>
-              <input
-                type="text"
-                name="formName"
-                value={formData.formName}
-                onChange={handleInputChange}
-                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                placeholder="e.g., Senior Developer Assessment v1"
-              />
-            </div>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <Card>
+            <CardHeader>
+              <CardTitle>Basic Information</CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-4">
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Job Title *</label>
-                <input
-                  type="text"
-                  name="title"
-                  value={formData.title}
+                <Label htmlFor="formName">Form Name *</Label>
+                <Input
+                  id="formName"
+                  name="formName"
+                  value={formData.formName}
                   onChange={handleInputChange}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                  placeholder="e.g., Senior Software Engineer"
+                  placeholder="e.g., Senior Developer Assessment v1"
                 />
               </div>
-              <div>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Industry *</label>
-                  <select
-                    name="industry"
-                    value={formData.industry}
+                  <Label htmlFor="title">Job Title *</Label>
+                  <Input
+                    id="title"
+                    name="title"
+                    value={formData.title}
                     onChange={handleInputChange}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    placeholder="e.g., Senior Software Engineer"
+                  />
+                </div>
+                <div>
+                  <Label htmlFor="industry">Industry *</Label>
+                  <Select value={formData.industry} onValueChange={(value) => setFormData(prev => ({ ...prev, industry: value }))}>
+                    <SelectTrigger>
+                      <SelectValue placeholder="Select industry..." />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {industries.map(industry => (
+                        <SelectItem key={industry._id || industry} value={industry.name || industry}>
+                          {industry.name || industry}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div>
+                  <Label htmlFor="promptId">Evaluation Prompt *</Label>
+                  <Select
+                    value={formData.promptId}
+                    onValueChange={(value) => setFormData(prev => ({ ...prev, promptId: value }))}
+                    disabled={!formData.industry || availablePrompts.length === 0}
                   >
-                    <option value="">Select industry...</option>
-                    {industries.map(industry => (
-                      <option key={industry._id || industry} value={industry.name || industry}>{industry.name || industry}</option>
-                    ))}
-                  </select>
+                    <SelectTrigger>
+                      <SelectValue placeholder="Select prompt..." />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {availablePrompts.map(prompt => (
+                        <SelectItem key={prompt._id} value={prompt._id}>
+                          {prompt.name} (v{prompt.version})
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                  {formData.industry && availablePrompts.length === 0 && (
+                    <p className="text-xs text-orange-500 mt-1">No prompts available for this industry.</p>
+                  )}
+                </div>
+                <div>
+                  <Label htmlFor="experienceLevel">Experience Level *</Label>
+                  <Select value={formData.experienceLevel} onValueChange={(value) => setFormData(prev => ({ ...prev, experienceLevel: value }))}>
+                    <SelectTrigger>
+                      <SelectValue placeholder="Select experience level..." />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {experienceLevels.map(level => (
+                        <SelectItem key={level} value={level}>
+                          {level}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div>
+                  <Label htmlFor="jobType">Job Type *</Label>
+                  <Select value={formData.jobType} onValueChange={(value) => setFormData(prev => ({ ...prev, jobType: value }))}>
+                    <SelectTrigger>
+                      <SelectValue placeholder="Select job type..." />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {jobTypes.map(type => (
+                        <SelectItem key={type.value} value={type.value}>
+                          {type.label}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
                 </div>
               </div>
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Evaluation Prompt *</label>
-                <select
-                  name="promptId" // Updated to promptId
-                  value={formData.promptId}
-                  onChange={handleInputChange}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                  disabled={!formData.industry || availablePrompts.length === 0}
-                >
-                  <option value="">Select prompt...</option>
-                  {availablePrompts.map(prompt => (
-                    <option key={prompt._id} value={prompt._id}>
-                      {prompt.name} (v{prompt.version})
-                    </option>
-                  ))}
-                </select>
-                {formData.industry && availablePrompts.length === 0 && (
-                  <div className="text-xs text-orange-500 mt-1">No prompts available for this industry.</div>
-                )}
-              </div>
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Experience Level *</label>
-                <select
-                  name="experienceLevel"
-                  value={formData.experienceLevel}
-                  onChange={handleInputChange}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                >
-                  <option value="">Select experience level...</option>
-                  {experienceLevels.map(level => (
-                    <option key={level} value={level}>{level}</option>
-                  ))}
-                </select>
-              </div>
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Job Type *</label>
-                <select
-                  name="jobType"
-                  value={formData.jobType}
-                  onChange={handleInputChange}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                >
-                  {jobTypes.map(type => (
-                    <option key={type.value} value={type.value}>{type.label}</option>
-                  ))}
-                </select>
-              </div>
-            </div>
-          </div>
+            </CardContent>
+          </Card>
 
           <div className="bg-white rounded-lg shadow p-6">
             <h2 className="text-lg font-semibold text-gray-900 mb-4">Key Responsibilities</h2>

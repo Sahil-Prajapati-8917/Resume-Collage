@@ -1,5 +1,4 @@
-import React, { useState, useCallback, useEffect } from 'react'
-import { useDropzone } from 'react-dropzone'
+import React, { useState, useRef, useEffect } from 'react'
 import {
   CloudUpload,
   FileText,
@@ -13,6 +12,7 @@ import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { Badge } from '@/components/ui/badge'
+import { Checkbox } from '@/components/ui/checkbox'
 import apiService from '@/services/api'
 
 const ResumeUpload = () => {
@@ -21,6 +21,11 @@ const ResumeUpload = () => {
   const [parsedContent, setParsedContent] = useState(null)
   const [hiringForms, setHiringForms] = useState([])
   const [selectedHiringForm, setSelectedHiringForm] = useState('')
+  const [holisticEvaluation, setHolisticEvaluation] = useState(true)
+  const [evidenceHighlighting, setEvidenceHighlighting] = useState(true)
+  const [explainableAI, setExplainableAI] = useState(true)
+  const [strictMode, setStrictMode] = useState(false)
+  const fileInputRef = useRef(null)
 
   useEffect(() => {
     const fetchHiringForms = async () => {
@@ -40,8 +45,24 @@ const ResumeUpload = () => {
     fetchHiringForms();
   }, []);
 
-  const onDrop = useCallback((acceptedFiles) => {
-    const newFiles = acceptedFiles.map(file => ({
+  const handleFileSelect = (event) => {
+    const files = Array.from(event.target.files)
+    const acceptedTypes = ['application/pdf', 'application/msword', 'application/vnd.openxmlformats-officedocument.wordprocessingml.document']
+    const maxSize = 10 * 1024 * 1024 // 10MB
+
+    const validFiles = files.filter(file => {
+      if (!acceptedTypes.includes(file.type)) {
+        alert(`${file.name} is not a supported file type. Please upload PDF, DOC, or DOCX files.`)
+        return false
+      }
+      if (file.size > maxSize) {
+        alert(`${file.name} is too large. Please upload files smaller than 10MB.`)
+        return false
+      }
+      return true
+    })
+
+    const newFiles = validFiles.map(file => ({
       file,
       id: Math.random().toString(36).substr(2, 9),
       name: file.name,
@@ -52,18 +73,7 @@ const ResumeUpload = () => {
 
     setUploadedFiles(prev => [...prev, ...newFiles])
     setUploadStatus('success')
-  }, [])
-
-  const { getRootProps, getInputProps, isDragActive } = useDropzone({
-    onDrop,
-    accept: {
-      'application/pdf': ['.pdf'],
-      'application/msword': ['.doc'],
-      'application/vnd.openxmlformats-officedocument.wordprocessingml.document': ['.docx']
-    },
-    maxFiles: 5,
-    maxSize: 10 * 1024 * 1024, // 10MB
-  })
+  }
 
   const removeFile = (fileId) => {
     setUploadedFiles(prev => prev.filter(f => f.id !== fileId))
@@ -144,26 +154,30 @@ const ResumeUpload = () => {
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         {/* Upload Section */}
         <div className="lg:col-span-2 space-y-6">
-          {/* Drop Zone */}
+          {/* File Upload */}
           <Card>
             <CardContent className="p-6">
-              <div
-                {...getRootProps()}
-                className={`border-2 border-dashed rounded-lg p-8 text-center cursor-pointer transition-colors ${isDragActive
-                  ? 'border-blue-400 bg-blue-50'
-                  : 'border-gray-300 hover:border-gray-400'
-                  }`}
-              >
-                <input {...getInputProps()} />
-                <CloudUpload className="mx-auto h-12 w-12 text-gray-400" />
-                <div className="mt-4">
-                  <p className="text-lg font-medium text-gray-900">
-                    {isDragActive ? 'Drop files here' : 'Drop resumes here or click to browse'}
-                  </p>
-                  <p className="text-sm text-gray-500 mt-1">
-                    Supports PDF, DOC, DOCX files up to 10MB
-                  </p>
+              <div className="space-y-4">
+                <div className="text-center">
+                  <CloudUpload className="mx-auto h-12 w-12 text-muted-foreground" />
+                  <div className="mt-4">
+                    <Label htmlFor="file-upload" className="cursor-pointer">
+                      <span className="text-lg font-medium">Click to upload resumes</span>
+                      <span className="text-sm text-muted-foreground block">
+                        Supports PDF, DOC, DOCX files up to 10MB
+                      </span>
+                    </Label>
+                  </div>
                 </div>
+                <Input
+                  id="file-upload"
+                  type="file"
+                  ref={fileInputRef}
+                  onChange={handleFileSelect}
+                  accept=".pdf,.doc,.docx"
+                  multiple
+                  className="cursor-pointer"
+                />
               </div>
             </CardContent>
           </Card>
@@ -320,22 +334,38 @@ const ResumeUpload = () => {
             </CardHeader>
             <CardContent>
               <div className="space-y-3">
-                <label className="flex items-center space-x-2">
-                  <input type="checkbox" defaultChecked />
-                  <span className="text-sm">Holistic evaluation</span>
-                </label>
-                <label className="flex items-center space-x-2">
-                  <input type="checkbox" defaultChecked />
-                  <span className="text-sm">Evidence highlighting</span>
-                </label>
-                <label className="flex items-center space-x-2">
-                  <input type="checkbox" defaultChecked />
-                  <span className="text-sm">Explainable AI</span>
-                </label>
-                <label className="flex items-center space-x-2">
-                  <input type="checkbox" />
-                  <span className="text-sm">Strict mode</span>
-                </label>
+                <div className="flex items-center space-x-2">
+                  <Checkbox
+                    id="holistic"
+                    checked={holisticEvaluation}
+                    onCheckedChange={setHolisticEvaluation}
+                  />
+                  <Label htmlFor="holistic" className="text-sm">Holistic evaluation</Label>
+                </div>
+                <div className="flex items-center space-x-2">
+                  <Checkbox
+                    id="evidence"
+                    checked={evidenceHighlighting}
+                    onCheckedChange={setEvidenceHighlighting}
+                  />
+                  <Label htmlFor="evidence" className="text-sm">Evidence highlighting</Label>
+                </div>
+                <div className="flex items-center space-x-2">
+                  <Checkbox
+                    id="explainable"
+                    checked={explainableAI}
+                    onCheckedChange={setExplainableAI}
+                  />
+                  <Label htmlFor="explainable" className="text-sm">Explainable AI</Label>
+                </div>
+                <div className="flex items-center space-x-2">
+                  <Checkbox
+                    id="strict"
+                    checked={strictMode}
+                    onCheckedChange={setStrictMode}
+                  />
+                  <Label htmlFor="strict" className="text-sm">Strict mode</Label>
+                </div>
               </div>
             </CardContent>
           </Card>
