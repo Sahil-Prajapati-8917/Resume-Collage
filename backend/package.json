@@ -23,7 +23,7 @@
   "author": "AI Resume Evaluation Team",
   "license": "MIT",
   "dependencies": {
-    "aws-sdk": "^2.1450.0",
+    "aws-sdk": "^2.1693.0",
     "bcryptjs": "^2.4.3",
     "bull": "^4.11.3",
     "compression": "^1.7.4",
