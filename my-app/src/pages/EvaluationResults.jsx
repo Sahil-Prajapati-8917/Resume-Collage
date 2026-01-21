@@ -1,18 +1,25 @@
 import React, { useState } from 'react'
-import { 
-  ChartBarIcon,
-  EyeIcon,
-  HandThumbUpIcon,
-  HandThumbDownIcon,
-  ExclamationTriangleIcon,
-  CheckCircleIcon,
-  XMarkIcon,
-  DocumentTextIcon,
-  UserIcon,
-  ClockIcon,
-  StarIcon,
-  FunnelIcon
-} from '@heroicons/react/24/outline'
+import {
+  BarChart3,
+  Eye,
+  ThumbsUp,
+  ThumbsDown,
+  AlertTriangle,
+  CheckCircle,
+  X,
+  FileText,
+  User,
+  Clock,
+  Star,
+  Filter
+} from 'lucide-react'
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
+import { Button } from '@/components/ui/button'
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog'
+import { Textarea } from '@/components/ui/textarea'
+import { Badge } from '@/components/ui/badge'
+import { Progress } from '@/components/ui/progress'
 
 const EvaluationResults = () => {
   const [selectedCandidate, setSelectedCandidate] = useState(null)
@@ -244,20 +251,21 @@ const EvaluationResults = () => {
         <div className="flex items-center justify-between">
           <div className="flex items-center space-x-4">
             <div className="flex items-center">
-              <FunnelIcon className="h-5 w-5 text-gray-400 mr-2" />
-              <label className="text-sm font-medium text-gray-700">Filter by Status:</label>
+              <Filter className="h-5 w-5 text-gray-400 mr-2" />
+              <span className="text-sm font-medium text-gray-700">Filter by Status:</span>
             </div>
-            <select
-              value={filterStatus}
-              onChange={(e) => setFilterStatus(e.target.value)}
-              className="px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-            >
-              <option value="all">All Candidates</option>
-              <option value="shortlisted">Shortlisted</option>
-              <option value="under review">Under Review</option>
-              <option value="needs review">Needs Review</option>
-              <option value="rejected">Rejected</option>
-            </select>
+            <Select value={filterStatus} onValueChange={setFilterStatus}>
+              <SelectTrigger className="w-48">
+                <SelectValue placeholder="Select status..." />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">All Candidates</SelectItem>
+                <SelectItem value="shortlisted">Shortlisted</SelectItem>
+                <SelectItem value="under review">Under Review</SelectItem>
+                <SelectItem value="needs review">Needs Review</SelectItem>
+                <SelectItem value="rejected">Rejected</SelectItem>
+              </SelectContent>
+            </Select>
           </div>
           <div className="text-sm text-gray-500">
             Showing {filteredEvaluations.length} of {evaluations.length} candidates
@@ -313,7 +321,7 @@ const EvaluationResults = () => {
                 <ul className="text-sm text-gray-600 space-y-1">
                   {evaluation.strengths.slice(0, 2).map((strength, index) => (
                     <li key={index} className="flex items-start">
-                      <CheckCircleIcon className="h-4 w-4 text-green-500 mr-2 mt-0.5 flex-shrink-0" />
+                      <CheckCircle className="h-4 w-4 text-green-500 mr-2 mt-0.5 flex-shrink-0" />
                       {strength}
                     </li>
                   ))}
@@ -322,28 +330,31 @@ const EvaluationResults = () => {
 
               {/* Actions */}
               <div className="flex items-center justify-between pt-4 border-t border-gray-200">
-                <button
+                <Button
+                  variant="ghost"
                   onClick={() => setSelectedCandidate(evaluation)}
-                  className="flex items-center text-blue-600 hover:text-blue-800 text-sm font-medium"
+                  className="text-blue-600 hover:text-blue-800"
                 >
-                  <EyeIcon className="h-4 w-4 mr-1" />
+                  <Eye className="h-4 w-4 mr-1" />
                   View Details
-                </button>
+                </Button>
                 <div className="flex items-center space-x-2">
-                  <button
+                  <Button
+                    variant="ghost"
+                    size="sm"
                     onClick={() => handleOverride('approve')}
-                    className="p-2 text-green-600 hover:text-green-800"
-                    title="Approve"
+                    className="text-green-600 hover:text-green-800"
                   >
-                    <HandThumbUpIcon className="h-5 w-5" />
-                  </button>
-                  <button
+                    <ThumbsUp className="h-5 w-5" />
+                  </Button>
+                  <Button
+                    variant="ghost"
+                    size="sm"
                     onClick={() => handleOverride('reject')}
-                    className="p-2 text-red-600 hover:text-red-800"
-                    title="Reject"
+                    className="text-red-600 hover:text-red-800"
                   >
-                    <HandThumbDownIcon className="h-5 w-5" />
-                  </button>
+                    <ThumbsDown className="h-5 w-5" />
+                  </Button>
                 </div>
               </div>
             </div>

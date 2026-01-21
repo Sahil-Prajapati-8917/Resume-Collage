@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react'
-import { 
+import {
   User,
   Mail,
   Phone,
@@ -23,6 +23,9 @@ import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Badge } from '@/components/ui/badge'
 import { Separator } from '@/components/ui/separator'
+import { Textarea } from '@/components/ui/textarea'
+import { Checkbox } from '@/components/ui/checkbox'
+import { Progress } from '@/components/ui/progress'
 import apiService from '../services/api'
 
 const Profile = () => {
@@ -63,6 +66,7 @@ const Profile = () => {
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState(null)
   const [apiStatus, setApiStatus] = useState('checking') // 'checking', 'connected', 'error'
+  const [emailNotifications, setEmailNotifications] = useState(true)
 
   // Load profile data from API on component mount
   useEffect(() => {
@@ -352,9 +356,9 @@ const Profile = () => {
             </div>
           </div>
           <div className="mt-4">
-            <Label>Bio</Label>
-            <textarea
-              className="w-full p-3 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+            <Label htmlFor="bio">Bio</Label>
+            <Textarea
+              id="bio"
               rows={4}
               value={tempProfileData.personalInfo.bio}
               onChange={(e) => handleInputChange('personalInfo', 'bio', e.target.value)}
@@ -454,63 +458,28 @@ const Profile = () => {
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             <div>
               <Label>Quarterly Score</Label>
-              <div className="flex items-center">
-                <div className="flex-1 bg-gray-200 rounded-full h-2">
-                  <div 
-                    className="bg-blue-600 h-2 rounded-full" 
-                    style={{ width: `${profileData.performance.quarterlyScore}%` }}
-                  />
-                </div>
-                <span className="ml-2 font-bold">{profileData.performance.quarterlyScore}%</span>
-              </div>
+              <Progress value={profileData.performance.quarterlyScore} className="mt-2" />
+              <span className="text-sm font-medium mt-1 block">{profileData.performance.quarterlyScore}%</span>
             </div>
             <div>
               <Label>Candidate Satisfaction</Label>
-              <div className="flex items-center">
-                <div className="flex-1 bg-gray-200 rounded-full h-2">
-                  <div 
-                    className="bg-green-600 h-2 rounded-full" 
-                    style={{ width: `${(profileData.performance.candidateSatisfaction / 5) * 100}%` }}
-                  />
-                </div>
-                <span className="ml-2 font-bold">{profileData.performance.candidateSatisfaction}/5.0</span>
-              </div>
+              <Progress value={(profileData.performance.candidateSatisfaction / 5) * 100} className="mt-2" />
+              <span className="text-sm font-medium mt-1 block">{profileData.performance.candidateSatisfaction}/5.0</span>
             </div>
             <div>
               <Label>Hiring Manager Rating</Label>
-              <div className="flex items-center">
-                <div className="flex-1 bg-gray-200 rounded-full h-2">
-                  <div 
-                    className="bg-purple-600 h-2 rounded-full" 
-                    style={{ width: `${(profileData.performance.hiringManagerRating / 5) * 100}%` }}
-                  />
-                </div>
-                <span className="ml-2 font-bold">{profileData.performance.hiringManagerRating}/5.0</span>
-              </div>
+              <Progress value={(profileData.performance.hiringManagerRating / 5) * 100} className="mt-2" />
+              <span className="text-sm font-medium mt-1 block">{profileData.performance.hiringManagerRating}/5.0</span>
             </div>
             <div>
               <Label>Efficiency Score</Label>
-              <div className="flex items-center">
-                <div className="flex-1 bg-gray-200 rounded-full h-2">
-                  <div 
-                    className="bg-yellow-600 h-2 rounded-full" 
-                    style={{ width: `${profileData.performance.efficiencyScore}%` }}
-                  />
-                </div>
-                <span className="ml-2 font-bold">{profileData.performance.efficiencyScore}%</span>
-              </div>
+              <Progress value={profileData.performance.efficiencyScore} className="mt-2" />
+              <span className="text-sm font-medium mt-1 block">{profileData.performance.efficiencyScore}%</span>
             </div>
             <div>
               <Label>Quality Score</Label>
-              <div className="flex items-center">
-                <div className="flex-1 bg-gray-200 rounded-full h-2">
-                  <div 
-                    className="bg-red-600 h-2 rounded-full" 
-                    style={{ width: `${profileData.performance.qualityScore}%` }}
-                  />
-                </div>
-                <span className="ml-2 font-bold">{profileData.performance.qualityScore}%</span>
-              </div>
+              <Progress value={profileData.performance.qualityScore} className="mt-2" />
+              <span className="text-sm font-medium mt-1 block">{profileData.performance.qualityScore}%</span>
             </div>
           </div>
         </CardContent>
@@ -546,7 +515,11 @@ const Profile = () => {
                 <p className="font-medium">Email Notifications</p>
                 <p className="text-sm text-gray-600">Receive email updates about evaluations</p>
               </div>
-              <input type="checkbox" defaultChecked className="h-4 w-4" />
+              <Checkbox
+                id="email-notifications"
+                checked={emailNotifications}
+                onCheckedChange={setEmailNotifications}
+              />
             </div>
             <Separator />
             <div className="flex items-center justify-between">
