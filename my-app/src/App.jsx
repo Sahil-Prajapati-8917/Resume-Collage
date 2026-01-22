@@ -1,6 +1,7 @@
 import React from 'react'
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom'
 import Layout from './components/Layout'
+import MasterAdminLayout from './components/MasterAdminLayout'
 import Login from './pages/Login'
 import ProtectedCreateAccount from './pages/ProtectedCreateAccount'
 import NotFound from './pages/NotFound'
@@ -12,6 +13,13 @@ import PromptManagement from './pages/PromptManagement'
 import AuditTrail from './pages/AuditTrail'
 import History from './pages/History'
 import Profile from './pages/Profile'
+import MasterAdminDashboard from './pages/MasterAdminDashboard'
+import CompanyManagement from './pages/CompanyManagement'
+import HRUserManagement from './pages/HRUserManagement'
+import GlobalHiringForms from './pages/GlobalHiringForms'
+import EvaluationOversight from './pages/EvaluationOversight'
+import SystemAnalytics from './pages/SystemAnalytics'
+import SystemSettings from './pages/SystemSettings'
 
 function App() {
   return (
@@ -61,6 +69,53 @@ function App() {
           <Layout>
             <Profile />
           </Layout>
+        } />
+
+        {/* Master Admin routes */}
+        <Route path="/master-admin/dashboard" element={
+          <MasterAdminLayout>
+            <MasterAdminDashboard />
+          </MasterAdminLayout>
+        } />
+        <Route path="/master-admin/companies" element={
+          <MasterAdminLayout>
+            <CompanyManagement />
+          </MasterAdminLayout>
+        } />
+        <Route path="/master-admin/hr-users" element={
+          <MasterAdminLayout>
+            <HRUserManagement />
+          </MasterAdminLayout>
+        } />
+        <Route path="/master-admin/global-hiring-forms" element={
+          <MasterAdminLayout>
+            <GlobalHiringForms />
+          </MasterAdminLayout>
+        } />
+        <Route path="/master-admin/prompt-management" element={
+          <MasterAdminLayout>
+            <PromptManagement />
+          </MasterAdminLayout>
+        } />
+        <Route path="/master-admin/evaluation-oversight" element={
+          <MasterAdminLayout>
+            <EvaluationOversight />
+          </MasterAdminLayout>
+        } />
+        <Route path="/master-admin/audit-trail" element={
+          <MasterAdminLayout>
+            <AuditTrail />
+          </MasterAdminLayout>
+        } />
+        <Route path="/master-admin/analytics" element={
+          <MasterAdminLayout>
+            <SystemAnalytics />
+          </MasterAdminLayout>
+        } />
+        <Route path="/master-admin/settings" element={
+          <MasterAdminLayout>
+            <SystemSettings />
+          </MasterAdminLayout>
         } />
 
         {/* 404 catch-all route */}

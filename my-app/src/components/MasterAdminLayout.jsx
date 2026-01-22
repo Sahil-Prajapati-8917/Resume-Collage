@@ -1,7 +1,7 @@
 import React, { useState } from 'react'
 import { Link, useLocation } from 'react-router-dom'
-import { 
-  Home, 
+import {
+  Home,
   Building2,
   Users,
   ClipboardList,
@@ -12,7 +12,9 @@ import {
   Cog,
   Bell,
   Menu,
-  X
+  X,
+  Plus,
+  Upload
 } from 'lucide-react'
 import { Sidebar, SidebarContent, SidebarFooter, SidebarHeader, SidebarMenu, SidebarMenuItem, SidebarMenuButton, SidebarProvider, SidebarTrigger } from '@/components/ui/sidebar'
 import { Separator } from '@/components/ui/separator'
