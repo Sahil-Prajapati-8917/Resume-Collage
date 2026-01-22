@@ -11,7 +11,14 @@ import {
   User,
   Clock,
   Star,
-  Filter
+  Filter,
+  CheckCircle as CheckCircleIcon,
+  AlertTriangle as ExclamationTriangleIcon,
+  Star as StarIcon,
+  Eye as EyeIcon,
+  Clock as ClockIcon,
+  FileText as DocumentTextIcon,
+  User as UserIcon
 } from 'lucide-react'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
@@ -239,86 +246,90 @@ const EvaluationResults = () => {
   return (
     <div className="space-y-6">
       {/* Header */}
-      <div className="bg-white rounded-lg shadow p-6">
-        <h1 className="text-2xl font-bold text-gray-900 mb-2">Evaluation Results</h1>
-        <p className="text-gray-600">
-          Review AI-powered candidate evaluations with explainable scoring and evidence highlighting.
-        </p>
-      </div>
+      <Card>
+        <CardHeader>
+          <CardTitle className="text-2xl">Evaluation Results</CardTitle>
+          <CardDescription>
+            Review AI-powered candidate evaluations with explainable scoring and evidence highlighting.
+          </CardDescription>
+        </CardHeader>
+      </Card>
 
       {/* Filters */}
-      <div className="bg-white rounded-lg shadow p-6">
-        <div className="flex items-center justify-between">
-          <div className="flex items-center space-x-4">
-            <div className="flex items-center">
-              <Filter className="h-5 w-5 text-gray-400 mr-2" />
-              <span className="text-sm font-medium text-gray-700">Filter by Status:</span>
+      <Card>
+        <CardContent className="p-6">
+          <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+            <div className="flex items-center space-x-4">
+              <div className="flex items-center">
+                <Filter className="h-5 w-5 text-muted-foreground mr-2" />
+                <span className="text-sm font-medium">Filter by Status:</span>
+              </div>
+              <Select value={filterStatus} onValueChange={setFilterStatus}>
+                <SelectTrigger className="w-48">
+                  <SelectValue placeholder="Select status..." />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">All Candidates</SelectItem>
+                  <SelectItem value="shortlisted">Shortlisted</SelectItem>
+                  <SelectItem value="under review">Under Review</SelectItem>
+                  <SelectItem value="needs review">Needs Review</SelectItem>
+                  <SelectItem value="rejected">Rejected</SelectItem>
+                </SelectContent>
+              </Select>
             </div>
-            <Select value={filterStatus} onValueChange={setFilterStatus}>
-              <SelectTrigger className="w-48">
-                <SelectValue placeholder="Select status..." />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">All Candidates</SelectItem>
-                <SelectItem value="shortlisted">Shortlisted</SelectItem>
-                <SelectItem value="under review">Under Review</SelectItem>
-                <SelectItem value="needs review">Needs Review</SelectItem>
-                <SelectItem value="rejected">Rejected</SelectItem>
-              </SelectContent>
-            </Select>
+            <div className="text-sm text-muted-foreground">
+              Showing {filteredEvaluations.length} of {evaluations.length} candidates
+            </div>
           </div>
-          <div className="text-sm text-gray-500">
-            Showing {filteredEvaluations.length} of {evaluations.length} candidates
-          </div>
-        </div>
-      </div>
+        </CardContent>
+      </Card>
 
       {/* Results Grid */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         {filteredEvaluations.map(evaluation => (
-          <div key={evaluation.id} className="bg-white rounded-lg shadow hover:shadow-lg transition-shadow">
-            <div className="p-6">
+          <Card key={evaluation.id} className="hover:shadow-lg transition-shadow">
+            <CardContent className="p-6">
               {/* Header */}
               <div className="flex items-start justify-between mb-4">
                 <div>
-                  <h3 className="text-lg font-semibold text-gray-900">{evaluation.candidateName}</h3>
-                  <p className="text-sm text-gray-500">{evaluation.position}</p>
-                  <p className="text-xs text-gray-400 mt-1">{evaluation.industry}</p>
+                  <h3 className="text-lg font-semibold">{evaluation.candidateName}</h3>
+                  <p className="text-sm text-muted-foreground">{evaluation.position}</p>
+                  <p className="text-xs text-muted-foreground mt-1">{evaluation.industry}</p>
                 </div>
                 <div className="text-right">
                   <div className={`text-2xl font-bold ${getScoreColor(evaluation.score)}`}>
                     {evaluation.score}
                   </div>
-                  <div className="text-xs text-gray-500">/ 100</div>
+                  <div className="text-xs text-muted-foreground">/ 100</div>
                 </div>
               </div>
 
               {/* Status and Confidence */}
               <div className="flex items-center justify-between mb-4">
-                <span className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-medium ${getStatusColor(evaluation.status)}`}>
+                <Badge className={getStatusColor(evaluation.status)}>
                   {evaluation.status}
-                </span>
-                <span className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-medium ${getConfidenceColor(evaluation.confidence)}`}>
+                </Badge>
+                <Badge variant="outline" className={getConfidenceColor(evaluation.confidence)}>
                   Confidence: {evaluation.confidence}
-                </span>
+                </Badge>
               </div>
 
               {/* Quick Stats */}
               <div className="grid grid-cols-2 gap-4 mb-4">
-                <div className="text-center p-3 bg-gray-50 rounded-lg">
-                  <p className="text-xs text-gray-500">Evaluated</p>
-                  <p className="text-sm font-medium text-gray-900">{evaluation.evaluatedAt}</p>
+                <div className="text-center p-3 bg-muted rounded-lg">
+                  <p className="text-xs text-muted-foreground">Evaluated</p>
+                  <p className="text-sm font-medium">{evaluation.evaluatedAt}</p>
                 </div>
-                <div className="text-center p-3 bg-gray-50 rounded-lg">
-                  <p className="text-xs text-gray-500">Resume</p>
-                  <p className="text-sm font-medium text-gray-900 truncate">{evaluation.resumeFile}</p>
+                <div className="text-center p-3 bg-muted rounded-lg">
+                  <p className="text-xs text-muted-foreground">Resume</p>
+                  <p className="text-sm font-medium truncate">{evaluation.resumeFile}</p>
                 </div>
               </div>
 
               {/* Strengths Preview */}
               <div className="mb-4">
-                <p className="text-sm font-medium text-gray-700 mb-2">Key Strengths:</p>
-                <ul className="text-sm text-gray-600 space-y-1">
+                <p className="text-sm font-medium mb-2">Key Strengths:</p>
+                <ul className="text-sm text-muted-foreground space-y-1">
                   {evaluation.strengths.slice(0, 2).map((strength, index) => (
                     <li key={index} className="flex items-start">
                       <CheckCircle className="h-4 w-4 text-green-500 mr-2 mt-0.5 flex-shrink-0" />
@@ -329,11 +340,10 @@ const EvaluationResults = () => {
               </div>
 
               {/* Actions */}
-              <div className="flex items-center justify-between pt-4 border-t border-gray-200">
+              <div className="flex items-center justify-between pt-4 border-t">
                 <Button
                   variant="ghost"
                   onClick={() => setSelectedCandidate(evaluation)}
-                  className="text-blue-600 hover:text-blue-800"
                 >
                   <Eye className="h-4 w-4 mr-1" />
                   View Details
@@ -343,7 +353,6 @@ const EvaluationResults = () => {
                     variant="ghost"
                     size="sm"
                     onClick={() => handleOverride('approve')}
-                    className="text-green-600 hover:text-green-800"
                   >
                     <ThumbsUp className="h-5 w-5" />
                   </Button>
@@ -351,50 +360,40 @@ const EvaluationResults = () => {
                     variant="ghost"
                     size="sm"
                     onClick={() => handleOverride('reject')}
-                    className="text-red-600 hover:text-red-800"
                   >
                     <ThumbsDown className="h-5 w-5" />
                   </Button>
                 </div>
               </div>
-            </div>
-          </div>
+            </CardContent>
+          </Card>
         ))}
       </div>
 
-      {/* Detailed Evaluation Modal */}
-      {selectedCandidate && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-          <div className="bg-white rounded-lg shadow-xl max-w-6xl w-full mx-4 max-h-[90vh] overflow-hidden">
-            <div className="p-6 border-b border-gray-200">
-              <div className="flex items-center justify-between">
-                <div>
-                  <h2 className="text-2xl font-bold text-gray-900">{selectedCandidate.candidateName}</h2>
-                  <p className="text-gray-600">{selectedCandidate.position} • {selectedCandidate.industry}</p>
-                </div>
-                <button
-                  onClick={() => setSelectedCandidate(null)}
-                  className="text-gray-400 hover:text-gray-600"
-                >
-                  <XMarkIcon className="h-6 w-6" />
-                </button>
-              </div>
-            </div>
+      {/* Detailed Evaluation Dialog */}
+      <Dialog open={!!selectedCandidate} onOpenChange={() => setSelectedCandidate(null)}>
+        <DialogContent className="max-w-6xl max-h-[90vh] overflow-hidden">
+          <DialogHeader>
+            <DialogTitle className="text-2xl">{selectedCandidate?.candidateName}</DialogTitle>
+            <DialogDescription>
+              {selectedCandidate?.position} • {selectedCandidate?.industry}
+            </DialogDescription>
+          </DialogHeader>
 
-            <div className="p-6 overflow-y-auto max-h-[70vh]">
-              <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+          <div className="overflow-y-auto max-h-[70vh] pr-2">
+            <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
                 {/* Left Column - Score Breakdown */}
                 <div className="space-y-6">
                   {/* Overall Score */}
                   <div className="bg-gray-50 rounded-lg p-6">
                     <h3 className="text-lg font-semibold text-gray-900 mb-4">Overall Score</h3>
                     <div className="text-center">
-                      <div className={`text-5xl font-bold ${getScoreColor(selectedCandidate.score)}`}>
-                        {selectedCandidate.score}
+                      <div className={`text-5xl font-bold ${selectedCandidate ? getScoreColor(selectedCandidate.score) : ''}`}>
+                        {selectedCandidate?.score || 0}
                       </div>
                       <div className="text-gray-500 mt-2">out of 100</div>
-                      <div className={`inline-flex items-center px-3 py-1 rounded-full text-sm font-medium mt-3 ${getConfidenceColor(selectedCandidate.confidence)}`}>
-                        {selectedCandidate.confidence} Confidence
+                      <div className={`inline-flex items-center px-3 py-1 rounded-full text-sm font-medium mt-3 ${selectedCandidate ? getConfidenceColor(selectedCandidate.confidence) : ''}`}>
+                        {selectedCandidate?.confidence || 'N/A'} Confidence
                       </div>
                     </div>
                   </div>
@@ -403,7 +402,7 @@ const EvaluationResults = () => {
                   <div className="bg-white border border-gray-200 rounded-lg p-6">
                     <h3 className="text-lg font-semibold text-gray-900 mb-4">Score Breakdown</h3>
                     <div className="space-y-3">
-                      {Object.entries(selectedCandidate.detailedScores).map(([category, score]) => (
+                      {selectedCandidate?.detailedScores && Object.entries(selectedCandidate.detailedScores).map(([category, score]) => (
                         <div key={category}>
                           <div className="flex justify-between items-center mb-1">
                             <span className="text-sm font-medium text-gray-700 capitalize">
@@ -432,17 +431,17 @@ const EvaluationResults = () => {
                       <div className="flex items-center text-sm">
                         <ClockIcon className="h-4 w-4 text-gray-400 mr-2" />
                         <span className="text-gray-500">Evaluated:</span>
-                        <span className="text-gray-900 ml-1">{selectedCandidate.evaluatedAt}</span>
+                        <span className="text-gray-900 ml-1">{selectedCandidate?.evaluatedAt || 'N/A'}</span>
                       </div>
                       <div className="flex items-center text-sm">
                         <DocumentTextIcon className="h-4 w-4 text-gray-400 mr-2" />
                         <span className="text-gray-500">Resume:</span>
-                        <span className="text-gray-900 ml-1">{selectedCandidate.resumeFile}</span>
+                        <span className="text-gray-900 ml-1">{selectedCandidate?.resumeFile || 'N/A'}</span>
                       </div>
                       <div className="flex items-center text-sm">
                         <UserIcon className="h-4 w-4 text-gray-400 mr-2" />
                         <span className="text-gray-500">Evaluator:</span>
-                        <span className="text-gray-900 ml-1">{selectedCandidate.evaluator}</span>
+                        <span className="text-gray-900 ml-1">{selectedCandidate?.evaluator || 'N/A'}</span>
                       </div>
                     </div>
                   </div>
@@ -457,12 +456,12 @@ const EvaluationResults = () => {
                       Strengths
                     </h3>
                     <ul className="space-y-2">
-                      {selectedCandidate.strengths.map((strength, index) => (
+                      {selectedCandidate?.strengths?.map((strength, index) => (
                         <li key={index} className="flex items-start text-sm text-gray-700">
                           <CheckCircleIcon className="h-4 w-4 text-green-500 mr-2 mt-0.5 flex-shrink-0" />
                           {strength}
                         </li>
-                      ))}
+                      )) || <li className="text-sm text-gray-500">No strengths available</li>}
                     </ul>
                   </div>
 
@@ -473,12 +472,12 @@ const EvaluationResults = () => {
                       Areas for Improvement
                     </h3>
                     <ul className="space-y-2">
-                      {selectedCandidate.gaps.map((gap, index) => (
+                      {selectedCandidate?.gaps?.map((gap, index) => (
                         <li key={index} className="flex items-start text-sm text-gray-700">
                           <ExclamationTriangleIcon className="h-4 w-4 text-yellow-500 mr-2 mt-0.5 flex-shrink-0" />
                           {gap}
                         </li>
-                      ))}
+                      )) || <li className="text-sm text-gray-500">No areas for improvement identified</li>}
                     </ul>
                   </div>
                 </div>
@@ -491,7 +490,7 @@ const EvaluationResults = () => {
                       Evidence Highlights
                     </h3>
                     <div className="space-y-4">
-                      {selectedCandidate.evidence.map((evidence, index) => (
+                      {selectedCandidate?.evidence?.map((evidence, index) => (
                         <div key={index} className="border-l-4 border-blue-500 pl-4">
                           <div className="flex items-center justify-between mb-2">
                             <span className="text-xs font-medium text-gray-500 uppercase">
@@ -514,87 +513,88 @@ const EvaluationResults = () => {
                             "{evidence.text}"
                           </p>
                         </div>
-                      ))}
+                      )) || <p className="text-sm text-gray-500">No evidence highlights available</p>}
                     </div>
                   </div>
 
                   {/* Actions */}
-                  <div className="bg-white border border-gray-200 rounded-lg p-6">
-                    <h3 className="text-lg font-semibold text-gray-900 mb-4">Human Override</h3>
-                    <div className="space-y-3">
-                      <button
-                        onClick={() => handleOverride('approve')}
-                        className="w-full flex items-center justify-center px-4 py-2 bg-green-600 text-white rounded-md hover:bg-green-700 transition-colors"
-                      >
-                        <HandThumbUpIcon className="h-4 w-4 mr-2" />
-                        Approve Candidate
-                      </button>
-                      <button
-                        onClick={() => handleOverride('reject')}
-                        className="w-full flex items-center justify-center px-4 py-2 bg-red-600 text-white rounded-md hover:bg-red-700 transition-colors"
-                      >
-                        <HandThumbDownIcon className="h-4 w-4 mr-2" />
-                        Reject Candidate
-                      </button>
-                      <button
-                        onClick={() => handleOverride('review')}
-                        className="w-full flex items-center justify-center px-4 py-2 bg-yellow-600 text-white rounded-md hover:bg-yellow-700 transition-colors"
-                      >
-                        <EyeIcon className="h-4 w-4 mr-2" />
-                        Flag for Manual Review
-                      </button>
-                    </div>
-                  </div>
+                  <Card>
+                    <CardHeader>
+                      <CardTitle>Human Override</CardTitle>
+                    </CardHeader>
+                    <CardContent>
+                      <div className="space-y-3">
+                        <Button
+                          onClick={() => handleOverride('approve')}
+                          className="w-full"
+                          variant="default"
+                        >
+                          <ThumbsUp className="h-4 w-4 mr-2" />
+                          Approve Candidate
+                        </Button>
+                        <Button
+                          onClick={() => handleOverride('reject')}
+                          className="w-full"
+                          variant="destructive"
+                        >
+                          <ThumbsDown className="h-4 w-4 mr-2" />
+                          Reject Candidate
+                        </Button>
+                        <Button
+                          onClick={() => handleOverride('review')}
+                          className="w-full"
+                          variant="secondary"
+                        >
+                          <EyeIcon className="h-4 w-4 mr-2" />
+                          Flag for Manual Review
+                        </Button>
+                      </div>
+                    </CardContent>
+                  </Card>
                 </div>
               </div>
             </div>
-          </div>
-        </div>
-      )}
+          </DialogContent>
+        </Dialog>
 
-      {/* Override Modal */}
-      {showOverrideModal && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-          <div className="bg-white rounded-lg shadow-xl max-w-md w-full mx-4">
-            <div className="p-6 border-b border-gray-200">
-              <h3 className="text-lg font-semibold text-gray-900">
-                Confirm Override
-              </h3>
-            </div>
-            <div className="p-6">
-              <p className="text-gray-700 mb-4">
-                You are about to {overrideAction} this candidate. Please provide a reason for this override.
-              </p>
-              <textarea
-                value={overrideReason}
-                onChange={(e) => setOverrideReason(e.target.value)}
-                rows={4}
-                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                placeholder="Enter override reason..."
-              />
-            </div>
-            <div className="p-6 border-t border-gray-200 flex justify-end space-x-3">
-              <button
-                onClick={() => {
-                  setShowOverrideModal(false)
-                  setOverrideReason('')
-                  setOverrideAction('')
-                }}
-                className="px-4 py-2 bg-gray-200 text-gray-800 rounded-md hover:bg-gray-300 transition-colors"
-              >
+      {/* Override Dialog */}
+      <Dialog open={showOverrideModal} onOpenChange={() => {
+        setShowOverrideModal(false)
+        setOverrideReason('')
+        setOverrideAction('')
+      }}>
+        <DialogContent className="max-w-md">
+          <DialogHeader>
+            <DialogTitle>Confirm Override</DialogTitle>
+            <DialogDescription>
+              You are about to {overrideAction} this candidate. Please provide a reason for this override.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-4">
+            <Textarea
+              value={overrideReason}
+              onChange={(e) => setOverrideReason(e.target.value)}
+              rows={4}
+              placeholder="Enter override reason..."
+            />
+            <div className="flex justify-end space-x-2">
+              <Button variant="outline" onClick={() => {
+                setShowOverrideModal(false)
+                setOverrideReason('')
+                setOverrideAction('')
+              }}>
                 Cancel
-              </button>
-              <button
+              </Button>
+              <Button
                 onClick={submitOverride}
                 disabled={!overrideReason.trim()}
-                className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 disabled:bg-gray-300 disabled:cursor-not-allowed transition-colors"
               >
                 Confirm Override
-              </button>
+              </Button>
             </div>
           </div>
-        </div>
-      )}
+        </DialogContent>
+      </Dialog>
     </div>
   )
 }

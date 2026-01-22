@@ -19,7 +19,13 @@ This is a monorepo containing both frontend and backend applications:
 - **Explainable AI**: Every score comes with detailed reasoning and evidence highlighting
 - **Human-in-the-Loop**: Recruiters can override AI decisions with complete audit trail logging
 
-### 📁 Intelligent Resume Processing
+### � Authentication & Security
+- **Secure Login System**: Password-based authentication with session management
+- **Protected Account Creation**: Administrator password-controlled user registration (`admin123`)
+- **Instant Access Control**: Wrong passwords result in immediate redirect to login
+- **Role-Based Access**: Different permissions for HR professionals and administrators
+
+### �📁 Intelligent Resume Processing
 - **Multi-Format Support**: PDF, DOC, and DOCX file parsing
 - **Context Preservation**: Maintains semantic meaning during parsing
 - **Skill Extraction**: Automatic identification and categorization of technical and soft skills

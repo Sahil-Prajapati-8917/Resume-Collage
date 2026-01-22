@@ -1,6 +1,6 @@
-# AI-Driven Holistic Resume Evaluation Platform
+# AI-Driven Holistic Resume Evaluation Platform - Frontend
 
-A comprehensive, multi-industry AI hiring platform that evaluates candidates holistically rather than relying on rigid keyword matching. Built with React, Vite, and Tailwind CSS.
+A comprehensive, multi-industry AI hiring platform frontend that evaluates candidates holistically rather than relying on rigid keyword matching. Built with React, Vite, and Tailwind CSS.
 
 ## 🚀 Features
 
@@ -12,13 +12,21 @@ A comprehensive, multi-industry AI hiring platform that evaluates candidates hol
 - **Resume Parsing**: Intelligent parsing of PDF/DOC files with context preservation
 - **Industry-Specific Prompts**: Customizable evaluation criteria per industry
 
+### Authentication & Security
+- **Secure Login**: Password-based authentication with session management
+- **Protected Account Creation**: Administrator password-protected account registration
+- **Role-Based Access**: Different user permissions and access levels
+
 ### Key Components
-1. **Dashboard**: Overview of evaluations, statistics, and quick actions
-2. **Resume Upload**: Drag-and-drop interface with real-time parsing preview
-3. **Hiring Forms**: Define role requirements, cut-offs, and evaluation weights
-4. **Prompt Management**: Configure industry-specific evaluation prompts
-5. **Evaluation Results**: Review AI scores, evidence, and detailed analysis
-6. **Audit Trail**: Complete logging system for compliance and accountability
+1. **Authentication**: Login and protected account creation system
+2. **Dashboard**: Overview of evaluations, statistics, and quick actions
+3. **Resume Upload**: Drag-and-drop interface with real-time parsing preview
+4. **Hiring Forms**: Define role requirements, cut-offs, and evaluation weights
+5. **Prompt Management**: Configure industry-specific evaluation prompts
+6. **Evaluation Results**: Review AI scores, evidence, and detailed analysis
+7. **Profile Management**: User profile with professional information and performance metrics
+8. **Audit Trail**: Complete logging system for compliance and accountability
+9. **404 Page**: Professional error page with navigation options
 
 ## 🛠️ Technology Stack
 

@@ -8,6 +8,7 @@ A robust Node.js/Express backend API for the AI-Driven Holistic Resume Evaluatio
 - **Resume Processing**: Intelligent parsing of PDF/DOC files with context preservation
 - **AI Evaluation**: Holistic candidate assessment using advanced language models
 - **User Management**: Authentication, authorization, and profile management
+- **Account Creation**: Secure administrator-controlled user registration
 - **Hiring Forms**: Configurable role definitions and evaluation criteria
 - **Prompt Management**: Industry-specific evaluation prompts with version control
 - **Audit Trail**: Complete logging system for compliance and accountability
@@ -18,6 +19,7 @@ A robust Node.js/Express backend API for the AI-Driven Holistic Resume Evaluatio
 - **Caching**: Redis-based session and data caching
 - **Security**: JWT authentication, rate limiting, input validation
 - **Monitoring**: Comprehensive logging and error tracking
+- **Protected Routes**: Administrator password protection for sensitive operations
 
 ## 🛠️ Technology Stack
 

@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react'
 import { Plus, Trash2, AlertTriangle, Loader2 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
@@ -267,107 +267,123 @@ const HiringForm = () => {
             </CardContent>
           </Card>
 
-          <div className="bg-white rounded-lg shadow p-6">
-            <h2 className="text-lg font-semibold text-gray-900 mb-4">Key Responsibilities</h2>
-            {formData.responsibilities.map((responsibility, index) => (
-              <div key={index} className="flex space-x-2 mb-2">
-                <input
-                  type="text"
-                  value={responsibility}
-                  onChange={(e) => handleArrayChange('responsibilities', index, e.target.value)}
-                  className="flex-1 px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                  placeholder="e.g., Lead development of web applications"
-                />
-                {formData.responsibilities.length > 1 && (
-                  <Button variant="ghost" size="sm" onClick={() => removeArrayItem('responsibilities', index)} className="p-2">
-                    <Trash2 className="h-4 w-4" />
-                  </Button>
-                )}
-              </div>
-            ))}
-            <Button onClick={() => addArrayItem('responsibilities')} variant="ghost" className="mt-2">
-              <Plus className="h-4 w-4 mr-1" />
-              Add Responsibility
-            </Button>
-          </div>
+          <Card>
+            <CardHeader>
+              <CardTitle>Key Responsibilities</CardTitle>
+            </CardHeader>
+            <CardContent>
+              {formData.responsibilities.map((responsibility, index) => (
+                <div key={index} className="flex space-x-2 mb-3">
+                  <Input
+                    type="text"
+                    value={responsibility}
+                    onChange={(e) => handleArrayChange('responsibilities', index, e.target.value)}
+                    placeholder="e.g., Lead development of web applications"
+                    className="flex-1"
+                  />
+                  {formData.responsibilities.length > 1 && (
+                    <Button variant="ghost" size="sm" onClick={() => removeArrayItem('responsibilities', index)}>
+                      <Trash2 className="h-4 w-4" />
+                    </Button>
+                  )}
+                </div>
+              ))}
+              <Button onClick={() => addArrayItem('responsibilities')} variant="ghost" className="w-full sm:w-auto">
+                <Plus className="h-4 w-4 mr-1" />
+                Add Responsibility
+              </Button>
+            </CardContent>
+          </Card>
 
-          <div className="bg-white rounded-lg shadow p-6">
-            <h2 className="text-lg font-semibold text-gray-900 mb-4">Required Qualifications</h2>
-            {formData.requirements.map((requirement, index) => (
-              <div key={index} className="flex space-x-2 mb-2">
-                <input
-                  type="text"
-                  value={requirement}
-                  onChange={(e) => handleArrayChange('requirements', index, e.target.value)}
-                  className="flex-1 px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                  placeholder="e.g., 5+ years of experience with React"
-                />
-                {formData.requirements.length > 1 && (
-                  <Button variant="ghost" size="sm" onClick={() => removeArrayItem('requirements', index)} className="p-2">
-                    <Trash2 className="h-4 w-4" />
-                  </Button>
-                )}
-              </div>
-            ))}
-            <Button onClick={() => addArrayItem('requirements')} variant="ghost" className="mt-2">
-              <Plus className="h-4 w-4 mr-1" />
-              Add Requirement
-            </Button>
-          </div>
+          <Card>
+            <CardHeader>
+              <CardTitle>Required Qualifications</CardTitle>
+            </CardHeader>
+            <CardContent>
+              {formData.requirements.map((requirement, index) => (
+                <div key={index} className="flex space-x-2 mb-3">
+                  <Input
+                    type="text"
+                    value={requirement}
+                    onChange={(e) => handleArrayChange('requirements', index, e.target.value)}
+                    placeholder="e.g., 5+ years of experience with React"
+                    className="flex-1"
+                  />
+                  {formData.requirements.length > 1 && (
+                    <Button variant="ghost" size="sm" onClick={() => removeArrayItem('requirements', index)}>
+                      <Trash2 className="h-4 w-4" />
+                    </Button>
+                  )}
+                </div>
+              ))}
+              <Button onClick={() => addArrayItem('requirements')} variant="ghost" className="w-full sm:w-auto">
+                <Plus className="h-4 w-4 mr-1" />
+                Add Requirement
+              </Button>
+            </CardContent>
+          </Card>
 
-          <div className="bg-white rounded-lg shadow p-6">
-            <h2 className="text-lg font-semibold text-gray-900 mb-4">Role Expectations</h2>
-            <p className="text-sm text-gray-600 mb-4">
-              Define what you expect from candidate in this role (performance goals, cultural fit, etc.)
-            </p>
-            {formData.roleExpectations.map((expectation, index) => (
-              <div key={index} className="flex space-x-2 mb-2">
-                <input
-                  type="text"
-                  value={expectation}
-                  onChange={(e) => handleArrayChange('roleExpectations', index, e.target.value)}
-                  className="flex-1 px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                  placeholder="e.g., Lead a team of 3-5 developers"
-                />
-                {formData.roleExpectations.length > 1 && (
-                  <Button variant="ghost" size="sm" onClick={() => removeArrayItem('roleExpectations', index)} className="p-2">
-                    <Trash2 className="h-4 w-4" />
-                  </Button>
-                )}
-              </div>
-            ))}
-            <Button onClick={() => addArrayItem('roleExpectations')} variant="ghost" className="mt-2">
-              <Plus className="h-4 w-4 mr-1" />
-              Add Role Expectation
-            </Button>
-          </div>
+          <Card>
+            <CardHeader>
+              <CardTitle>Role Expectations</CardTitle>
+              <CardDescription>
+                Define what you expect from candidate in this role (performance goals, cultural fit, etc.)
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              {formData.roleExpectations.map((expectation, index) => (
+                <div key={index} className="flex space-x-2 mb-3">
+                  <Input
+                    type="text"
+                    value={expectation}
+                    onChange={(e) => handleArrayChange('roleExpectations', index, e.target.value)}
+                    placeholder="e.g., Lead a team of 3-5 developers"
+                    className="flex-1"
+                  />
+                  {formData.roleExpectations.length > 1 && (
+                    <Button variant="ghost" size="sm" onClick={() => removeArrayItem('roleExpectations', index)}>
+                      <Trash2 className="h-4 w-4" />
+                    </Button>
+                  )}
+                </div>
+              ))}
+              <Button onClick={() => addArrayItem('roleExpectations')} variant="ghost" className="w-full sm:w-auto">
+                <Plus className="h-4 w-4 mr-1" />
+                Add Role Expectation
+              </Button>
+            </CardContent>
+          </Card>
 
-          <div className="bg-white rounded-lg shadow p-6">
-            <h2 className="text-lg font-semibold text-gray-900 mb-4">Key Performance Indicators</h2>
-            <p className="text-sm text-gray-600 mb-4">
-              Define measurable indicators for success in this role
-            </p>
-            {formData.performanceIndicators.map((indicator, index) => (
-              <div key={index} className="flex space-x-2 mb-2">
-                <input
-                  type="text"
-                  value={indicator}
-                  onChange={(e) => handleArrayChange('performanceIndicators', index, e.target.value)}
-                  className="flex-1 px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                  placeholder="e.g., Complete projects within 10% of budget"
-                />
-                {formData.performanceIndicators.length > 1 && (
-                  <Button variant="ghost" size="sm" onClick={() => removeArrayItem('performanceIndicators', index)} className="p-2">
-                    <Trash2 className="h-4 w-4" />
-                  </Button>
-                )}
-              </div>
-            ))}
-            <Button onClick={() => addArrayItem('performanceIndicators')} variant="ghost" className="mt-2">
-              <Plus className="h-4 w-4 mr-1" />
-              Add Performance Indicator
-            </Button>
-          </div>
+          <Card>
+            <CardHeader>
+              <CardTitle>Key Performance Indicators</CardTitle>
+              <CardDescription>
+                Define measurable indicators for success in this role
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              {formData.performanceIndicators.map((indicator, index) => (
+                <div key={index} className="flex space-x-2 mb-3">
+                  <Input
+                    type="text"
+                    value={indicator}
+                    onChange={(e) => handleArrayChange('performanceIndicators', index, e.target.value)}
+                    placeholder="e.g., Complete projects within 10% of budget"
+                    className="flex-1"
+                  />
+                  {formData.performanceIndicators.length > 1 && (
+                    <Button variant="ghost" size="sm" onClick={() => removeArrayItem('performanceIndicators', index)}>
+                      <Trash2 className="h-4 w-4" />
+                    </Button>
+                  )}
+                </div>
+              ))}
+              <Button onClick={() => addArrayItem('performanceIndicators')} variant="ghost" className="w-full sm:w-auto">
+                <Plus className="h-4 w-4 mr-1" />
+                Add Performance Indicator
+              </Button>
+            </CardContent>
+          </Card>
         </div>
 
         <div className="space-y-6">
