@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react'
+import React, { useState } from 'react'
 import {
   User,
   Mail,
@@ -26,7 +26,6 @@ import { Separator } from '@/components/ui/separator'
 import { Textarea } from '@/components/ui/textarea'
 import { Checkbox } from '@/components/ui/checkbox'
 import { Progress } from '@/components/ui/progress'
-import apiService from '../services/api'
 
 const Profile = () => {
   const [isEditing, setIsEditing] = useState(false)
@@ -63,16 +62,8 @@ const Profile = () => {
   })
 
   const [tempProfileData, setTempProfileData] = useState(profileData)
-  const [loading, setLoading] = useState(false)
-  const [error, setError] = useState(null)
-  const [apiStatus, setApiStatus] = useState('checking') // 'checking', 'connected', 'error'
+  const [apiStatus] = useState('connected') // 'checking', 'connected', 'error'
   const [emailNotifications, setEmailNotifications] = useState(true)
-
-  // Initialize profile data on component mount
-  useEffect(() => {
-    setApiStatus('connected')
-    setTempProfileData(profileData)
-  }, [])
 
   const handleEdit = () => {
     setTempProfileData(profileData)
@@ -514,32 +505,16 @@ const Profile = () => {
       {/* API Status Indicator */}
       <Card>
         <CardContent className="p-4">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center">
-              <div className={`w-3 h-3 rounded-full mr-2 ${
-                apiStatus === 'connected' ? 'bg-green-500' : 
-                apiStatus === 'checking' ? 'bg-yellow-500' : 'bg-red-500'
-              }`}></div>
-              <span className="text-sm font-medium">
-                API Status: {apiStatus === 'connected' ? 'Connected' : 
-                           apiStatus === 'checking' ? 'Checking...' : 'Disconnected'}
-              </span>
-            </div>
-            {loading && (
-              <div className="flex items-center">
-                <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-blue-600"></div>
-                <span className="ml-2 text-sm text-gray-600">Loading...</span>
-              </div>
-            )}
+          <div className="flex items-center">
+            <div className={`w-3 h-3 rounded-full mr-2 ${
+              apiStatus === 'connected' ? 'bg-green-500' :
+              apiStatus === 'checking' ? 'bg-yellow-500' : 'bg-red-500'
+            }`}></div>
+            <span className="text-sm font-medium">
+              API Status: {apiStatus === 'connected' ? 'Connected' :
+                         apiStatus === 'checking' ? 'Checking...' : 'Disconnected'}
+            </span>
           </div>
-          {error && (
-            <div className="mt-2 p-2 bg-red-50 border border-red-200 rounded-md">
-              <div className="flex items-center">
-                <AlertCircle className="h-4 w-4 text-red-600 mr-2" />
-                <span className="text-sm text-red-800">Error: {error}</span>
-              </div>
-            </div>
-          )}
         </CardContent>
       </Card>
 

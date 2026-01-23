@@ -26,12 +26,11 @@ import { Label } from '@/components/ui/label'
 
 const CompanyManagement = () => {
   const [companies, setCompanies] = useState([])
-  const [loading, setLoading] = useState(true)
   const [searchTerm, setSearchTerm] = useState('')
   const [industryFilter, setIndustryFilter] = useState('all')
   const [statusFilter, setStatusFilter] = useState('all')
   const [sortBy, setSortBy] = useState('name')
-  const [sortOrder, setSortOrder] = useState('asc')
+  const [sortOrder] = useState('asc')
   
   // Dialog states
   const [showCreateDialog, setShowCreateDialog] = useState(false)
@@ -118,7 +117,6 @@ const CompanyManagement = () => {
 
     setTimeout(() => {
       setCompanies(mockCompanies)
-      setLoading(false)
     }, 1000)
   }, [])
 

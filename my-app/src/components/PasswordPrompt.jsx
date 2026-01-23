@@ -10,7 +10,6 @@ const PasswordPrompt = ({ onPasswordCorrect, onCancel }) => {
   const [password, setPassword] = useState('')
   const [showPassword, setShowPassword] = useState(false)
   const [error, setError] = useState('')
-  const [attempts, setAttempts] = useState(0)
 
   // In a real app, this would come from environment variables or a secure config
   const CORRECT_PASSWORD = 'admin123'

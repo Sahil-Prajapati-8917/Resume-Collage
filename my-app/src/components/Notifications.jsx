@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react'
+import React, { useState } from 'react'
 import { 
   Bell, 
   AlertTriangle, 
@@ -16,63 +16,58 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { ScrollArea } from '@/components/ui/scroll-area'
 
 const Notifications = () => {
-  const [notifications, setNotifications] = useState([])
-  const [isVisible, setIsVisible] = useState(false)
-  const [unreadCount, setUnreadCount] = useState(0)
-
   // Mock notifications data
-  useEffect(() => {
-    const mockNotifications = [
-      {
-        id: '1',
-        type: 'warning',
-        title: 'High Override Rate Detected',
-        message: 'Healthcare industry showing 15% override rate (above 10% threshold)',
-        timestamp: '2 minutes ago',
-        action: 'Review Evaluations',
-        read: false
-      },
-      {
-        id: '2',
-        type: 'info',
-        title: 'New Company Registered',
-        message: 'TechCorp Inc. registered with 50 users',
-        timestamp: '15 minutes ago',
-        action: 'View Company',
-        read: false
-      },
-      {
-        id: '3',
-        type: 'success',
-        title: 'Database Optimization Complete',
-        message: 'Performance improved by 23% after optimization',
-        timestamp: '1 hour ago',
-        action: 'View Details',
-        read: true
-      },
-      {
-        id: '4',
-        type: 'error',
-        title: 'AI Provider Rate Limit Approaching',
-        message: 'OpenAI API calls at 90% of daily limit',
-        timestamp: '2 hours ago',
-        action: 'Check Usage',
-        read: false
-      },
-      {
-        id: '5',
-        type: 'info',
-        title: 'Security Update Applied',
-        message: 'Latest security patches applied successfully',
-        timestamp: '1 day ago',
-        action: 'View Changelog',
-        read: true
-      }
-    ]
+  const mockNotifications = [
+    {
+      id: '1',
+      type: 'warning',
+      title: 'High Override Rate Detected',
+      message: 'Healthcare industry showing 15% override rate (above 10% threshold)',
+      timestamp: '2 minutes ago',
+      action: 'Review Evaluations',
+      read: false
+    },
+    {
+      id: '2',
+      type: 'info',
+      title: 'New Company Registered',
+      message: 'TechCorp Inc. registered with 50 users',
+      timestamp: '15 minutes ago',
+      action: 'View Company',
+      read: false
+    },
+    {
+      id: '3',
+      type: 'success',
+      title: 'Database Optimization Complete',
+      message: 'Performance improved by 23% after optimization',
+      timestamp: '1 hour ago',
+      action: 'View Details',
+      read: true
+    },
+    {
+      id: '4',
+      type: 'error',
+      title: 'AI Provider Rate Limit Approaching',
+      message: 'OpenAI API calls at 90% of daily limit',
+      timestamp: '2 hours ago',
+      action: 'Check Usage',
+      read: false
+    },
+    {
+      id: '5',
+      type: 'info',
+      title: 'Security Update Applied',
+      message: 'Latest security patches applied successfully',
+      timestamp: '1 day ago',
+      action: 'View Changelog',
+      read: true
+    }
+  ]
 
-    setNotifications(mockNotifications)
-    setUnreadCount(mockNotifications.filter(n => !n.read).length)
-  }, [])
+  const [notifications, setNotifications] = useState(mockNotifications)
+  const [isVisible, setIsVisible] = useState(false)
+  const [unreadCount, setUnreadCount] = useState(mockNotifications.filter(n => !n.read).length)
 
   const getNotificationIcon = (type) => {
     switch (type) {

@@ -1,8 +1,9 @@
-import React, { useState, useEffect } from 'react'
-import { 
-  AlertTriangle, 
-  CheckCircle, 
-  Info, 
+import React, { useState } from 'react'
+import { useNavigate } from 'react-router-dom'
+import {
+  AlertTriangle,
+  CheckCircle,
+  Info,
   X,
   Shield,
   TrendingUp,
@@ -16,71 +17,69 @@ import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 
 const Alerts = () => {
-  const [alerts, setAlerts] = useState([])
-  const [dismissedAlerts, setDismissedAlerts] = useState(new Set())
+  const navigate = useNavigate()
 
   // Mock alerts data
-  useEffect(() => {
-    const mockAlerts = [
-      {
-        id: '1',
-        type: 'warning',
-        severity: 'high',
-        title: 'High Override Rate Detected',
-        message: 'Healthcare industry showing 15% override rate (above 10% threshold). This may indicate issues with AI evaluation accuracy.',
-        category: 'Evaluation Quality',
-        timestamp: '2 minutes ago',
-        action: 'Review Evaluations',
-        actionUrl: '/master-admin/evaluation-oversight'
-      },
-      {
-        id: '2',
-        type: 'info',
-        severity: 'medium',
-        title: 'New Company Registered',
-        message: 'TechCorp Inc. registered with 50 users. Consider setting up industry-specific evaluation prompts.',
-        category: 'Company Management',
-        timestamp: '15 minutes ago',
-        action: 'Configure Company',
-        actionUrl: '/master-admin/companies'
-      },
-      {
-        id: '3',
-        type: 'error',
-        severity: 'critical',
-        title: 'AI Provider Rate Limit Approaching',
-        message: 'OpenAI API calls at 90% of daily limit. System may experience delays in resume processing.',
-        category: 'System Health',
-        timestamp: '2 hours ago',
-        action: 'Check Usage',
-        actionUrl: '/master-admin/settings'
-      },
-      {
-        id: '4',
-        type: 'success',
-        severity: 'low',
-        title: 'Database Optimization Complete',
-        message: 'Performance improved by 23% after optimization. Resume processing times reduced.',
-        category: 'System Performance',
-        timestamp: '1 hour ago',
-        action: 'View Details',
-        actionUrl: '/master-admin/analytics'
-      },
-      {
-        id: '5',
-        type: 'warning',
-        severity: 'medium',
-        title: 'Security Update Required',
-        message: 'New security patches available. Scheduled maintenance window recommended.',
-        category: 'Security',
-        timestamp: '1 day ago',
-        action: 'Schedule Maintenance',
-        actionUrl: '/master-admin/settings/maintenance'
-      }
-    ]
+  const mockAlerts = [
+    {
+      id: '1',
+      type: 'warning',
+      severity: 'high',
+      title: 'High Override Rate Detected',
+      message: 'Healthcare industry showing 15% override rate (above 10% threshold). This may indicate issues with AI evaluation accuracy.',
+      category: 'Evaluation Quality',
+      timestamp: '2 minutes ago',
+      action: 'Review Evaluations',
+      actionUrl: '/master-admin/evaluation-oversight'
+    },
+    {
+      id: '2',
+      type: 'info',
+      severity: 'medium',
+      title: 'New Company Registered',
+      message: 'TechCorp Inc. registered with 50 users. Consider setting up industry-specific evaluation prompts.',
+      category: 'Company Management',
+      timestamp: '15 minutes ago',
+      action: 'Configure Company',
+      actionUrl: '/master-admin/companies'
+    },
+    {
+      id: '3',
+      type: 'error',
+      severity: 'critical',
+      title: 'AI Provider Rate Limit Approaching',
+      message: 'OpenAI API calls at 90% of daily limit. System may experience delays in resume processing.',
+      category: 'System Health',
+      timestamp: '2 hours ago',
+      action: 'Check Usage',
+      actionUrl: '/master-admin/settings'
+    },
+    {
+      id: '4',
+      type: 'success',
+      severity: 'low',
+      title: 'Database Optimization Complete',
+      message: 'Performance improved by 23% after optimization. Resume processing times reduced.',
+      category: 'System Performance',
+      timestamp: '1 hour ago',
+      action: 'View Details',
+      actionUrl: '/master-admin/analytics'
+    },
+    {
+      id: '5',
+      type: 'warning',
+      severity: 'medium',
+      title: 'Security Update Required',
+      message: 'New security patches available. Scheduled maintenance window recommended.',
+      category: 'Security',
+      timestamp: '1 day ago',
+      action: 'Schedule Maintenance',
+      actionUrl: '/master-admin/settings/maintenance'
+    }
+  ]
 
-    setAlerts(mockAlerts)
-  }, [])
+  const [alerts, setAlerts] = useState(mockAlerts)
+  const [dismissedAlerts, setDismissedAlerts] = useState(new Set())
 
   const getAlertIcon = (type) => {
     switch (type) {
@@ -118,7 +117,7 @@ const Alerts = () => {
   const handleAction = (alert) => {
     console.log(`Action clicked for: ${alert.title}`)
     // In a real app, this would navigate to the appropriate page
-    window.location.href = alert.actionUrl
+    navigate(alert.actionUrl)
   }
 
   const visibleAlerts = alerts.filter(alert => !dismissedAlerts.has(alert.id))
