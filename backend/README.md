@@ -14,7 +14,7 @@ A robust Node.js/Express backend API for the AI-Driven Holistic Resume Evaluatio
 - **Audit Trail**: Complete logging system for compliance and accountability
 
 ### ✅ Recent Updates
-- **Stability**: All critical runtime errors resolved
+- **Stability**: Fixed critical crash in `auth` routes (middleware import)
 - **Dependencies**: Updated to latest secure versions
 - **Performance**: Optimized background processing and caching
 - **Security**: Enhanced input validation and error handling
@@ -29,7 +29,7 @@ A robust Node.js/Express backend API for the AI-Driven Holistic Resume Evaluatio
 
 ## 🛠️ Technology Stack
 
-- **Runtime**: Node.js 16.0.0+
+- **Runtime**: Node.js 18.0.0+
 - **Framework**: Express.js 4.18.2
 - **Database**: MongoDB with Mongoose ODM
 - **Caching**: Redis 4.6.7
@@ -47,7 +47,7 @@ A robust Node.js/Express backend API for the AI-Driven Holistic Resume Evaluatio
 ## 📦 Installation & Setup
 
 ### Prerequisites
-- Node.js 16.0.0 or higher
+- Node.js 18.0.0 or higher
 - npm 8.0.0 or higher
 - MongoDB 5.0 or higher
 - Redis 6.0 or higher

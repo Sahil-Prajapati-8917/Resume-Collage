@@ -19,6 +19,7 @@ This is a monorepo containing both frontend and backend applications:
 - **Import Errors**: Fixed incorrect imports of Recharts components from `lucide-react` instead of `recharts` library in EvaluationOversight and SystemAnalytics pages
 - **Unused Variables**: Cleaned up unused state variables and imports across multiple components to eliminate ESLint warnings
 - **Component State Management**: Improved initialization patterns for mock data to prevent React strict mode violations
+- **Backend Routing**: Fixed critical crash in `auth` routes caused by incorrect middleware import
 
 ### 🚀 Current Status
 - **Runtime Errors**: All critical runtime errors resolved
@@ -41,8 +42,8 @@ This is a monorepo containing both frontend and backend applications:
 - **Human-in-the-Loop**: Recruiters can override AI decisions with complete audit trail logging
 
 ### � Authentication & Security
-- **Secure Login System**: Password-based authentication with session management
-- **Protected Account Creation**: Administrator password-controlled user registration (`admin123`)
+- **Secure Login System**: Password-based authentication (Simplified for development: accepts any credentials)
+- **Protected Account Creation**: Administrator password-controlled user registration
 - **Instant Access Control**: Wrong passwords result in immediate redirect to login
 - **Role-Based Access**: Different permissions for HR professionals and administrators
 
@@ -85,7 +86,7 @@ This is a monorepo containing both frontend and backend applications:
 ## 📦 Installation & Setup
 
 ### Prerequisites
-- Node.js 16.0.0 or higher
+- Node.js 18.0.0 or higher
 - npm 8.0.0 or higher
 - MongoDB 5.0 or higher
 - Redis 6.0 or higher

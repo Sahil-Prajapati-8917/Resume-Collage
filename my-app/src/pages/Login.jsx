@@ -1,6 +1,7 @@
 import React, { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
+import authService from '../services/auth'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
@@ -23,13 +24,31 @@ const Login = () => {
     // Simulate login - in real app this would call an API
     await new Promise(resolve => setTimeout(resolve, 1000))
 
-    // Mock authentication - accept any email/password for demo
-    if (email && password) {
-      localStorage.setItem('isLoggedIn', 'true')
-      localStorage.setItem('userEmail', email)
-      navigate('/dashboard')
+    const isDev = import.meta.env.DEV
+
+    if (isDev) {
+      // Mock authentication - accept any email/password for demo (DEV ONLY)
+      if (email && password) {
+        localStorage.setItem('isLoggedIn', 'true')
+        localStorage.setItem('userEmail', email)
+        // Set dummy tokens to satisfy ProtectedRoute
+        localStorage.setItem('token', 'mock-jwt-token')
+        localStorage.setItem('refreshToken', 'mock-refresh-token')
+        navigate('/dashboard')
+      } else {
+        setError('Please enter both email and password')
+      }
     } else {
-      setError('Please enter both email and password')
+      // Real authentication (PROD)
+      const result = await authService.login(email, password)
+
+      if (result.success) {
+        localStorage.setItem('isLoggedIn', 'true')
+        localStorage.setItem('userEmail', email)
+        navigate('/dashboard')
+      } else {
+        setError(result.error?.message || 'Invalid email or password')
+      }
     }
 
     setLoading(false)

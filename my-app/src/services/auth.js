@@ -24,6 +24,31 @@ class AuthService {
     localStorage.removeItem('refreshToken');
   }
 
+  // Login user
+  async login(email, password) {
+    try {
+      const response = await fetch(`${API_BASE_URL}/auth/login`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({ email, password })
+      });
+
+      const data = await response.json();
+
+      if (response.ok) {
+        this.setTokens(data.token, data.refreshToken);
+        return { success: true, data };
+      } else {
+        return { success: false, error: data };
+      }
+    } catch (error) {
+      console.error('Login error:', error);
+      return { success: false, error: { message: 'Network error' } };
+    }
+  }
+
   // Get current user profile
   async getProfile() {
     try {
@@ -125,7 +150,7 @@ class AuthService {
       });
 
       this.clearTokens();
-      
+
       if (response.ok) {
         return { success: true };
       } else {

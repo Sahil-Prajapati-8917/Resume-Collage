@@ -12,7 +12,8 @@ const PasswordPrompt = ({ onPasswordCorrect, onCancel }) => {
   const [error, setError] = useState('')
 
   // In a real app, this would come from environment variables or a secure config
-  const CORRECT_PASSWORD = 'admin123'
+  // Use environment variable for admin password, fallback for local dev if needed
+  const CORRECT_PASSWORD = import.meta.env.VITE_ADMIN_PASSWORD || 'admin123'
 
   const handleSubmit = (e) => {
     e.preventDefault()
@@ -27,7 +28,7 @@ const PasswordPrompt = ({ onPasswordCorrect, onCancel }) => {
   }
 
   return (
-    <Dialog open={true} onOpenChange={() => {}}>
+    <Dialog open={true} onOpenChange={() => { }}>
       <DialogContent className="sm:max-w-md">
         <DialogHeader>
           <DialogTitle className="flex items-center">
