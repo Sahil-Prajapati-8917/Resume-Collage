@@ -1,14 +1,16 @@
 import React, { useState, useEffect } from 'react'
-import { 
-  TrendingUp, 
-  Database, 
-  Activity, 
-  Clock, 
+import {
+  TrendingUp,
+  Database,
+  Activity,
+  Clock,
   Users,
   FileText,
   Shield,
   BarChart3,
-  LineChart,
+  LineChart
+} from 'lucide-react'
+import {
   Line,
   XAxis,
   YAxis,
@@ -22,7 +24,7 @@ import {
   Area,
   BarChart,
   Bar
-} from 'lucide-react'
+} from 'recharts'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'

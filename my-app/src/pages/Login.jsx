@@ -27,7 +27,7 @@ const Login = () => {
     if (email && password) {
       localStorage.setItem('isLoggedIn', 'true')
       localStorage.setItem('userEmail', email)
-      navigate('/')
+      navigate('/dashboard')
     } else {
       setError('Please enter both email and password')
     }

@@ -12,6 +12,12 @@ A comprehensive, multi-industry AI hiring platform frontend that evaluates candi
 - **Resume Parsing**: Intelligent parsing of PDF/DOC files with context preservation
 - **Industry-Specific Prompts**: Customizable evaluation criteria per industry
 
+### ✅ Recent Updates
+- **Bug Fixes**: Resolved critical runtime errors and React hooks violations
+- **Performance**: Optimized component rendering and navigation
+- **Stability**: Fixed import errors and chart component issues
+- **User Experience**: Improved error handling and component state management
+
 ### Authentication & Security
 - **Secure Login**: Password-based authentication with session management
 - **Protected Account Creation**: Administrator password-protected account registration

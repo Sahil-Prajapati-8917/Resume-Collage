@@ -1,7 +1,8 @@
 import React from 'react'
-import { BrowserRouter as Router, Routes, Route } from 'react-router-dom'
+import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom'
 import Layout from './components/Layout'
 import MasterAdminLayout from './components/MasterAdminLayout'
+import ProtectedRoute from './components/ProtectedRoute'
 import Login from './pages/Login'
 import ProtectedCreateAccount from './pages/ProtectedCreateAccount'
 import NotFound from './pages/NotFound'
@@ -25,97 +26,134 @@ function App() {
   return (
     <Router>
       <Routes>
+        {/* Redirect root to login */}
+        <Route path="/" element={<Navigate to="/login" replace />} />
+
         {/* Auth routes without layout */}
         <Route path="/login" element={<Login />} />
         <Route path="/create-account" element={<ProtectedCreateAccount />} />
 
-        {/* Main app routes with layout */}
-        <Route path="/" element={
-          <Layout>
-            <Dashboard />
-          </Layout>
+        {/* Protected main app routes with layout */}
+        <Route path="/dashboard" element={
+          <ProtectedRoute>
+            <Layout>
+              <Dashboard />
+            </Layout>
+          </ProtectedRoute>
         } />
         <Route path="/upload" element={
-          <Layout>
-            <ResumeUpload />
-          </Layout>
+          <ProtectedRoute>
+            <Layout>
+              <ResumeUpload />
+            </Layout>
+          </ProtectedRoute>
         } />
         <Route path="/hiring-form" element={
-          <Layout>
-            <HiringForm />
-          </Layout>
+          <ProtectedRoute>
+            <Layout>
+              <HiringForm />
+            </Layout>
+          </ProtectedRoute>
         } />
         <Route path="/results" element={
-          <Layout>
-            <EvaluationResults />
-          </Layout>
+          <ProtectedRoute>
+            <Layout>
+              <EvaluationResults />
+            </Layout>
+          </ProtectedRoute>
         } />
         <Route path="/prompts" element={
-          <Layout>
-            <PromptManagement />
-          </Layout>
+          <ProtectedRoute>
+            <Layout>
+              <PromptManagement />
+            </Layout>
+          </ProtectedRoute>
         } />
         <Route path="/audit" element={
-          <Layout>
-            <AuditTrail />
-          </Layout>
+          <ProtectedRoute>
+            <Layout>
+              <AuditTrail />
+            </Layout>
+          </ProtectedRoute>
         } />
         <Route path="/history" element={
-          <Layout>
-            <History />
-          </Layout>
+          <ProtectedRoute>
+            <Layout>
+              <History />
+            </Layout>
+          </ProtectedRoute>
         } />
         <Route path="/profile" element={
-          <Layout>
-            <Profile />
-          </Layout>
+          <ProtectedRoute>
+            <Layout>
+              <Profile />
+            </Layout>
+          </ProtectedRoute>
         } />
 
-        {/* Master Admin routes */}
+        {/* Protected Master Admin routes */}
         <Route path="/master-admin/dashboard" element={
-          <MasterAdminLayout>
-            <MasterAdminDashboard />
-          </MasterAdminLayout>
+          <ProtectedRoute requiredRole="admin">
+            <MasterAdminLayout>
+              <MasterAdminDashboard />
+            </MasterAdminLayout>
+          </ProtectedRoute>
         } />
         <Route path="/master-admin/companies" element={
-          <MasterAdminLayout>
-            <CompanyManagement />
-          </MasterAdminLayout>
+          <ProtectedRoute requiredRole="admin">
+            <MasterAdminLayout>
+              <CompanyManagement />
+            </MasterAdminLayout>
+          </ProtectedRoute>
         } />
         <Route path="/master-admin/hr-users" element={
-          <MasterAdminLayout>
-            <HRUserManagement />
-          </MasterAdminLayout>
+          <ProtectedRoute requiredRole="admin">
+            <MasterAdminLayout>
+              <HRUserManagement />
+            </MasterAdminLayout>
+          </ProtectedRoute>
         } />
         <Route path="/master-admin/global-hiring-forms" element={
-          <MasterAdminLayout>
-            <GlobalHiringForms />
-          </MasterAdminLayout>
+          <ProtectedRoute requiredRole="admin">
+            <MasterAdminLayout>
+              <GlobalHiringForms />
+            </MasterAdminLayout>
+          </ProtectedRoute>
         } />
         <Route path="/master-admin/prompt-management" element={
-          <MasterAdminLayout>
-            <PromptManagement />
-          </MasterAdminLayout>
+          <ProtectedRoute requiredRole="admin">
+            <MasterAdminLayout>
+              <PromptManagement />
+            </MasterAdminLayout>
+          </ProtectedRoute>
         } />
         <Route path="/master-admin/evaluation-oversight" element={
-          <MasterAdminLayout>
-            <EvaluationOversight />
-          </MasterAdminLayout>
+          <ProtectedRoute requiredRole="admin">
+            <MasterAdminLayout>
+              <EvaluationOversight />
+            </MasterAdminLayout>
+          </ProtectedRoute>
         } />
         <Route path="/master-admin/audit-trail" element={
-          <MasterAdminLayout>
-            <AuditTrail />
-          </MasterAdminLayout>
+          <ProtectedRoute requiredRole="admin">
+            <MasterAdminLayout>
+              <AuditTrail />
+            </MasterAdminLayout>
+          </ProtectedRoute>
         } />
         <Route path="/master-admin/analytics" element={
-          <MasterAdminLayout>
-            <SystemAnalytics />
-          </MasterAdminLayout>
+          <ProtectedRoute requiredRole="admin">
+            <MasterAdminLayout>
+              <SystemAnalytics />
+            </MasterAdminLayout>
+          </ProtectedRoute>
         } />
         <Route path="/master-admin/settings" element={
-          <MasterAdminLayout>
-            <SystemSettings />
-          </MasterAdminLayout>
+          <ProtectedRoute requiredRole="admin">
+            <MasterAdminLayout>
+              <SystemSettings />
+            </MasterAdminLayout>
+          </ProtectedRoute>
         } />
 
         {/* 404 catch-all route */}

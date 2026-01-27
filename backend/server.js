@@ -41,9 +41,17 @@ app.use(express.urlencoded({ extended: true, limit: '10mb' }));
 // Routes
 app.use('/api/auth', authRoutes);
 app.use('/api/hiring-forms', require('./src/routes/hiringForm'));
+app.use('/api/global-hiring-forms', require('./src/routes/globalHiringForm'));
 app.use('/api/industries', require('./src/routes/industry'));
 app.use('/api/prompts', require('./src/routes/prompt'));
+app.use('/api/prompt-management', require('./src/routes/promptManagement'));
 app.use('/api/resume', require('./src/routes/resume'));
+app.use('/api/company', require('./src/routes/company'));
+app.use('/api/hr-user', require('./src/routes/hrUser'));
+app.use('/api/audit-trail', require('./src/routes/auditTrail'));
+app.use('/api/evaluation-oversight', require('./src/routes/evaluationOversight'));
+app.use('/api/system-analytics', require('./src/routes/systemAnalytics'));
+app.use('/api/system-settings', require('./src/routes/systemSettings'));
 
 // Health check endpoint
 app.get('/api/health', async (req, res) => {
@@ -98,7 +106,6 @@ const connectDB = async () => {
     console.log(`✅ MongoDB Connected: ${mongoose.connection.host}`);
     console.log(`🚀 Server running on port ${PORT} in ${process.env.NODE_ENV || 'development'} mode`);
     console.log(`📚 API Documentation: http://localhost:${PORT}/api/health`);
-    console.log(`�️ MongoDB Atlas: mongodb+srv://Sahil:sahil123@sahil.hiu5uk3.mongodb.net/Pixora`);
     console.log(`�🔗 Frontend URL: ${process.env.FRONTEND_URL || 'http://localhost:3000'}`);
   } catch (error) {
     console.error('❌ Database connection error:', error);

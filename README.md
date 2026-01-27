@@ -11,7 +11,28 @@ This is a monorepo containing both frontend and backend applications:
 - **AI Integration**: Holistic evaluation using advanced language models
 - **File Processing**: Intelligent parsing of PDF/DOC files with context preservation
 
-## 🚀 Key Features
+## � Recent Bug Fixes & Updates
+
+### ✅ Critical Bug Fixes (Latest)
+- **Navigation Issues**: Fixed improper `window.location.href` usage in Alerts component - replaced with React Router's `navigate()` hook
+- **React Hooks Violations**: Resolved synchronous `setState` calls within `useEffect` hooks in multiple components (Alerts, Notifications, Profile)
+- **Import Errors**: Fixed incorrect imports of Recharts components from `lucide-react` instead of `recharts` library in EvaluationOversight and SystemAnalytics pages
+- **Unused Variables**: Cleaned up unused state variables and imports across multiple components to eliminate ESLint warnings
+- **Component State Management**: Improved initialization patterns for mock data to prevent React strict mode violations
+
+### 🚀 Current Status
+- **Runtime Errors**: All critical runtime errors resolved
+- **Build Status**: Frontend and backend build successfully without errors
+- **Dependencies**: All packages up-to-date with security patches applied
+- **Code Quality**: ESLint configuration active with most critical issues resolved
+
+### 🛠️ Technical Improvements
+- **Performance**: Eliminated cascading renders from improper state updates
+- **User Experience**: Fixed navigation and component loading issues
+- **Developer Experience**: Cleaner code with proper React patterns
+- **Maintainability**: Removed technical debt from unused code
+
+## �🚀 Key Features
 
 ### 🎯 Holistic Evaluation System
 - **Multi-Industry Support**: Configurable evaluation prompts for IT, Healthcare, Finance, Manufacturing, and more

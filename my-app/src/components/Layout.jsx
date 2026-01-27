@@ -17,7 +17,7 @@ const Layout = ({ children }) => {
   const location = useLocation()
 
   const navigation = [
-    { name: 'Dashboard', href: '/', icon: Home },
+    { name: 'Dashboard', href: '/dashboard', icon: Home },
     { name: 'Upload Resume', href: '/upload', icon: Upload },
     { name: 'Hiring Form', href: '/hiring-form', icon: ClipboardList },
     { name: 'Evaluation Results', href: '/results', icon: BarChart },

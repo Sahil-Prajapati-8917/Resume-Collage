@@ -1,8 +1,8 @@
 import React, { useState, useEffect } from 'react'
-import { 
-  Search, 
-  Filter, 
-  Eye, 
+import {
+  Search,
+  Filter,
+  Eye,
   Flag,
   Shield,
   TrendingUp,
@@ -14,7 +14,9 @@ import {
   XCircle,
   BarChart3,
   PieChart,
-  LineChart,
+  LineChart
+} from 'lucide-react'
+import {
   Line,
   XAxis,
   YAxis,
@@ -23,7 +25,7 @@ import {
   ResponsiveContainer,
   Pie,
   Cell
-} from 'lucide-react'
+} from 'recharts'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
