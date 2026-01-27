@@ -1,5 +1,5 @@
 import React, { useState } from 'react'
-import { 
+import {
   Search,
   Filter,
   Calendar,
@@ -127,16 +127,16 @@ const History = () => {
 
   const filteredHistory = evaluationHistory.filter(item => {
     const matchesSearch = item.candidateName.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                         item.jobTitle.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                         item.industry.toLowerCase().includes(searchTerm.toLowerCase())
-    
+      item.jobTitle.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      item.industry.toLowerCase().includes(searchTerm.toLowerCase())
+
     const matchesStatus = statusFilter === 'all' || item.status === statusFilter
-    
-    const matchesDate = dateFilter === 'all' || 
-                      (dateFilter === 'today' && item.submittedDate === '2024-12-20') ||
-                      (dateFilter === 'week' && item.submittedDate >= '2024-12-14') ||
-                      (dateFilter === 'month' && item.submittedDate >= '2024-11-20')
-    
+
+    const matchesDate = dateFilter === 'all' ||
+      (dateFilter === 'today' && item.submittedDate === '2024-12-20') ||
+      (dateFilter === 'week' && item.submittedDate >= '2024-12-14') ||
+      (dateFilter === 'month' && item.submittedDate >= '2024-11-20')
+
     return matchesSearch && matchesStatus && matchesDate
   })
 
@@ -182,8 +182,8 @@ const History = () => {
                 />
               </div>
             </div>
-            
-            <div className="flex gap-4">
+
+            <div className="flex flex-wrap gap-4">
               <Select value={statusFilter} onValueChange={setStatusFilter}>
                 <SelectTrigger className="w-48">
                   <SelectValue placeholder="Filter by status" />
@@ -334,10 +334,9 @@ const History = () => {
                     <td className="py-3 px-4">
                       {item.score ? (
                         <div className="flex items-center">
-                          <span className={`font-bold ${
-                            item.score >= 80 ? 'text-green-600' :
-                            item.score >= 60 ? 'text-yellow-600' : 'text-red-600'
-                          }`}>
+                          <span className={`font-bold ${item.score >= 80 ? 'text-green-600' :
+                              item.score >= 60 ? 'text-yellow-600' : 'text-red-600'
+                            }`}>
                             {item.score}%
                           </span>
                         </div>
@@ -380,7 +379,7 @@ const History = () => {
               </tbody>
             </table>
           </div>
-          
+
           {filteredHistory.length === 0 && (
             <div className="text-center py-8">
               <FileText className="h-12 w-12 text-gray-400 mx-auto mb-4" />

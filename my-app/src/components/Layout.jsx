@@ -1,8 +1,8 @@
 import React from 'react'
 import { Link, useLocation } from 'react-router-dom'
-import { 
-  Home, 
-  Upload, 
+import {
+  Home,
+  Upload,
   ClipboardList,
   BarChart,
   Settings,
@@ -44,7 +44,7 @@ const Layout = ({ children }) => {
                 const isActive = location.pathname === item.href
                 return (
                   <SidebarMenuItem key={item.name}>
-                    <SidebarMenuButton 
+                    <SidebarMenuButton
                       asChild
                       isActive={isActive}
                     >
@@ -86,7 +86,7 @@ const Layout = ({ children }) => {
           </header>
 
           {/* Page Content */}
-          <main className="flex-1 p-6 overflow-auto">
+          <main className="flex-1 p-4 md:p-6 overflow-auto">
             {children}
           </main>
         </div>

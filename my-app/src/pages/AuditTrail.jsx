@@ -1,5 +1,5 @@
 import React, { useState } from 'react'
-import { 
+import {
   MagnifyingGlassIcon,
   FunnelIcon,
   EyeIcon,
@@ -156,7 +156,7 @@ const AuditTrail = () => {
   ])
 
   const filteredLogs = auditLogs.filter(log => {
-    const matchesSearch = searchTerm === '' || 
+    const matchesSearch = searchTerm === '' ||
       log.candidateName?.toLowerCase().includes(searchTerm.toLowerCase()) ||
       log.user?.toLowerCase().includes(searchTerm.toLowerCase()) ||
       log.action?.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -294,7 +294,7 @@ const AuditTrail = () => {
         </div>
 
         {/* Export Button */}
-        <div className="mt-4 flex justify-between items-center">
+        <div className="mt-4 flex flex-col sm:flex-row justify-between items-center gap-4">
           <div className="text-sm text-gray-500">
             Showing {filteredLogs.length} of {auditLogs.length} entries
           </div>

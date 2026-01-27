@@ -1,12 +1,12 @@
 import React, { useState, useEffect } from 'react'
-import { 
-  Plus, 
-  Search, 
-  Filter, 
-  Download, 
-  Eye, 
-  Edit, 
-  Trash2, 
+import {
+  Plus,
+  Search,
+  Filter,
+  Download,
+  Eye,
+  Edit,
+  Trash2,
   Copy,
   ClipboardList,
   Settings,
@@ -35,7 +35,7 @@ const GlobalHiringForms = () => {
   const [statusFilter, setStatusFilter] = useState('all')
   const [sortBy, setSortBy] = useState('name')
   const [sortOrder, setSortOrder] = useState('asc')
-  
+
   // Dialog states
   const [showCreateDialog, setShowCreateDialog] = useState(false)
   const [showEditDialog, setShowEditDialog] = useState(false)
@@ -196,7 +196,7 @@ const GlobalHiringForms = () => {
   }, [])
 
   const filteredForms = forms
-    .filter(form => 
+    .filter(form =>
       form.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
       form.industry.toLowerCase().includes(searchTerm.toLowerCase()) ||
       form.roleType.toLowerCase().includes(searchTerm.toLowerCase())
@@ -206,7 +206,7 @@ const GlobalHiringForms = () => {
     .filter(form => statusFilter === 'all' || (form.isActive && statusFilter === 'active') || (!form.isActive && statusFilter === 'inactive'))
     .sort((a, b) => {
       let aValue, bValue
-      
+
       switch (sortBy) {
         case 'name':
           aValue = a.name
@@ -269,7 +269,7 @@ const GlobalHiringForms = () => {
       usageCount: 0,
       lastUsed: null
     }
-    
+
     setForms([...forms, newFormObj])
     setShowCreateDialog(false)
     setNewForm({
@@ -297,7 +297,7 @@ const GlobalHiringForms = () => {
   }
 
   const handleEditForm = async () => {
-    const updatedForms = forms.map(form => 
+    const updatedForms = forms.map(form =>
       form.id === selectedForm.id ? { ...form, ...editForm } : form
     )
     setForms(updatedForms)
@@ -305,7 +305,7 @@ const GlobalHiringForms = () => {
   }
 
   const handleToggleFormStatus = (formId) => {
-    const updatedForms = forms.map(form => 
+    const updatedForms = forms.map(form =>
       form.id === formId ? { ...form, isActive: !form.isActive } : form
     )
     setForms(updatedForms)
@@ -326,7 +326,7 @@ const GlobalHiringForms = () => {
       usageCount: 0,
       lastUsed: null
     }
-    
+
     setForms([...forms, clonedForm])
     setShowCloneDialog(false)
     setSelectedForm(null)
@@ -360,8 +360,8 @@ const GlobalHiringForms = () => {
               />
             </div>
           </div>
-          
-          <div className="flex gap-2">
+
+          <div className="flex flex-wrap gap-2">
             <Select value={industryFilter} onValueChange={setIndustryFilter}>
               <SelectTrigger className="w-[160px]">
                 <SelectValue placeholder="Filter by industry" />
@@ -544,9 +544,9 @@ const GlobalHiringForms = () => {
                         <Button variant="ghost" size="sm" onClick={() => handleCloneForm(form)}>
                           <Copy className="h-4 w-4" />
                         </Button>
-                        <Button 
-                          variant="ghost" 
-                          size="sm" 
+                        <Button
+                          variant="ghost"
+                          size="sm"
                           onClick={() => handleToggleFormStatus(form.id)}
                           className={form.isActive ? 'text-red-600 hover:text-red-700' : 'text-green-600 hover:text-green-700'}
                         >
@@ -581,14 +581,14 @@ const GlobalHiringForms = () => {
               <Input
                 id="name"
                 value={newForm.name}
-                onChange={(e) => setNewForm({...newForm, name: e.target.value})}
+                onChange={(e) => setNewForm({ ...newForm, name: e.target.value })}
                 placeholder="e.g., Senior Software Engineer - IT"
               />
             </div>
             <div className="grid grid-cols-2 gap-4">
               <div className="grid gap-2">
                 <Label htmlFor="industry">Industry</Label>
-                <Select value={newForm.industry} onValueChange={(value) => setNewForm({...newForm, industry: value})}>
+                <Select value={newForm.industry} onValueChange={(value) => setNewForm({ ...newForm, industry: value })}>
                   <SelectTrigger>
                     <SelectValue placeholder="Select industry" />
                   </SelectTrigger>
@@ -602,7 +602,7 @@ const GlobalHiringForms = () => {
               </div>
               <div className="grid gap-2">
                 <Label htmlFor="roleType">Role Type</Label>
-                <Select value={newForm.roleType} onValueChange={(value) => setNewForm({...newForm, roleType: value})}>
+                <Select value={newForm.roleType} onValueChange={(value) => setNewForm({ ...newForm, roleType: value })}>
                   <SelectTrigger>
                     <SelectValue placeholder="Select role type" />
                   </SelectTrigger>
@@ -620,11 +620,11 @@ const GlobalHiringForms = () => {
               <Input
                 id="experienceLevel"
                 value={newForm.experienceLevel}
-                onChange={(e) => setNewForm({...newForm, experienceLevel: e.target.value})}
+                onChange={(e) => setNewForm({ ...newForm, experienceLevel: e.target.value })}
                 placeholder="e.g., 8+ years"
               />
             </div>
-            
+
             {/* Evaluation Weights */}
             <div className="grid gap-2">
               <Label>Evaluation Weights (Total: {calculateTotalWeight(newForm.evaluationWeights)}%)</Label>
@@ -782,13 +782,13 @@ const GlobalHiringForms = () => {
               <Input
                 id="editName"
                 value={editForm.name}
-                onChange={(e) => setEditForm({...editForm, name: e.target.value})}
+                onChange={(e) => setEditForm({ ...editForm, name: e.target.value })}
               />
             </div>
             <div className="grid grid-cols-2 gap-4">
               <div className="grid gap-2">
                 <Label htmlFor="editIndustry">Industry</Label>
-                <Select value={editForm.industry} onValueChange={(value) => setEditForm({...editForm, industry: value})}>
+                <Select value={editForm.industry} onValueChange={(value) => setEditForm({ ...editForm, industry: value })}>
                   <SelectTrigger>
                     <SelectValue placeholder="Select industry" />
                   </SelectTrigger>
@@ -802,7 +802,7 @@ const GlobalHiringForms = () => {
               </div>
               <div className="grid gap-2">
                 <Label htmlFor="editRoleType">Role Type</Label>
-                <Select value={editForm.roleType} onValueChange={(value) => setEditForm({...editForm, roleType: value})}>
+                <Select value={editForm.roleType} onValueChange={(value) => setEditForm({ ...editForm, roleType: value })}>
                   <SelectTrigger>
                     <SelectValue placeholder="Select role type" />
                   </SelectTrigger>
@@ -820,14 +820,14 @@ const GlobalHiringForms = () => {
               <Input
                 id="editExperienceLevel"
                 value={editForm.experienceLevel}
-                onChange={(e) => setEditForm({...editForm, experienceLevel: e.target.value})}
+                onChange={(e) => setEditForm({ ...editForm, experienceLevel: e.target.value })}
               />
             </div>
-            
+
             {/* Status Toggle */}
             <div className="flex items-center space-x-2">
               <Label htmlFor="editStatus">Status</Label>
-              <Select value={editForm.isActive ? 'active' : 'inactive'} onValueChange={(value) => setEditForm({...editForm, isActive: value === 'active'})}>
+              <Select value={editForm.isActive ? 'active' : 'inactive'} onValueChange={(value) => setEditForm({ ...editForm, isActive: value === 'active' })}>
                 <SelectTrigger>
                   <SelectValue placeholder="Select status" />
                 </SelectTrigger>
@@ -860,7 +860,7 @@ const GlobalHiringForms = () => {
               <Input
                 id="cloneName"
                 value={selectedForm ? `${selectedForm.name} (Clone)` : ''}
-                onChange={(e) => setSelectedForm({...selectedForm, name: e.target.value})}
+                onChange={(e) => setSelectedForm({ ...selectedForm, name: e.target.value })}
               />
             </div>
           </div>

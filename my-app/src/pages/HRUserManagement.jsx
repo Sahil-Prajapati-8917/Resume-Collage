@@ -1,12 +1,12 @@
 import React, { useState, useEffect } from 'react'
-import { 
-  Plus, 
-  Search, 
-  Filter, 
-  Download, 
-  Eye, 
-  Edit, 
-  Trash2, 
+import {
+  Plus,
+  Search,
+  Filter,
+  Download,
+  Eye,
+  Edit,
+  Trash2,
   UserPlus,
   Mail,
   Shield,
@@ -35,7 +35,7 @@ const HRUserManagement = () => {
   const [companyFilter, setCompanyFilter] = useState('all')
   const [sortBy, setSortBy] = useState('name')
   const [sortOrder, setSortOrder] = useState('asc')
-  
+
   // Dialog states
   const [showCreateDialog, setShowCreateDialog] = useState(false)
   const [showEditDialog, setShowEditDialog] = useState(false)
@@ -162,7 +162,7 @@ const HRUserManagement = () => {
   }, [])
 
   const filteredUsers = users
-    .filter(user => 
+    .filter(user =>
       user.firstName.toLowerCase().includes(searchTerm.toLowerCase()) ||
       user.lastName.toLowerCase().includes(searchTerm.toLowerCase()) ||
       user.email.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -173,7 +173,7 @@ const HRUserManagement = () => {
     .filter(user => companyFilter === 'all' || user.company.id === companyFilter)
     .sort((a, b) => {
       let aValue, bValue
-      
+
       switch (sortBy) {
         case 'name':
           aValue = `${a.firstName} ${a.lastName}`
@@ -247,7 +247,7 @@ const HRUserManagement = () => {
       createdAt: new Date().toISOString().split('T')[0],
       permissions: getPermissionsForRole(newUser.role)
     }
-    
+
     setUsers([...users, newUserObj])
     setShowCreateDialog(false)
     setNewUser({
@@ -264,9 +264,9 @@ const HRUserManagement = () => {
   }
 
   const handleEditUser = async () => {
-    const updatedUsers = users.map(user => 
-      user.id === selectedUser.id ? { 
-        ...user, 
+    const updatedUsers = users.map(user =>
+      user.id === selectedUser.id ? {
+        ...user,
         ...editUser,
         permissions: getPermissionsForRole(editUser.role)
       } : user
@@ -276,7 +276,7 @@ const HRUserManagement = () => {
   }
 
   const handleToggleUserStatus = (userId) => {
-    const updatedUsers = users.map(user => 
+    const updatedUsers = users.map(user =>
       user.id === userId ? { ...user, isActive: !user.isActive } : user
     )
     setUsers(updatedUsers)
@@ -285,7 +285,7 @@ const HRUserManagement = () => {
   const handleBulkImport = () => {
     const lines = bulkUsers.trim().split('\n')
     const importedUsers = []
-    
+
     lines.forEach(line => {
       const [email, firstName, lastName, role] = line.split(',')
       if (email && firstName && lastName && role) {
@@ -347,8 +347,8 @@ const HRUserManagement = () => {
               />
             </div>
           </div>
-          
-          <div className="flex gap-2">
+
+          <div className="flex flex-wrap gap-2">
             <Select value={roleFilter} onValueChange={setRoleFilter}>
               <SelectTrigger className="w-[160px]">
                 <SelectValue placeholder="Filter by role" />
@@ -524,9 +524,9 @@ const HRUserManagement = () => {
                         }}>
                           <Edit className="h-4 w-4" />
                         </Button>
-                        <Button 
-                          variant="ghost" 
-                          size="sm" 
+                        <Button
+                          variant="ghost"
+                          size="sm"
                           onClick={() => handleToggleUserStatus(user.id)}
                           className={user.isActive ? 'text-red-600 hover:text-red-700' : 'text-green-600 hover:text-green-700'}
                         >
@@ -562,7 +562,7 @@ const HRUserManagement = () => {
                 <Input
                   id="firstName"
                   value={newUser.firstName}
-                  onChange={(e) => setNewUser({...newUser, firstName: e.target.value})}
+                  onChange={(e) => setNewUser({ ...newUser, firstName: e.target.value })}
                   placeholder="Enter first name"
                 />
               </div>
@@ -571,7 +571,7 @@ const HRUserManagement = () => {
                 <Input
                   id="lastName"
                   value={newUser.lastName}
-                  onChange={(e) => setNewUser({...newUser, lastName: e.target.value})}
+                  onChange={(e) => setNewUser({ ...newUser, lastName: e.target.value })}
                   placeholder="Enter last name"
                 />
               </div>
@@ -582,7 +582,7 @@ const HRUserManagement = () => {
                 id="email"
                 type="email"
                 value={newUser.email}
-                onChange={(e) => setNewUser({...newUser, email: e.target.value})}
+                onChange={(e) => setNewUser({ ...newUser, email: e.target.value })}
                 placeholder="user@company.com"
               />
             </div>
@@ -591,7 +591,7 @@ const HRUserManagement = () => {
               <Input
                 id="phone"
                 value={newUser.phone}
-                onChange={(e) => setNewUser({...newUser, phone: e.target.value})}
+                onChange={(e) => setNewUser({ ...newUser, phone: e.target.value })}
                 placeholder="+1 (555) 123-4567"
               />
             </div>
@@ -601,7 +601,7 @@ const HRUserManagement = () => {
                 <Input
                   id="department"
                   value={newUser.department}
-                  onChange={(e) => setNewUser({...newUser, department: e.target.value})}
+                  onChange={(e) => setNewUser({ ...newUser, department: e.target.value })}
                   placeholder="Talent Acquisition"
                 />
               </div>
@@ -610,7 +610,7 @@ const HRUserManagement = () => {
                 <Input
                   id="position"
                   value={newUser.position}
-                  onChange={(e) => setNewUser({...newUser, position: e.target.value})}
+                  onChange={(e) => setNewUser({ ...newUser, position: e.target.value })}
                   placeholder="HR Manager"
                 />
               </div>
@@ -618,7 +618,7 @@ const HRUserManagement = () => {
             <div className="grid grid-cols-2 gap-4">
               <div className="grid gap-2">
                 <Label htmlFor="role">Role</Label>
-                <Select value={newUser.role} onValueChange={(value) => setNewUser({...newUser, role: value})}>
+                <Select value={newUser.role} onValueChange={(value) => setNewUser({ ...newUser, role: value })}>
                   <SelectTrigger>
                     <SelectValue placeholder="Select role" />
                   </SelectTrigger>
@@ -631,7 +631,7 @@ const HRUserManagement = () => {
               </div>
               <div className="grid gap-2">
                 <Label htmlFor="company">Company</Label>
-                <Select value={newUser.company} onValueChange={(value) => setNewUser({...newUser, company: value})}>
+                <Select value={newUser.company} onValueChange={(value) => setNewUser({ ...newUser, company: value })}>
                   <SelectTrigger>
                     <SelectValue placeholder="Select company" />
                   </SelectTrigger>
@@ -646,7 +646,7 @@ const HRUserManagement = () => {
             <div className="flex items-center space-x-2">
               <Switch
                 checked={newUser.sendInvite}
-                onCheckedChange={(checked) => setNewUser({...newUser, sendInvite: checked})}
+                onCheckedChange={(checked) => setNewUser({ ...newUser, sendInvite: checked })}
               />
               <Label htmlFor="sendInvite">Send invitation email</Label>
             </div>
@@ -676,7 +676,7 @@ const HRUserManagement = () => {
                 <Input
                   id="editFirstName"
                   value={editUser.firstName}
-                  onChange={(e) => setEditUser({...editUser, firstName: e.target.value})}
+                  onChange={(e) => setEditUser({ ...editUser, firstName: e.target.value })}
                 />
               </div>
               <div className="grid gap-2">
@@ -684,7 +684,7 @@ const HRUserManagement = () => {
                 <Input
                   id="editLastName"
                   value={editUser.lastName}
-                  onChange={(e) => setEditUser({...editUser, lastName: e.target.value})}
+                  onChange={(e) => setEditUser({ ...editUser, lastName: e.target.value })}
                 />
               </div>
             </div>
@@ -693,7 +693,7 @@ const HRUserManagement = () => {
               <Input
                 id="editPhone"
                 value={editUser.phone}
-                onChange={(e) => setEditUser({...editUser, phone: e.target.value})}
+                onChange={(e) => setEditUser({ ...editUser, phone: e.target.value })}
               />
             </div>
             <div className="grid grid-cols-2 gap-4">
@@ -702,7 +702,7 @@ const HRUserManagement = () => {
                 <Input
                   id="editDepartment"
                   value={editUser.department}
-                  onChange={(e) => setEditUser({...editUser, department: e.target.value})}
+                  onChange={(e) => setEditUser({ ...editUser, department: e.target.value })}
                 />
               </div>
               <div className="grid gap-2">
@@ -710,14 +710,14 @@ const HRUserManagement = () => {
                 <Input
                   id="editPosition"
                   value={editUser.position}
-                  onChange={(e) => setEditUser({...editUser, position: e.target.value})}
+                  onChange={(e) => setEditUser({ ...editUser, position: e.target.value })}
                 />
               </div>
             </div>
             <div className="grid grid-cols-2 gap-4">
               <div className="grid gap-2">
                 <Label htmlFor="editRole">Role</Label>
-                <Select value={editUser.role} onValueChange={(value) => setEditUser({...editUser, role: value})}>
+                <Select value={editUser.role} onValueChange={(value) => setEditUser({ ...editUser, role: value })}>
                   <SelectTrigger>
                     <SelectValue placeholder="Select role" />
                   </SelectTrigger>
@@ -730,7 +730,7 @@ const HRUserManagement = () => {
               </div>
               <div className="grid gap-2">
                 <Label htmlFor="editStatus">Status</Label>
-                <Select value={editUser.isActive ? 'active' : 'inactive'} onValueChange={(value) => setEditUser({...editUser, isActive: value === 'active'})}>
+                <Select value={editUser.isActive ? 'active' : 'inactive'} onValueChange={(value) => setEditUser({ ...editUser, isActive: value === 'active' })}>
                   <SelectTrigger>
                     <SelectValue placeholder="Select status" />
                   </SelectTrigger>
@@ -741,7 +741,7 @@ const HRUserManagement = () => {
                 </Select>
               </div>
             </div>
-            
+
             {/* Permissions Preview */}
             <div className="grid gap-2">
               <Label>Current Permissions</Label>

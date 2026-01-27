@@ -74,13 +74,13 @@ const Profile = () => {
     try {
       // In a real implementation, you would call the API here
       console.log('Saving profile data:', tempProfileData)
-      
+
       // Simulate API call
       await new Promise(resolve => setTimeout(resolve, 1000))
-      
+
       setProfileData(tempProfileData)
       setIsEditing(false)
-      
+
       // Show success message
       alert('Profile updated successfully! ✅')
       console.log('✅ Profile saved successfully')
@@ -110,7 +110,7 @@ const Profile = () => {
       {/* Profile Header */}
       <Card>
         <CardContent className="p-6">
-          <div className="flex items-center space-x-6">
+          <div className="flex flex-col sm:flex-row items-center sm:items-start text-center sm:text-left space-y-4 sm:space-y-0 sm:space-x-6">
             <div className="relative">
               <div className="w-24 h-24 bg-gradient-to-br from-blue-500 to-purple-600 rounded-full flex items-center justify-center text-white text-2xl font-bold">
                 {profileData.personalInfo.firstName[0]}{profileData.personalInfo.lastName[0]}
@@ -128,7 +128,7 @@ const Profile = () => {
                 {profileData.personalInfo.firstName} {profileData.personalInfo.lastName}
               </h2>
               <p className="text-gray-600">{profileData.personalInfo.position}</p>
-              <div className="flex items-center space-x-4 mt-2">
+              <div className="flex flex-wrap justify-center sm:justify-start items-center gap-2 mt-2">
                 <Badge variant="secondary">{profileData.personalInfo.department}</Badge>
                 <Badge variant="outline">{profileData.personalInfo.location}</Badge>
               </div>
@@ -506,13 +506,12 @@ const Profile = () => {
       <Card>
         <CardContent className="p-4">
           <div className="flex items-center">
-            <div className={`w-3 h-3 rounded-full mr-2 ${
-              apiStatus === 'connected' ? 'bg-green-500' :
+            <div className={`w-3 h-3 rounded-full mr-2 ${apiStatus === 'connected' ? 'bg-green-500' :
               apiStatus === 'checking' ? 'bg-yellow-500' : 'bg-red-500'
-            }`}></div>
+              }`}></div>
             <span className="text-sm font-medium">
               API Status: {apiStatus === 'connected' ? 'Connected' :
-                         apiStatus === 'checking' ? 'Checking...' : 'Disconnected'}
+                apiStatus === 'checking' ? 'Checking...' : 'Disconnected'}
             </span>
           </div>
         </CardContent>
@@ -531,7 +530,7 @@ const Profile = () => {
       {/* Tab Navigation */}
       <Card>
         <CardContent className="p-0">
-          <div className="flex space-x-1 border-b">
+          <div className="flex space-x-1 border-b overflow-x-auto">
             {[
               { id: 'overview', label: 'Overview', icon: User },
               { id: 'professional', label: 'Professional', icon: Briefcase },
@@ -541,11 +540,10 @@ const Profile = () => {
               <button
                 key={tab.id}
                 onClick={() => setActiveTab(tab.id)}
-                className={`flex items-center px-4 py-3 border-b-2 font-medium text-sm transition-colors ${
-                  activeTab === tab.id
-                    ? 'border-blue-500 text-blue-600'
-                    : 'border-transparent text-gray-600 hover:text-gray-900'
-                }`}
+                className={`flex items-center px-4 py-3 border-b-2 font-medium text-sm transition-colors ${activeTab === tab.id
+                  ? 'border-blue-500 text-blue-600'
+                  : 'border-transparent text-gray-600 hover:text-gray-900'
+                  }`}
               >
                 <tab.icon className="h-4 w-4 mr-2" />
                 {tab.label}

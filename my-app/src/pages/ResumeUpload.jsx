@@ -193,11 +193,11 @@ const ResumeUpload = () => {
                   {uploadedFiles.map((file) => (
                     <div key={file.id} className="p-4">
                       <div className="flex items-center justify-between">
-                        <div className="flex items-center">
-                          <FileText className="h-8 w-8 text-gray-400 mr-3" />
-                          <div>
-                            <p className="font-medium">{file.name}</p>
-                            <p className="text-sm text-muted-foreground">
+                        <div className="flex items-center overflow-hidden mr-2">
+                          <FileText className="h-8 w-8 text-gray-400 mr-3 flex-shrink-0" />
+                          <div className="min-w-0">
+                            <p className="font-medium truncate">{file.name}</p>
+                            <p className="text-sm text-muted-foreground truncate">
                               {formatFileSize(file.size)} • {file.uploadTime}
                             </p>
                           </div>
@@ -275,7 +275,7 @@ const ResumeUpload = () => {
               </CardContent>
             </Card>
           )}
-          
+
           {/* Validation Results */}
           {parsedContent && !parsedContent.isResume && (
             <Card className="border-red-200 bg-red-50">

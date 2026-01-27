@@ -148,7 +148,7 @@ const SystemAnalytics = () => {
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-3xl font-bold tracking-tight">System Analytics</h1>
+          <h1 className="text-2xl md:text-3xl font-bold tracking-tight">System Analytics</h1>
           <p className="text-muted-foreground">Comprehensive platform performance and usage analytics</p>
         </div>
         <div className="flex gap-2">
@@ -297,7 +297,7 @@ const SystemAnalytics = () => {
                     <div className="bg-green-500 h-2 rounded-full" style={{ width: `${metrics.overview?.processingSuccessRate || 0}%` }}></div>
                   </div>
                 </div>
-                
+
                 <div className="space-y-2">
                   <div className="flex justify-between text-sm">
                     <span>AI Model Accuracy</span>
@@ -566,7 +566,7 @@ const SystemAnalytics = () => {
               </CardHeader>
               <CardContent>
                 <div className="text-2xl font-bold">
-                  {metrics.evaluationQuality?.totalOverrides ? 
+                  {metrics.evaluationQuality?.totalOverrides ?
                     Math.round((metrics.evaluationQuality.totalOverrides / metrics.evaluationQuality.totalEvaluations) * 100) : 0}%
                 </div>
                 <p className="text-xs text-muted-foreground">Human override rate</p>

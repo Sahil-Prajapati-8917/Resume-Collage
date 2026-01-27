@@ -342,7 +342,7 @@ const PromptManagement = () => {
         <div className="lg:col-span-3">
           <div className="bg-white rounded-lg shadow">
             <div className="p-6 border-b border-gray-200">
-              <div className="flex items-center justify-between">
+              <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
                 <h2 className="text-lg font-semibold text-gray-900">
                   {selectedIndustry} Prompts
                 </h2>
@@ -439,7 +439,7 @@ const PromptManagement = () => {
                     ) : (
                       /* View Mode */
                       <div>
-                        <div className="flex items-start justify-between">
+                        <div className="flex flex-col sm:flex-row items-start justify-between gap-4">
                           <div className="flex-1">
                             <div className="flex items-center space-x-3">
                               <h3 className="text-lg font-semibold text-gray-900">
@@ -463,7 +463,7 @@ const PromptManagement = () => {
                               </p>
                             </div>
                           </div>
-                          <div className="flex items-center space-x-2 ml-4">
+                          <div className="flex items-center space-x-2 w-full sm:w-auto justify-end mt-2 sm:mt-0">
                             <button
                               onClick={() => setViewingPrompt(prompt)}
                               className="p-2 text-gray-600 hover:text-blue-600"

@@ -46,7 +46,7 @@ const EvaluationOversight = () => {
   const [dateRange, setDateRange] = useState('30d')
   const [sortBy, setSortBy] = useState('createdAt')
   const [sortOrder, setSortOrder] = useState('desc')
-  
+
   // Dialog states
   const [showDetailsDialog, setShowDetailsDialog] = useState(false)
   const [showFlagDialog, setShowFlagDialog] = useState(false)
@@ -160,7 +160,7 @@ const EvaluationOversight = () => {
   }, [])
 
   const filteredEvaluations = evaluations
-    .filter(evaluation => 
+    .filter(evaluation =>
       evaluation.candidateName.toLowerCase().includes(searchTerm.toLowerCase()) ||
       evaluation.email.toLowerCase().includes(searchTerm.toLowerCase()) ||
       evaluation.company.name.toLowerCase().includes(searchTerm.toLowerCase())
@@ -175,7 +175,7 @@ const EvaluationOversight = () => {
     })
     .sort((a, b) => {
       let aValue, bValue
-      
+
       switch (sortBy) {
         case 'candidateName':
           aValue = a.candidateName
@@ -231,34 +231,34 @@ const EvaluationOversight = () => {
   }
 
   const handleFlagEvaluation = async () => {
-    const updatedEvaluations = evaluations.map(evaluation => 
-      evaluation.id === selectedEvaluation.id 
+    const updatedEvaluations = evaluations.map(evaluation =>
+      evaluation.id === selectedEvaluation.id
         ? {
-            ...evaluation,
-            flags: [...evaluation.flags, {
-              reason: flagData.reason,
-              severity: flagData.severity,
-              flaggedAt: new Date().toISOString()
-            }]
-          }
+          ...evaluation,
+          flags: [...evaluation.flags, {
+            reason: flagData.reason,
+            severity: flagData.severity,
+            flaggedAt: new Date().toISOString()
+          }]
+        }
         : evaluation
     )
-    
+
     setEvaluations(updatedEvaluations)
     setShowFlagDialog(false)
     setFlagData({ reason: '', severity: 'medium' })
   }
 
   const removeFlag = (evaluationId, flagIndex) => {
-    const updatedEvaluations = evaluations.map(evaluation => 
-      evaluation.id === evaluationId 
+    const updatedEvaluations = evaluations.map(evaluation =>
+      evaluation.id === evaluationId
         ? {
-            ...evaluation,
-            flags: evaluation.flags.filter((_, index) => index !== flagIndex)
-          }
+          ...evaluation,
+          flags: evaluation.flags.filter((_, index) => index !== flagIndex)
+        }
         : evaluation
     )
-    
+
     setEvaluations(updatedEvaluations)
   }
 
@@ -268,8 +268,8 @@ const EvaluationOversight = () => {
     overridden: evaluations.filter(e => e.isOverridden).length,
     avgAiScore: evaluations.length > 0 ? (evaluations.reduce((sum, e) => sum + e.aiScore, 0) / evaluations.length).toFixed(1) : 0,
     avgConfidence: evaluations.length > 0 ? (evaluations.reduce((sum, e) => sum + e.aiConfidence, 0) / evaluations.length).toFixed(1) : 0,
-    avgOverrideTime: evaluations.filter(e => e.isOverridden).length > 0 
-      ? (evaluations.filter(e => e.isOverridden).reduce((sum, e) => sum + e.overrideTime, 0) / evaluations.filter(e => e.isOverridden).length).toFixed(1) 
+    avgOverrideTime: evaluations.filter(e => e.isOverridden).length > 0
+      ? (evaluations.filter(e => e.isOverridden).reduce((sum, e) => sum + e.overrideTime, 0) / evaluations.filter(e => e.isOverridden).length).toFixed(1)
       : 0
   }
 
@@ -296,7 +296,7 @@ const EvaluationOversight = () => {
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-3xl font-bold tracking-tight">Evaluation Oversight</h1>
+          <h1 className="text-2xl md:text-3xl font-bold tracking-tight">Evaluation Oversight</h1>
           <p className="text-muted-foreground">Monitor AI decisions and human overrides across all companies</p>
         </div>
         <div className="flex gap-2">
@@ -327,8 +327,8 @@ const EvaluationOversight = () => {
               />
             </div>
           </div>
-          
-          <div className="flex gap-2">
+
+          <div className="flex flex-wrap gap-2">
             <Select value={industryFilter} onValueChange={setIndustryFilter}>
               <SelectTrigger className="w-[160px]">
                 <SelectValue placeholder="Filter by industry" />
@@ -613,7 +613,7 @@ const EvaluationOversight = () => {
                 </CardContent>
               </Card>
             </div>
-            
+
             {selectedEvaluation?.isOverridden && (
               <Card>
                 <CardHeader>
@@ -688,14 +688,14 @@ const EvaluationOversight = () => {
               <Textarea
                 id="flagReason"
                 value={flagData.reason}
-                onChange={(e) => setFlagData({...flagData, reason: e.target.value})}
+                onChange={(e) => setFlagData({ ...flagData, reason: e.target.value })}
                 placeholder="Describe why this evaluation should be flagged..."
                 className="min-h-[100px]"
               />
             </div>
             <div className="grid gap-2">
               <Label htmlFor="severity">Severity</Label>
-              <Select value={flagData.severity} onValueChange={(value) => setFlagData({...flagData, severity: value})}>
+              <Select value={flagData.severity} onValueChange={(value) => setFlagData({ ...flagData, severity: value })}>
                 <SelectTrigger>
                   <SelectValue placeholder="Select severity" />
                 </SelectTrigger>

@@ -1,9 +1,9 @@
 import React, { useState, useEffect } from 'react'
-import { 
-  TrendingUp, 
-  Users, 
-  FileText, 
-  Shield, 
+import {
+  TrendingUp,
+  Users,
+  FileText,
+  Shield,
   AlertTriangle,
   Clock,
   BarChart3,
@@ -92,7 +92,7 @@ const MasterAdminDashboard = () => {
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-3xl font-bold tracking-tight">Master Admin Dashboard</h1>
+          <h1 className="text-2xl md:text-3xl font-bold tracking-tight">Master Admin Dashboard</h1>
           <p className="text-muted-foreground">Platform-wide overview and system health</p>
         </div>
         <div className="flex items-center space-x-2">
@@ -261,7 +261,7 @@ const MasterAdminDashboard = () => {
               </div>
               <Progress value={98.3} className="h-2" />
             </div>
-            
+
             <div className="space-y-2">
               <div className="flex justify-between text-sm">
                 <span>AI Model Accuracy</span>

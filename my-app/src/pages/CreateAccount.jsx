@@ -632,27 +632,24 @@ const CreateAccount = () => {
           {/* Step Indicator - Left Sidebar */}
           <div className="lg:col-span-1">
             {currentStep < 6 && (
-              <div className="space-y-4">
+              <div className="flex lg:flex-col space-x-4 lg:space-x-0 lg:space-y-4 overflow-x-auto pb-4 lg:pb-0 scrollbar-hide">
                 {steps.map((step) => (
-                  <div key={step.id} className="flex items-center space-x-3">
-                    <div className={`flex items-center justify-center w-8 h-8 rounded-full border-2 ${
-                      currentStep > step.id
+                  <div key={step.id} className="flex items-center space-x-3 flex-shrink-0">
+                    <div className={`flex items-center justify-center w-8 h-8 rounded-full border-2 transition-colors ${currentStep > step.id
                         ? 'bg-primary border-primary text-primary-foreground'
                         : currentStep === step.id
-                        ? 'border-primary text-primary'
-                        : 'border-muted-foreground text-muted-foreground'
-                    }`}>
+                          ? 'border-primary text-primary'
+                          : 'border-muted-foreground text-muted-foreground'
+                      }`}>
                       <step.icon className="w-4 h-4" />
                     </div>
-                    <div className="flex-1">
-                      <p className={`text-sm font-medium ${
-                        currentStep >= step.id ? 'text-foreground' : 'text-muted-foreground'
-                      }`}>
+                    <div className="hidden sm:block flex-1">
+                      <p className={`text-sm font-medium ${currentStep >= step.id ? 'text-foreground' : 'text-muted-foreground'
+                        }`}>
                         Step {step.id}
                       </p>
-                      <p className={`text-xs ${
-                        currentStep >= step.id ? 'text-foreground' : 'text-muted-foreground'
-                      }`}>
+                      <p className={`text-xs ${currentStep >= step.id ? 'text-foreground' : 'text-muted-foreground'
+                        }`}>
                         {step.title}
                       </p>
                     </div>
@@ -670,13 +667,13 @@ const CreateAccount = () => {
                   {currentStep < 6 ? `Step ${currentStep}: ${steps[currentStep - 1]?.title}` : 'Success'}
                 </CardTitle>
                 {currentStep < 6 && (
-                <CardDescription className="text-sm">
-                  {currentStep === 1 && "Tell us about your organization"}
-                  {currentStep === 2 && "Provide your professional information"}
-                  {currentStep === 3 && "Set up your account credentials"}
-                  {currentStep === 4 && "Review and accept our policies"}
-                  {currentStep === 5 && "Confirm your information"}
-                </CardDescription>
+                  <CardDescription className="text-sm">
+                    {currentStep === 1 && "Tell us about your organization"}
+                    {currentStep === 2 && "Provide your professional information"}
+                    {currentStep === 3 && "Set up your account credentials"}
+                    {currentStep === 4 && "Review and accept our policies"}
+                    {currentStep === 5 && "Confirm your information"}
+                  </CardDescription>
                 )}
               </CardHeader>
               <CardContent className="pb-6">

@@ -1,13 +1,13 @@
 import React, { useState, useEffect } from 'react'
-import { 
-  Plus, 
-  Search, 
-  Filter, 
-  Download, 
-  Eye, 
-  Edit, 
-  Trash2, 
-  Users, 
+import {
+  Plus,
+  Search,
+  Filter,
+  Download,
+  Eye,
+  Edit,
+  Trash2,
+  Users,
   Building2,
   Calendar,
   TrendingUp,
@@ -31,7 +31,7 @@ const CompanyManagement = () => {
   const [statusFilter, setStatusFilter] = useState('all')
   const [sortBy, setSortBy] = useState('name')
   const [sortOrder] = useState('asc')
-  
+
   // Dialog states
   const [showCreateDialog, setShowCreateDialog] = useState(false)
   const [showEditDialog, setShowEditDialog] = useState(false)
@@ -121,7 +121,7 @@ const CompanyManagement = () => {
   }, [])
 
   const filteredCompanies = companies
-    .filter(company => 
+    .filter(company =>
       company.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
       company.industry.toLowerCase().includes(searchTerm.toLowerCase()) ||
       company.primaryHR.toLowerCase().includes(searchTerm.toLowerCase())
@@ -131,7 +131,7 @@ const CompanyManagement = () => {
     .sort((a, b) => {
       let aValue = a[sortBy]
       let bValue = b[sortBy]
-      
+
       if (sortBy === 'users' || sortBy === 'resumes' || sortBy === 'evaluations') {
         aValue = parseInt(aValue)
         bValue = parseInt(bValue)
@@ -174,7 +174,7 @@ const CompanyManagement = () => {
       createdAt: new Date().toISOString().split('T')[0],
       status: 'active'
     }
-    
+
     setCompanies([...companies, newComp])
     setShowCreateDialog(false)
     setNewCompany({
@@ -187,7 +187,7 @@ const CompanyManagement = () => {
   }
 
   const handleEditCompany = async () => {
-    const updatedCompanies = companies.map(comp => 
+    const updatedCompanies = companies.map(comp =>
       comp.id === selectedCompany.id ? { ...comp, ...editCompany } : comp
     )
     setCompanies(updatedCompanies)
@@ -196,7 +196,7 @@ const CompanyManagement = () => {
 
   const handleDeleteCompany = (companyId) => {
     if (confirm('Are you sure you want to deactivate this company? This will also deactivate all users in this company.')) {
-      const updatedCompanies = companies.map(comp => 
+      const updatedCompanies = companies.map(comp =>
         comp.id === companyId ? { ...comp, status: 'inactive' } : comp
       )
       setCompanies(updatedCompanies)
@@ -231,8 +231,8 @@ const CompanyManagement = () => {
               />
             </div>
           </div>
-          
-          <div className="flex gap-2">
+
+          <div className="flex flex-wrap gap-2">
             <Select value={industryFilter} onValueChange={setIndustryFilter}>
               <SelectTrigger className="w-[180px]">
                 <SelectValue placeholder="Filter by industry" />
@@ -397,9 +397,9 @@ const CompanyManagement = () => {
                         }}>
                           <Edit className="h-4 w-4" />
                         </Button>
-                        <Button 
-                          variant="ghost" 
-                          size="sm" 
+                        <Button
+                          variant="ghost"
+                          size="sm"
                           onClick={() => handleDeleteCompany(company.id)}
                           className={company.status === 'active' ? 'text-red-600 hover:text-red-700' : ''}
                         >
@@ -434,13 +434,13 @@ const CompanyManagement = () => {
               <Input
                 id="name"
                 value={newCompany.name}
-                onChange={(e) => setNewCompany({...newCompany, name: e.target.value})}
+                onChange={(e) => setNewCompany({ ...newCompany, name: e.target.value })}
                 placeholder="Enter company name"
               />
             </div>
             <div className="grid gap-2">
               <Label htmlFor="industry">Industry</Label>
-              <Select value={newCompany.industry} onValueChange={(value) => setNewCompany({...newCompany, industry: value})}>
+              <Select value={newCompany.industry} onValueChange={(value) => setNewCompany({ ...newCompany, industry: value })}>
                 <SelectTrigger>
                   <SelectValue placeholder="Select industry" />
                 </SelectTrigger>
@@ -454,7 +454,7 @@ const CompanyManagement = () => {
             </div>
             <div className="grid gap-2">
               <Label htmlFor="companySize">Company Size</Label>
-              <Select value={newCompany.companySize} onValueChange={(value) => setNewCompany({...newCompany, companySize: value})}>
+              <Select value={newCompany.companySize} onValueChange={(value) => setNewCompany({ ...newCompany, companySize: value })}>
                 <SelectTrigger>
                   <SelectValue placeholder="Select company size" />
                 </SelectTrigger>
@@ -472,13 +472,13 @@ const CompanyManagement = () => {
               <Input
                 id="primaryHR"
                 value={newCompany.primaryHR}
-                onChange={(e) => setNewCompany({...newCompany, primaryHR: e.target.value})}
+                onChange={(e) => setNewCompany({ ...newCompany, primaryHR: e.target.value })}
                 placeholder="hr@company.com"
               />
             </div>
             <div className="grid gap-2">
               <Label htmlFor="subscriptionPlan">Subscription Plan</Label>
-              <Select value={newCompany.subscriptionPlan} onValueChange={(value) => setNewCompany({...newCompany, subscriptionPlan: value})}>
+              <Select value={newCompany.subscriptionPlan} onValueChange={(value) => setNewCompany({ ...newCompany, subscriptionPlan: value })}>
                 <SelectTrigger>
                   <SelectValue placeholder="Select plan" />
                 </SelectTrigger>
@@ -514,12 +514,12 @@ const CompanyManagement = () => {
               <Input
                 id="editName"
                 value={editCompany.name}
-                onChange={(e) => setEditCompany({...editCompany, name: e.target.value})}
+                onChange={(e) => setEditCompany({ ...editCompany, name: e.target.value })}
               />
             </div>
             <div className="grid gap-2">
               <Label htmlFor="editIndustry">Industry</Label>
-              <Select value={editCompany.industry} onValueChange={(value) => setEditCompany({...editCompany, industry: value})}>
+              <Select value={editCompany.industry} onValueChange={(value) => setEditCompany({ ...editCompany, industry: value })}>
                 <SelectTrigger>
                   <SelectValue placeholder="Select industry" />
                 </SelectTrigger>
@@ -533,7 +533,7 @@ const CompanyManagement = () => {
             </div>
             <div className="grid gap-2">
               <Label htmlFor="editCompanySize">Company Size</Label>
-              <Select value={editCompany.companySize} onValueChange={(value) => setEditCompany({...editCompany, companySize: value})}>
+              <Select value={editCompany.companySize} onValueChange={(value) => setEditCompany({ ...editCompany, companySize: value })}>
                 <SelectTrigger>
                   <SelectValue placeholder="Select company size" />
                 </SelectTrigger>
@@ -548,7 +548,7 @@ const CompanyManagement = () => {
             </div>
             <div className="grid gap-2">
               <Label htmlFor="editSubscriptionPlan">Subscription Plan</Label>
-              <Select value={editCompany.subscriptionPlan} onValueChange={(value) => setEditCompany({...editCompany, subscriptionPlan: value})}>
+              <Select value={editCompany.subscriptionPlan} onValueChange={(value) => setEditCompany({ ...editCompany, subscriptionPlan: value })}>
                 <SelectTrigger>
                   <SelectValue placeholder="Select plan" />
                 </SelectTrigger>
@@ -561,7 +561,7 @@ const CompanyManagement = () => {
             </div>
             <div className="grid gap-2">
               <Label htmlFor="editStatus">Status</Label>
-              <Select value={editCompany.status} onValueChange={(value) => setEditCompany({...editCompany, status: value})}>
+              <Select value={editCompany.status} onValueChange={(value) => setEditCompany({ ...editCompany, status: value })}>
                 <SelectTrigger>
                   <SelectValue placeholder="Select status" />
                 </SelectTrigger>

@@ -1,6 +1,6 @@
 import React from 'react'
 import { Link } from 'react-router-dom'
-import { 
+import {
   Upload,
   ClipboardList,
   BarChart,
@@ -40,7 +40,7 @@ const Dashboard = () => {
       {/* Welcome Header */}
       <Card>
         <CardHeader>
-          <CardTitle className="text-2xl">
+          <CardTitle className="text-xl md:text-2xl">
             Welcome to AI Resume Evaluation Platform
           </CardTitle>
           <CardDescription>
@@ -53,15 +53,14 @@ const Dashboard = () => {
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
         {stats.map((stat) => (
           <Card key={stat.name}>
-            <CardContent className="p-6">
+            <CardContent className="p-4 md:p-6">
               <div className="flex items-center justify-between">
                 <div>
                   <p className="text-sm font-medium text-muted-foreground">{stat.name}</p>
                   <p className="text-2xl font-bold mt-1">{stat.value}</p>
                   <div className="flex items-center mt-2">
-                    <span className={`text-sm font-medium ${
-                      stat.changeType === 'positive' ? 'text-green-600' : 'text-red-600'
-                    }`}>
+                    <span className={`text-sm font-medium ${stat.changeType === 'positive' ? 'text-green-600' : 'text-red-600'
+                      }`}>
                       {stat.change}
                     </span>
                     <span className="text-sm text-muted-foreground ml-1">from last month</span>
@@ -92,7 +91,7 @@ const Dashboard = () => {
                 </div>
               </Link>
             </Button>
-            
+
             <Button variant="outline" asChild className="h-auto p-4 justify-start">
               <Link to="/hiring-form" className="flex items-center">
                 <ClipboardList className="h-8 w-8 text-green-600 mr-3" />
@@ -102,7 +101,7 @@ const Dashboard = () => {
                 </div>
               </Link>
             </Button>
-            
+
             <Button variant="outline" asChild className="h-auto p-4 justify-start">
               <Link to="/prompts" className="flex items-center">
                 <BarChart className="h-8 w-8 text-purple-600 mr-3" />
@@ -136,11 +135,11 @@ const Dashboard = () => {
                         <span className="text-lg font-semibold">{activity.score}</span>
                         <span className="text-sm text-muted-foreground ml-1">/100</span>
                       </div>
-                      <Badge 
+                      <Badge
                         variant={
                           activity.status === 'Shortlisted' ? 'default' :
-                          activity.status === 'Under Review' ? 'secondary' :
-                          'outline'
+                            activity.status === 'Under Review' ? 'secondary' :
+                              'outline'
                         }
                         className="mt-1"
                       >

@@ -25,60 +25,68 @@ import Alerts from './Alerts'
 
 const MasterAdminLayout = ({ children }) => {
   const location = useLocation()
-  const [sidebarOpen, setSidebarOpen] = useState(true)
+  // Default to closed on mobile (less than 1024px), open on desktop
+  const [sidebarOpen, setSidebarOpen] = useState(window.innerWidth >= 1024)
+
+  // Close sidebar on route change on mobile
+  React.useEffect(() => {
+    if (window.innerWidth < 1024) {
+      setSidebarOpen(false)
+    }
+  }, [location])
 
   const navigation = [
-    { 
-      name: 'Dashboard', 
-      href: '/master-admin/dashboard', 
+    {
+      name: 'Dashboard',
+      href: '/master-admin/dashboard',
       icon: Home,
       description: 'System overview and key metrics'
     },
-    { 
-      name: 'Companies', 
-      href: '/master-admin/companies', 
+    {
+      name: 'Companies',
+      href: '/master-admin/companies',
       icon: Building2,
       description: 'Manage all tenant companies'
     },
-    { 
-      name: 'HR & Users', 
-      href: '/master-admin/hr-users', 
+    {
+      name: 'HR & Users',
+      href: '/master-admin/hr-users',
       icon: Users,
       description: 'Manage HR accounts and permissions'
     },
-    { 
-      name: 'Global Hiring Forms', 
-      href: '/master-admin/global-hiring-forms', 
+    {
+      name: 'Global Hiring Forms',
+      href: '/master-admin/global-hiring-forms',
       icon: ClipboardList,
       description: 'Industry-specific form templates'
     },
-    { 
-      name: 'AI Prompt Management', 
-      href: '/master-admin/prompt-management', 
+    {
+      name: 'AI Prompt Management',
+      href: '/master-admin/prompt-management',
       icon: Settings,
       description: 'Configure evaluation prompts'
     },
-    { 
-      name: 'Evaluation Oversight', 
-      href: '/master-admin/evaluation-oversight', 
+    {
+      name: 'Evaluation Oversight',
+      href: '/master-admin/evaluation-oversight',
       icon: FileText,
       description: 'Monitor AI decisions across companies'
     },
-    { 
-      name: 'Audit & Compliance', 
-      href: '/master-admin/audit-trail', 
+    {
+      name: 'Audit & Compliance',
+      href: '/master-admin/audit-trail',
       icon: Shield,
       description: 'Security logs and compliance'
     },
-    { 
-      name: 'System Analytics', 
-      href: '/master-admin/analytics', 
+    {
+      name: 'System Analytics',
+      href: '/master-admin/analytics',
       icon: BarChart3,
       description: 'Platform-wide insights'
     },
-    { 
-      name: 'System Settings', 
-      href: '/master-admin/settings', 
+    {
+      name: 'System Settings',
+      href: '/master-admin/settings',
       icon: Cog,
       description: 'Global configuration'
     }
@@ -94,7 +102,12 @@ const MasterAdminLayout = ({ children }) => {
     <SidebarProvider>
       <div className="flex h-screen bg-background">
         {/* Sidebar */}
-        <Sidebar className={`border-r bg-muted/40 transition-all duration-300 ${sidebarOpen ? 'w-64' : 'w-0'}`}>
+        {/* Sidebar - Mobile Overlay or Desktop Static */}
+        <div
+          className={`fixed inset-0 z-50 bg-background/80 backdrop-blur-sm lg:hidden ${sidebarOpen ? 'block' : 'hidden'}`}
+          onClick={() => setSidebarOpen(false)}
+        />
+        <Sidebar className={`fixed lg:static inset-y-0 left-0 z-50 border-r bg-muted/40 transition-all duration-300 ${sidebarOpen ? 'w-64 translate-x-0' : 'w-0 -translate-x-full lg:w-0 lg:translate-x-0'}`}>
           <SidebarHeader className="border-b">
             <div className="flex h-16 items-center px-4">
               <div className="flex items-center space-x-3">
@@ -115,18 +128,16 @@ const MasterAdminLayout = ({ children }) => {
                 const isActive = location.pathname === item.href
                 return (
                   <SidebarMenuItem key={item.name}>
-                    <SidebarMenuButton 
+                    <SidebarMenuButton
                       asChild
                       isActive={isActive}
-                      className={`group flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium transition-colors ${
-                        isActive 
-                          ? 'bg-primary/10 text-primary hover:bg-primary/20' 
+                      className={`group flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium transition-colors ${isActive
+                          ? 'bg-primary/10 text-primary hover:bg-primary/20'
                           : 'text-muted-foreground hover:bg-muted/50 hover:text-foreground'
-                      }`}
+                        }`}
                     >
-                      <item.icon className={`h-4 w-4 transition-colors ${
-                        isActive ? 'text-primary' : 'text-muted-foreground'
-                      }`} />
+                      <item.icon className={`h-4 w-4 transition-colors ${isActive ? 'text-primary' : 'text-muted-foreground'
+                        }`} />
                       <div className="flex flex-col">
                         <span>{item.name}</span>
                         <span className="text-xs text-muted-foreground group-hover:text-foreground/70">
@@ -197,10 +208,9 @@ const MasterAdminLayout = ({ children }) => {
               <div className="hidden md:flex items-center space-x-4">
                 {alerts.slice(0, 2).map((alert, index) => (
                   <div key={index} className="flex items-center space-x-2 text-sm">
-                    <div className={`h-2 w-2 rounded-full ${
-                      alert.type === 'error' ? 'bg-red-500' :
-                      alert.type === 'warning' ? 'bg-yellow-500' : 'bg-blue-500'
-                    }`} />
+                    <div className={`h-2 w-2 rounded-full ${alert.type === 'error' ? 'bg-red-500' :
+                        alert.type === 'warning' ? 'bg-yellow-500' : 'bg-blue-500'
+                      }`} />
                     <span className="text-muted-foreground">{alert.message}</span>
                   </div>
                 ))}
@@ -209,7 +219,7 @@ const MasterAdminLayout = ({ children }) => {
               {/* Right Section */}
               <div className="flex items-center space-x-4">
                 <Notifications />
-                
+
                 <div className="hidden md:flex items-center space-x-2">
                   <div className="h-8 w-8 rounded-full bg-primary/20 flex items-center justify-center">
                     <span className="text-sm font-semibold text-primary">MA</span>
@@ -224,7 +234,7 @@ const MasterAdminLayout = ({ children }) => {
           </header>
 
           {/* Page Content */}
-          <main className="flex-1 p-6 overflow-auto bg-gradient-to-br from-background via-background to-muted/50">
+          <main className="flex-1 p-4 md:p-6 overflow-auto bg-gradient-to-br from-background via-background to-muted/50">
             {children}
           </main>
         </div>
