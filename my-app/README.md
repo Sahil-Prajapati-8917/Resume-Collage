@@ -13,11 +13,13 @@ A comprehensive, multi-industry AI hiring platform frontend that evaluates candi
 - **Industry-Specific Prompts**: Customizable evaluation criteria per industry
 
 ### ✅ Recent Updates
-- **Bug Fixes**: Resolved critical runtime errors and React hooks violations
+### ✅ Recent Updates
+- **Universal Search**: Integrated global search bar for instant file and candidate lookup
+- **Responsive Design**: Mobile-first UI overhaul with adaptive layouts avoiding tables on small screens
 - **Performance**: Optimized component rendering and navigation
 - **Stability**: Fixed import errors and chart component issues
 - **User Experience**: Improved error handling and component state management
-- **Development Flow**: Simplified login process for easier testing (accepts any credentials)
+- **Development Flow**: Simplified login process for easier testing
 
 ### Authentication & Security
 - **Secure Login**: Password-based authentication (Simplified for development)
@@ -27,7 +29,8 @@ A comprehensive, multi-industry AI hiring platform frontend that evaluates candi
 ### Key Components
 1. **Authentication**: Login and protected account creation system
 2. **Dashboard**: Overview of evaluations, statistics, and quick actions
-3. **Resume Upload**: Drag-and-drop interface with real-time parsing preview
+3. **Universal Search**: Global header search for finding files, folders, and candidates
+4. **Resume Upload**: Drag-and-drop interface with real-time parsing preview
 4. **Hiring Forms**: Define role requirements, cut-offs, and evaluation weights
 5. **Prompt Management**: Configure industry-specific evaluation prompts
 6. **Evaluation Results**: Review AI scores, evidence, and detailed analysis
@@ -41,7 +44,7 @@ A comprehensive, multi-industry AI hiring platform frontend that evaluates candi
 - **Build Tool**: Vite (rolldown-vite)
 - **Styling**: Tailwind CSS 4.1.18
 - **Routing**: React Router DOM
-- **UI Components**: Radix UI primitives
+- **UI Components**: Radix UI primitives & ShadCN UI
 - **Icons**: Heroicons React & Lucide React
 - **File Upload**: react-dropzone
 - **HTTP Client**: Axios

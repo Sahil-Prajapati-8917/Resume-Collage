@@ -13,25 +13,23 @@ This is a monorepo containing both frontend and backend applications:
 
 ## � Recent Bug Fixes & Updates
 
-### ✅ Critical Bug Fixes (Latest)
-- **Navigation Issues**: Fixed improper `window.location.href` usage in Alerts component - replaced with React Router's `navigate()` hook
-- **React Hooks Violations**: Resolved synchronous `setState` calls within `useEffect` hooks in multiple components (Alerts, Notifications, Profile)
-- **Import Errors**: Fixed incorrect imports of Recharts components from `lucide-react` instead of `recharts` library in EvaluationOversight and SystemAnalytics pages
-- **Unused Variables**: Cleaned up unused state variables and imports across multiple components to eliminate ESLint warnings
-- **Component State Management**: Improved initialization patterns for mock data to prevent React strict mode violations
-- **Backend Routing**: Fixed critical crash in `auth` routes caused by incorrect middleware import
+### ✅ Critical Bug Fixes & Updates (Latest)
+- **Universal Search**: Implemented a global keyword search across the application for files, folders, and candidates.
+- **Responsive Design**: Complete UI overhaul ensuring seamless experience across mobile, tablet, and desktop devices.
+- **Navigation Issues**: Fixed improper `window.location.href` usage in Alerts component - replaced with React Router's `navigate()` hook.
+- **React Hooks Violations**: Resolved synchronous `setState` calls within `useEffect` hooks.
+- **Backend Routing**: Fixed critical crash in `auth` routes caused by incorrect middleware import.
 
 ### 🚀 Current Status
-- **Runtime Errors**: All critical runtime errors resolved
-- **Build Status**: Frontend and backend build successfully without errors
-- **Dependencies**: All packages up-to-date with security patches applied
-- **Code Quality**: ESLint configuration active with most critical issues resolved
+- **Mobile-Ready**: Fully responsive interface with adaptive layouts.
+- **Runtime Errors**: All critical runtime errors resolved.
+- **Build Status**: Frontend and backend build successfully without errors.
+- **Code Quality**: ESLint configuration active with most critical issues resolved.
 
 ### 🛠️ Technical Improvements
-- **Performance**: Eliminated cascading renders from improper state updates
-- **User Experience**: Fixed navigation and component loading issues
-- **Developer Experience**: Cleaner code with proper React patterns
-- **Maintainability**: Removed technical debt from unused code
+- **Universal Search**: Unified search architecture connecting frontend to backend file services.
+- **Performance**: Eliminated cascading renders from improper state updates.
+- **User Experience**: Fixed navigation and component loading issues.
 
 ## �🚀 Key Features
 
@@ -53,6 +51,11 @@ This is a monorepo containing both frontend and backend applications:
 - **Skill Extraction**: Automatic identification and categorization of technical and soft skills
 - **Experience Analysis**: Deep understanding of role progression and project complexity
 
+### 🔍 Universal Search
+- **Global File Search**: Instantly find resumes, documents, and folders.
+- **Smart Filtering**: Filter results by type (PDF, DOCX, Folder).
+- **Quick Navigation**: Jump directly to search results with a single click.
+
 ### 🎛️ Comprehensive Management
 - **Hiring Forms**: Define role requirements, cut-offs, and evaluation weights
 - **Prompt Management**: Configure industry-specific evaluation prompts with version control
@@ -65,7 +68,7 @@ This is a monorepo containing both frontend and backend applications:
 - **Framework**: React 19.2.0 with Vite (rolldown-vite)
 - **Styling**: Tailwind CSS 4.1.18
 - **Routing**: React Router DOM
-- **UI Components**: Radix UI primitives
+- **UI Components**: Radix UI primitives & ShadCN UI
 - **Icons**: Heroicons React & Lucide React
 - **File Upload**: react-dropzone
 - **HTTP Client**: Axios
@@ -257,7 +260,97 @@ resume-project/
 - Collaborative decision making
 - Compliance reporting
 
-## 🔧 API Documentation
+## 🔄 Post-Upload Workflow
+
+Here is exactly what happens after a resume is uploaded:
+
+```mermaid
+graph TD
+    A[Upload Resume] -->|PDF/DOC/DOCX| B(Automatic Parsing)
+    B --> C{Review Parse}
+    C -->|Start Evaluation| D[AI Scoring]
+    D -->|Uses Industry Prompt| E[Evaluation Results]
+    E --> F{Recruiter Review}
+    F -->|Accept| G[Finalize]
+    F -->|Override| H[Log Reason & Finalize]
+    G --> I[Universal Search Index]
+    H --> I
+    I --> J[Audit Trail Logged]
+```
+
+```mermaid
+graph TD
+    A[Upload Resume] -->|PDF/DOC/DOCX| B(Automatic Parsing)
+    B --> C{Review Parse}
+    C -->|Start Evaluation| D[AI Scoring]
+    D -->|Uses Industry Prompt| E[Evaluation Results]
+    E --> F{Recruiter Review}
+    F -->|Accept| G[Finalize]
+    F -->|Override| H[Log Reason & Finalize]
+    G --> I[Universal Search Index]
+    H --> I
+    I --> J[Audit Trail Logged]
+```
+
+### 1️⃣ Resume is parsed automatically
+* PDF / DOC / DOCX is read by the backend
+* Text, skills, experience, projects are extracted
+* Resume is saved in the database
+* Parsing preview is shown in UI
+
+👉 **User action**: Review the parsed content
+
+### 2️⃣ Start AI evaluation
+* Select or create a **Hiring Form** (role, industry, cut-offs)
+* Click **“Start Evaluation”**
+* Resume is sent to AI with industry-specific prompt
+
+👉 **User action**: Choose role + start evaluation
+
+### 3️⃣ View evaluation results
+You get:
+* Overall score (0–100)
+* Category-wise breakdown (skills, experience, projects)
+* Strengths and gaps
+* Evidence highlighted from resume
+* AI reasoning (why this score)
+
+👉 **User action**: Review AI decision
+
+### 4️⃣ Human override (optional)
+* Recruiter can **accept / reject / override** AI result
+* Add a reason (mandatory)
+* Override is logged in audit trail
+
+👉 **User action**: Make final decision
+
+### 5️⃣ Search & manage resumes
+* Resume becomes searchable via **Universal Search**
+* Can filter by name, skill, file type
+* Open resume or evaluation directly
+
+👉 **User action**: Find resumes instantly later
+
+### 6️⃣ Audit trail is updated
+Every action is logged:
+* Upload
+* Evaluation
+* Override
+* User action
+* Timestamp
+
+👉 **User action**: View audit logs if needed
+
+### 🧠 One-line flow (interview friendly)
+> "After upload, the resume is parsed, evaluated by AI using role-specific criteria, reviewed by a recruiter, optionally overridden, and fully logged for compliance."
+
+### ❌ What does NOT happen automatically yet
+* No interview scheduling
+* No candidate email
+* No ATS push
+* No video analysis
+
+## �🔧 API Documentation
 
 Comprehensive API documentation is available in [API_DOCUMENTATION.md](./API_DOCUMENTATION.md), including:
 

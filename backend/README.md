@@ -6,6 +6,7 @@ A robust Node.js/Express backend API for the AI-Driven Holistic Resume Evaluatio
 
 ### Core API Functionality
 - **Resume Processing**: Intelligent parsing of PDF/DOC files with context preservation
+- **Universal Search**: Global search capability for files, folders, and candidates
 - **AI Evaluation**: Holistic candidate assessment using advanced language models
 - **User Management**: Authentication, authorization, and profile management
 - **Account Creation**: Secure administrator-controlled user registration
@@ -14,6 +15,7 @@ A robust Node.js/Express backend API for the AI-Driven Holistic Resume Evaluatio
 - **Audit Trail**: Complete logging system for compliance and accountability
 
 ### ✅ Recent Updates
+- **Global Search**: Added backend endpoints for universal file and folder search
 - **Stability**: Fixed critical crash in `auth` routes (middleware import)
 - **Dependencies**: Updated to latest secure versions
 - **Performance**: Optimized background processing and caching

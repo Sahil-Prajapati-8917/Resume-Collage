@@ -382,180 +382,178 @@ const EvaluationResults = () => {
 
           <div className="overflow-y-auto max-h-[70vh] pr-2">
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-                {/* Left Column - Score Breakdown */}
-                <div className="space-y-6">
-                  {/* Overall Score */}
-                  <div className="bg-gray-50 rounded-lg p-6">
-                    <h3 className="text-lg font-semibold text-gray-900 mb-4">Overall Score</h3>
-                    <div className="text-center">
-                      <div className={`text-5xl font-bold ${selectedCandidate ? getScoreColor(selectedCandidate.score) : ''}`}>
-                        {selectedCandidate?.score || 0}
-                      </div>
-                      <div className="text-gray-500 mt-2">out of 100</div>
-                      <div className={`inline-flex items-center px-3 py-1 rounded-full text-sm font-medium mt-3 ${selectedCandidate ? getConfidenceColor(selectedCandidate.confidence) : ''}`}>
-                        {selectedCandidate?.confidence || 'N/A'} Confidence
-                      </div>
+              {/* Left Column - Score Breakdown */}
+              <div className="space-y-6">
+                {/* Overall Score */}
+                <div className="bg-gray-50 rounded-lg p-6">
+                  <h3 className="text-lg font-semibold text-gray-900 mb-4">Overall Score</h3>
+                  <div className="text-center">
+                    <div className={`text-5xl font-bold ${selectedCandidate ? getScoreColor(selectedCandidate.score) : ''}`}>
+                      {selectedCandidate?.score || 0}
+                    </div>
+                    <div className="text-gray-500 mt-2">out of 100</div>
+                    <div className={`inline-flex items-center px-3 py-1 rounded-full text-sm font-medium mt-3 ${selectedCandidate ? getConfidenceColor(selectedCandidate.confidence) : ''}`}>
+                      {selectedCandidate?.confidence || 'N/A'} Confidence
                     </div>
                   </div>
+                </div>
 
-                  {/* Detailed Scores */}
-                  <div className="bg-white border border-gray-200 rounded-lg p-6">
-                    <h3 className="text-lg font-semibold text-gray-900 mb-4">Score Breakdown</h3>
-                    <div className="space-y-3">
-                      {selectedCandidate?.detailedScores && Object.entries(selectedCandidate.detailedScores).map(([category, score]) => (
-                        <div key={category}>
-                          <div className="flex justify-between items-center mb-1">
-                            <span className="text-sm font-medium text-gray-700 capitalize">
-                              {category.replace(/([A-Z])/g, ' $1').trim()}
-                            </span>
-                            <span className="text-sm font-medium text-gray-900">{score}</span>
-                          </div>
-                          <div className="w-full bg-gray-200 rounded-full h-2">
-                            <div
-                              className={`h-2 rounded-full ${
-                                score >= 80 ? 'bg-green-500' :
+                {/* Detailed Scores */}
+                <div className="bg-white border border-gray-200 rounded-lg p-6">
+                  <h3 className="text-lg font-semibold text-gray-900 mb-4">Score Breakdown</h3>
+                  <div className="space-y-3">
+                    {selectedCandidate?.detailedScores && Object.entries(selectedCandidate.detailedScores).map(([category, score]) => (
+                      <div key={category}>
+                        <div className="flex justify-between items-center mb-1">
+                          <span className="text-sm font-medium text-gray-700 capitalize">
+                            {category.replace(/([A-Z])/g, ' $1').trim()}
+                          </span>
+                          <span className="text-sm font-medium text-gray-900">{score}</span>
+                        </div>
+                        <div className="w-full bg-gray-200 rounded-full h-2">
+                          <div
+                            className={`h-2 rounded-full ${score >= 80 ? 'bg-green-500' :
                                 score >= 60 ? 'bg-yellow-500' : 'bg-red-500'
                               }`}
-                              style={{ width: `${score}%` }}
-                            ></div>
-                          </div>
+                            style={{ width: `${score}%` }}
+                          ></div>
                         </div>
-                      ))}
-                    </div>
-                  </div>
-
-                  {/* Evaluation Info */}
-                  <div className="bg-white border border-gray-200 rounded-lg p-6">
-                    <h3 className="text-lg font-semibold text-gray-900 mb-4">Evaluation Details</h3>
-                    <div className="space-y-3">
-                      <div className="flex items-center text-sm">
-                        <ClockIcon className="h-4 w-4 text-gray-400 mr-2" />
-                        <span className="text-gray-500">Evaluated:</span>
-                        <span className="text-gray-900 ml-1">{selectedCandidate?.evaluatedAt || 'N/A'}</span>
                       </div>
-                      <div className="flex items-center text-sm">
-                        <DocumentTextIcon className="h-4 w-4 text-gray-400 mr-2" />
-                        <span className="text-gray-500">Resume:</span>
-                        <span className="text-gray-900 ml-1">{selectedCandidate?.resumeFile || 'N/A'}</span>
-                      </div>
-                      <div className="flex items-center text-sm">
-                        <UserIcon className="h-4 w-4 text-gray-400 mr-2" />
-                        <span className="text-gray-500">Evaluator:</span>
-                        <span className="text-gray-900 ml-1">{selectedCandidate?.evaluator || 'N/A'}</span>
-                      </div>
-                    </div>
+                    ))}
                   </div>
                 </div>
 
-                {/* Middle Column - Analysis */}
-                <div className="space-y-6">
-                  {/* Strengths */}
-                  <div className="bg-white border border-gray-200 rounded-lg p-6">
-                    <h3 className="text-lg font-semibold text-gray-900 mb-4 flex items-center">
-                      <CheckCircleIcon className="h-5 w-5 text-green-500 mr-2" />
-                      Strengths
-                    </h3>
-                    <ul className="space-y-2">
-                      {selectedCandidate?.strengths?.map((strength, index) => (
-                        <li key={index} className="flex items-start text-sm text-gray-700">
-                          <CheckCircleIcon className="h-4 w-4 text-green-500 mr-2 mt-0.5 flex-shrink-0" />
-                          {strength}
-                        </li>
-                      )) || <li className="text-sm text-gray-500">No strengths available</li>}
-                    </ul>
-                  </div>
-
-                  {/* Gaps */}
-                  <div className="bg-white border border-gray-200 rounded-lg p-6">
-                    <h3 className="text-lg font-semibold text-gray-900 mb-4 flex items-center">
-                      <ExclamationTriangleIcon className="h-5 w-5 text-yellow-500 mr-2" />
-                      Areas for Improvement
-                    </h3>
-                    <ul className="space-y-2">
-                      {selectedCandidate?.gaps?.map((gap, index) => (
-                        <li key={index} className="flex items-start text-sm text-gray-700">
-                          <ExclamationTriangleIcon className="h-4 w-4 text-yellow-500 mr-2 mt-0.5 flex-shrink-0" />
-                          {gap}
-                        </li>
-                      )) || <li className="text-sm text-gray-500">No areas for improvement identified</li>}
-                    </ul>
-                  </div>
-                </div>
-
-                {/* Right Column - Evidence */}
-                <div className="space-y-6">
-                  <div className="bg-white border border-gray-200 rounded-lg p-6">
-                    <h3 className="text-lg font-semibold text-gray-900 mb-4 flex items-center">
-                      <StarIcon className="h-5 w-5 text-blue-500 mr-2" />
-                      Evidence Highlights
-                    </h3>
-                    <div className="space-y-4">
-                      {selectedCandidate?.evidence?.map((evidence, index) => (
-                        <div key={index} className="border-l-4 border-blue-500 pl-4">
-                          <div className="flex items-center justify-between mb-2">
-                            <span className="text-xs font-medium text-gray-500 uppercase">
-                              {evidence.type}
-                            </span>
-                            <div className="flex items-center space-x-2">
-                              <span className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-medium ${
-                                evidence.relevance === 'High' ? 'bg-green-100 text-green-800' :
-                                evidence.relevance === 'Medium' ? 'bg-yellow-100 text-yellow-800' :
-                                'bg-gray-100 text-gray-800'
-                              }`}>
-                                {evidence.relevance} Relevance
-                              </span>
-                              <span className="text-sm font-medium text-gray-900">
-                                Score: {evidence.score}/10
-                              </span>
-                            </div>
-                          </div>
-                          <p className="text-sm text-gray-700 bg-gray-50 p-3 rounded">
-                            "{evidence.text}"
-                          </p>
-                        </div>
-                      )) || <p className="text-sm text-gray-500">No evidence highlights available</p>}
+                {/* Evaluation Info */}
+                <div className="bg-white border border-gray-200 rounded-lg p-6">
+                  <h3 className="text-lg font-semibold text-gray-900 mb-4">Evaluation Details</h3>
+                  <div className="space-y-3">
+                    <div className="flex items-center text-sm">
+                      <ClockIcon className="h-4 w-4 text-gray-400 mr-2" />
+                      <span className="text-gray-500">Evaluated:</span>
+                      <span className="text-gray-900 ml-1">{selectedCandidate?.evaluatedAt || 'N/A'}</span>
+                    </div>
+                    <div className="flex items-center text-sm">
+                      <DocumentTextIcon className="h-4 w-4 text-gray-400 mr-2" />
+                      <span className="text-gray-500">Resume:</span>
+                      <span className="text-gray-900 ml-1">{selectedCandidate?.resumeFile || 'N/A'}</span>
+                    </div>
+                    <div className="flex items-center text-sm">
+                      <UserIcon className="h-4 w-4 text-gray-400 mr-2" />
+                      <span className="text-gray-500">Evaluator:</span>
+                      <span className="text-gray-900 ml-1">{selectedCandidate?.evaluator || 'N/A'}</span>
                     </div>
                   </div>
-
-                  {/* Actions */}
-                  <Card>
-                    <CardHeader>
-                      <CardTitle>Human Override</CardTitle>
-                    </CardHeader>
-                    <CardContent>
-                      <div className="space-y-3">
-                        <Button
-                          onClick={() => handleOverride('approve')}
-                          className="w-full"
-                          variant="default"
-                        >
-                          <ThumbsUp className="h-4 w-4 mr-2" />
-                          Approve Candidate
-                        </Button>
-                        <Button
-                          onClick={() => handleOverride('reject')}
-                          className="w-full"
-                          variant="destructive"
-                        >
-                          <ThumbsDown className="h-4 w-4 mr-2" />
-                          Reject Candidate
-                        </Button>
-                        <Button
-                          onClick={() => handleOverride('review')}
-                          className="w-full"
-                          variant="secondary"
-                        >
-                          <EyeIcon className="h-4 w-4 mr-2" />
-                          Flag for Manual Review
-                        </Button>
-                      </div>
-                    </CardContent>
-                  </Card>
                 </div>
               </div>
+
+              {/* Middle Column - Analysis */}
+              <div className="space-y-6">
+                {/* Strengths */}
+                <div className="bg-white border border-gray-200 rounded-lg p-6">
+                  <h3 className="text-lg font-semibold text-gray-900 mb-4 flex items-center">
+                    <CheckCircleIcon className="h-5 w-5 text-green-500 mr-2" />
+                    Strengths
+                  </h3>
+                  <ul className="space-y-2">
+                    {selectedCandidate?.strengths?.map((strength, index) => (
+                      <li key={index} className="flex items-start text-sm text-gray-700">
+                        <CheckCircleIcon className="h-4 w-4 text-green-500 mr-2 mt-0.5 flex-shrink-0" />
+                        {strength}
+                      </li>
+                    )) || <li className="text-sm text-gray-500">No strengths available</li>}
+                  </ul>
+                </div>
+
+                {/* Gaps */}
+                <div className="bg-white border border-gray-200 rounded-lg p-6">
+                  <h3 className="text-lg font-semibold text-gray-900 mb-4 flex items-center">
+                    <ExclamationTriangleIcon className="h-5 w-5 text-yellow-500 mr-2" />
+                    Areas for Improvement
+                  </h3>
+                  <ul className="space-y-2">
+                    {selectedCandidate?.gaps?.map((gap, index) => (
+                      <li key={index} className="flex items-start text-sm text-gray-700">
+                        <ExclamationTriangleIcon className="h-4 w-4 text-yellow-500 mr-2 mt-0.5 flex-shrink-0" />
+                        {gap}
+                      </li>
+                    )) || <li className="text-sm text-gray-500">No areas for improvement identified</li>}
+                  </ul>
+                </div>
+              </div>
+
+              {/* Right Column - Evidence */}
+              <div className="space-y-6">
+                <div className="bg-white border border-gray-200 rounded-lg p-6">
+                  <h3 className="text-lg font-semibold text-gray-900 mb-4 flex items-center">
+                    <StarIcon className="h-5 w-5 text-blue-500 mr-2" />
+                    Evidence Highlights
+                  </h3>
+                  <div className="space-y-4">
+                    {selectedCandidate?.evidence?.map((evidence, index) => (
+                      <div key={index} className="border-l-4 border-blue-500 pl-4">
+                        <div className="flex items-center justify-between mb-2">
+                          <span className="text-xs font-medium text-gray-500 uppercase">
+                            {evidence.type}
+                          </span>
+                          <div className="flex items-center space-x-2">
+                            <span className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-medium ${evidence.relevance === 'High' ? 'bg-green-100 text-green-800' :
+                                evidence.relevance === 'Medium' ? 'bg-yellow-100 text-yellow-800' :
+                                  'bg-gray-100 text-gray-800'
+                              }`}>
+                              {evidence.relevance} Relevance
+                            </span>
+                            <span className="text-sm font-medium text-gray-900">
+                              Score: {evidence.score}/10
+                            </span>
+                          </div>
+                        </div>
+                        <p className="text-sm text-gray-700 bg-gray-50 p-3 rounded">
+                          "{evidence.text}"
+                        </p>
+                      </div>
+                    )) || <p className="text-sm text-gray-500">No evidence highlights available</p>}
+                  </div>
+                </div>
+
+                {/* Actions */}
+                <Card>
+                  <CardHeader>
+                    <CardTitle>Human Override</CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    <div className="space-y-3">
+                      <Button
+                        onClick={() => handleOverride('approve')}
+                        className="w-full"
+                        variant="default"
+                      >
+                        <ThumbsUp className="h-4 w-4 mr-2" />
+                        Approve Candidate
+                      </Button>
+                      <Button
+                        onClick={() => handleOverride('reject')}
+                        className="w-full"
+                        variant="destructive"
+                      >
+                        <ThumbsDown className="h-4 w-4 mr-2" />
+                        Reject Candidate
+                      </Button>
+                      <Button
+                        onClick={() => handleOverride('review')}
+                        className="w-full"
+                        variant="secondary"
+                      >
+                        <EyeIcon className="h-4 w-4 mr-2" />
+                        Flag for Manual Review
+                      </Button>
+                    </div>
+                  </CardContent>
+                </Card>
+              </div>
             </div>
-          </DialogContent>
-        </Dialog>
+          </div>
+        </DialogContent>
+      </Dialog>
 
       {/* Override Dialog */}
       <Dialog open={showOverrideModal} onOpenChange={() => {
