@@ -31,6 +31,7 @@ const CreateAccount = () => {
     password: '',
     confirmPassword: '',
     role: '',
+    accessCode: '',
 
     // Step 4: Compliance & Consent
     aiAcknowledgment: false,
@@ -110,6 +111,7 @@ const CreateAccount = () => {
         break
 
       case 3:
+        if (formData.accessCode !== 'admin123') newErrors.accessCode = 'Invalid access code'
         if (!formData.username.trim()) newErrors.username = 'Username is required'
         if (!formData.password) {
           newErrors.password = 'Password is required'
@@ -320,6 +322,21 @@ const CreateAccount = () => {
       case 3:
         return (
           <div className="space-y-6">
+            <div>
+              <Label htmlFor="accessCode">Access Code *</Label>
+              <Input
+                id="accessCode"
+                type="password"
+                value={formData.accessCode}
+                onChange={(e) => handleInputChange('accessCode', e.target.value)}
+                placeholder="Enter access code"
+                className={errors.accessCode ? 'border-red-500' : ''}
+              />
+              {errors.accessCode && (
+                <p className="text-sm text-red-500 mt-1">{errors.accessCode}</p>
+              )}
+            </div>
+
             <div>
               <Label htmlFor="username">Username *</Label>
               <Input
@@ -609,7 +626,7 @@ const CreateAccount = () => {
       case 2:
         return formData.fullName && formData.workEmail && formData.jobTitle && /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.workEmail)
       case 3:
-        return formData.username && formData.password && formData.confirmPassword && formData.password === formData.confirmPassword && formData.password.length >= 8 && formData.role
+        return formData.accessCode === 'admin123' && formData.username && formData.password && formData.confirmPassword && formData.password === formData.confirmPassword && formData.password.length >= 8 && formData.role
       case 4:
         return formData.aiAcknowledgment && formData.humanLoopUnderstanding && formData.auditLoggingAcceptance && formData.dataProcessingAcceptance
       case 5:
@@ -636,10 +653,10 @@ const CreateAccount = () => {
                 {steps.map((step) => (
                   <div key={step.id} className="flex items-center space-x-3 flex-shrink-0">
                     <div className={`flex items-center justify-center w-8 h-8 rounded-full border-2 transition-colors ${currentStep > step.id
-                        ? 'bg-primary border-primary text-primary-foreground'
-                        : currentStep === step.id
-                          ? 'border-primary text-primary'
-                          : 'border-muted-foreground text-muted-foreground'
+                      ? 'bg-primary border-primary text-primary-foreground'
+                      : currentStep === step.id
+                        ? 'border-primary text-primary'
+                        : 'border-muted-foreground text-muted-foreground'
                       }`}>
                       <step.icon className="w-4 h-4" />
                     </div>
