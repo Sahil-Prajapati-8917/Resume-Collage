@@ -1,7 +1,7 @@
 const express = require('express');
 const router = express.Router();
 const multer = require('multer');
-const { auth } = require('../middleware/auth');
+const { authenticateToken: auth } = require('../middleware/auth');
 const resumeController = require('../controllers/resumeController');
 
 // Multer configuration for memory storage
@@ -26,6 +26,16 @@ const upload = multer({
 });
 
 // POST /api/resume/parse
+// POST /api/resume/parse
 router.post('/parse', upload.single('resume'), resumeController.parseResume);
+
+// GET /api/resume - Get all resumes (with optional filters)
+router.get('/', resumeController.getResumes);
+
+// PUT /api/resume/bulk-status - Bulk update status
+router.put('/bulk-status', auth, resumeController.bulkUpdateResumeStatus);
+
+// PUT /api/resume/:id/status - Update single resume status
+router.put('/:id/status', auth, resumeController.updateResumeStatus);
 
 module.exports = router;

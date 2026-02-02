@@ -47,6 +47,19 @@ const HiringFormSchema = new mongoose.Schema({
         type: String,
         trim: true
     }],
+    version: {
+        type: Number,
+        default: 1
+    },
+    isLocked: {
+        type: Boolean,
+        default: false // Becomes true after creation to lock Industry
+    },
+    editHistory: [{
+        editedBy: { type: mongoose.Schema.Types.ObjectId, ref: 'User' },
+        editedAt: { type: Date, default: Date.now },
+        changes: { type: mongoose.Schema.Types.Mixed }
+    }],
     createdAt: {
         type: Date,
         default: Date.now

@@ -22,9 +22,9 @@ const Dashboard = () => {
 
   const recentActivity = [
     { id: 1, candidate: 'John Smith', position: 'Senior Developer', score: 85, status: 'Shortlisted', time: '2 hours ago' },
-    { id: 2, candidate: 'Sarah Johnson', position: 'Product Manager', score: 78, status: 'Under Review', time: '4 hours ago' },
+    { id: 2, candidate: 'Sarah Johnson', position: 'Product Manager', score: 78, status: 'Under Process', time: '4 hours ago' },
     { id: 3, candidate: 'Michael Chen', position: 'Data Scientist', score: 92, status: 'Shortlisted', time: '6 hours ago' },
-    { id: 4, candidate: 'Emily Davis', position: 'UX Designer', score: 68, status: 'Needs Review', time: '8 hours ago' },
+    { id: 4, candidate: 'Emily Davis', position: 'UX Designer', score: 68, status: 'Manual Review Required', time: '8 hours ago' },
   ]
 
   const industries = [
@@ -138,8 +138,9 @@ const Dashboard = () => {
                       <Badge
                         variant={
                           activity.status === 'Shortlisted' ? 'default' :
-                            activity.status === 'Under Review' ? 'secondary' :
-                              'outline'
+                            activity.status === 'Under Process' ? 'secondary' :
+                              activity.status === 'Manual Review Required' ? 'outline' :
+                                'destructive'
                         }
                         className="mt-1"
                       >

@@ -1,4 +1,5 @@
-import React, { useState } from 'react'
+import React, { useState, useEffect } from 'react'
+import axios from 'axios'
 import {
   BarChart3,
   Eye,
@@ -34,170 +35,52 @@ const EvaluationResults = () => {
   const [showOverrideModal, setShowOverrideModal] = useState(false)
   const [overrideReason, setOverrideReason] = useState('')
   const [overrideAction, setOverrideAction] = useState('')
+  const [evaluations, setEvaluations] = useState([])
+  const [loading, setLoading] = useState(true)
 
-  const [evaluations] = useState([
-    {
-      id: 1,
-      candidateName: 'John Smith',
-      position: 'Senior Software Engineer',
-      industry: 'Information Technology',
-      score: 85,
-      confidence: 'High',
-      status: 'Shortlisted',
-      evaluatedAt: '2024-01-20 14:30',
-      resumeFile: 'john_smith_resume.pdf',
-      hiringForm: 'Senior Developer Evaluation',
-      evaluator: 'AI System v2.1',
-      strengths: [
-        'Strong technical leadership experience',
-        'Led multiple high-impact projects',
-        'Excellent system design skills',
-        'Active contributor to open source'
-      ],
-      gaps: [
-        'Limited experience with cloud-native architectures',
-        'No formal management experience'
-      ],
-      evidence: [
-        {
-          type: 'project',
-          text: 'Led development of microservices architecture serving 1M+ users',
-          relevance: 'High',
-          score: 9
-        },
-        {
-          type: 'experience',
-          text: '5+ years of experience with React and Node.js',
-          relevance: 'High',
-          score: 8
-        },
-        {
-          type: 'skill',
-          text: 'Proficient in AWS, Docker, and Kubernetes',
-          relevance: 'Medium',
-          score: 7
-        }
-      ],
-      detailedScores: {
-        experience: 88,
-        skills: 82,
-        projects: 90,
-        education: 75,
-        communication: 78
-      }
-    },
-    {
-      id: 2,
-      candidateName: 'Sarah Johnson',
-      position: 'Product Manager',
-      industry: 'Healthcare',
-      score: 78,
-      confidence: 'Medium',
-      status: 'Under Review',
-      evaluatedAt: '2024-01-20 13:15',
-      resumeFile: 'sarah_johnson_resume.pdf',
-      hiringForm: 'Healthcare IT Specialist',
-      evaluator: 'AI System v2.1',
-      strengths: [
-        'Strong healthcare domain knowledge',
-        'Experience with HIPAA compliance',
-        'Good stakeholder management skills'
-      ],
-      gaps: [
-        'Limited technical background',
-        'No experience with EMR systems'
-      ],
-      evidence: [
-        {
-          type: 'domain',
-          text: '3 years working in healthcare technology startups',
-          relevance: 'High',
-          score: 8
-        }
-      ],
-      detailedScores: {
-        experience: 75,
-        skills: 70,
-        projects: 80,
-        education: 85,
-        communication: 82
-      }
-    },
-    {
-      id: 3,
-      candidateName: 'Michael Chen',
-      position: 'Data Scientist',
-      industry: 'Finance',
-      score: 92,
-      confidence: 'High',
-      status: 'Shortlisted',
-      evaluatedAt: '2024-01-20 11:45',
-      resumeFile: 'michael_chen_resume.pdf',
-      hiringForm: 'Financial Analyst',
-      evaluator: 'AI System v2.1',
-      strengths: [
-        'Exceptional analytical skills',
-        'Strong machine learning background',
-        'Published research papers',
-        'Experience with financial modeling'
-      ],
-      gaps: [
-        'Limited real-world deployment experience'
-      ],
-      evidence: [
-        {
-          type: 'project',
-          text: 'Developed fraud detection algorithm reducing false positives by 40%',
-          relevance: 'High',
-          score: 10
-        }
-      ],
-      detailedScores: {
-        experience: 90,
-        skills: 95,
-        projects: 92,
-        education: 88,
-        communication: 85
-      }
-    },
-    {
-      id: 4,
-      candidateName: 'Emily Davis',
-      position: 'UX Designer',
-      industry: 'Retail',
-      score: 68,
-      confidence: 'Low',
-      status: 'Needs Review',
-      evaluatedAt: '2024-01-20 10:30',
-      resumeFile: 'emily_davis_resume.pdf',
-      hiringForm: 'UX Designer - Retail',
-      evaluator: 'AI System v2.1',
-      strengths: [
-        'Good design portfolio',
-        'Experience with e-commerce platforms'
-      ],
-      gaps: [
-        'Limited user research experience',
-        'No experience with A/B testing',
-        'Weak technical skills'
-      ],
-      evidence: [
-        {
-          type: 'project',
-          text: 'Designed mobile app for retail client',
-          relevance: 'Medium',
-          score: 6
-        }
-      ],
-      detailedScores: {
-        experience: 65,
-        skills: 70,
-        projects: 68,
-        education: 72,
-        communication: 65
-      }
+  const fetchResumes = async () => {
+    setLoading(true)
+    try {
+      const token = localStorage.getItem('token');
+      const config = {
+        headers: { Authorization: `Bearer ${token}` }
+      };
+      const response = await axios.get('http://localhost:5000/api/resume', config);
+      setEvaluations(response.data.data);
+    } catch (error) {
+      console.error("Failed to fetch resumes", error);
+    } finally {
+      setLoading(false);
     }
-  ])
+  }
+
+  useEffect(() => {
+    fetchResumes()
+  }, [])
+
+  const handleStatusChange = async (evaluationId, newStatus, reason = '') => {
+    try {
+      const token = localStorage.getItem('token');
+      const config = {
+        headers: { Authorization: `Bearer ${token}` }
+      };
+      await axios.put(`http://localhost:5000/api/resume/${evaluationId}/status`, {
+        status: newStatus,
+        reason: reason
+      }, config);
+
+      fetchResumes(); // Refresh data
+      setShowOverrideModal(false);
+      setOverrideReason('');
+      setOverrideAction('');
+      if (selectedCandidate && selectedCandidate._id === evaluationId) {
+        setSelectedCandidate(null); // Close modal if open
+      }
+
+    } catch (error) {
+      console.error("Failed to update status", error);
+    }
+  }
 
   const filteredEvaluations = evaluations.filter(evaluation => {
     if (filterStatus === 'all') return true
@@ -207,9 +90,9 @@ const EvaluationResults = () => {
   const getStatusColor = (status) => {
     switch (status) {
       case 'Shortlisted': return 'bg-green-100 text-green-800'
-      case 'Under Review': return 'bg-yellow-100 text-yellow-800'
-      case 'Needs Review': return 'bg-orange-100 text-orange-800'
-      case 'Rejected': return 'bg-red-100 text-red-800'
+      case 'Manual Review Required': return 'bg-yellow-100 text-yellow-800'
+      case 'Under Process': return 'bg-blue-100 text-blue-800'
+      case 'Disqualified': return 'bg-red-100 text-red-800'
       default: return 'bg-gray-100 text-gray-800'
     }
   }
@@ -229,18 +112,22 @@ const EvaluationResults = () => {
     }
   }
 
-  const handleOverride = (action) => {
-    setOverrideAction(action)
-    setShowOverrideModal(true)
+  const handleOverride = (action, candidate) => {
+    if (action === 'approve') {
+      handleStatusChange(candidate._id, 'Shortlisted');
+    } else if (action === 'reject') {
+      setOverrideAction('Disqualified')
+      setSelectedCandidate(candidate)
+      setShowOverrideModal(true)
+    } else if (action === 'review') {
+      handleStatusChange(candidate._id, 'Manual Review Required');
+    }
   }
 
   const submitOverride = () => {
-    // In a real app, this would update the evaluation status
-    // console.log('Override:', { action, reason: overrideReason, candidateId: selectedCandidate?.id })
-    setShowOverrideModal(false)
-    setOverrideReason('')
-    setOverrideAction('')
-    setSelectedCandidate(null)
+    if (selectedCandidate) {
+      handleStatusChange(selectedCandidate._id, 'Disqualified', overrideReason);
+    }
   }
 
   return (
@@ -270,10 +157,10 @@ const EvaluationResults = () => {
                 </SelectTrigger>
                 <SelectContent>
                   <SelectItem value="all">All Candidates</SelectItem>
-                  <SelectItem value="shortlisted">Shortlisted</SelectItem>
-                  <SelectItem value="under review">Under Review</SelectItem>
-                  <SelectItem value="needs review">Needs Review</SelectItem>
-                  <SelectItem value="rejected">Rejected</SelectItem>
+                  <SelectItem value="Shortlisted">Shortlisted</SelectItem>
+                  <SelectItem value="Under Process">Under Process</SelectItem>
+                  <SelectItem value="Manual Review Required">Manual Review Required</SelectItem>
+                  <SelectItem value="Disqualified">Disqualified</SelectItem>
                 </SelectContent>
               </Select>
             </div>
@@ -292,13 +179,13 @@ const EvaluationResults = () => {
               {/* Header */}
               <div className="flex items-start justify-between mb-4">
                 <div>
-                  <h3 className="text-lg font-semibold">{evaluation.candidateName}</h3>
-                  <p className="text-sm text-muted-foreground">{evaluation.position}</p>
+                  <h3 className="text-lg font-semibold">{evaluation.fileName || 'Unknown Candidate'}</h3>
+                  <p className="text-sm text-muted-foreground">{evaluation.roleType}</p>
                   <p className="text-xs text-muted-foreground mt-1">{evaluation.industry}</p>
                 </div>
                 <div className="text-right">
-                  <div className={`text-2xl font-bold ${getScoreColor(evaluation.score)}`}>
-                    {evaluation.score}
+                  <div className={`text-2xl font-bold ${getScoreColor(evaluation.aiEvaluation?.totalScore || 0)}`}>
+                    {evaluation.aiEvaluation?.totalScore || 'N/A'}
                   </div>
                   <div className="text-xs text-muted-foreground">/ 100</div>
                 </div>
@@ -309,8 +196,8 @@ const EvaluationResults = () => {
                 <Badge className={getStatusColor(evaluation.status)}>
                   {evaluation.status}
                 </Badge>
-                <Badge variant="outline" className={getConfidenceColor(evaluation.confidence)}>
-                  Confidence: {evaluation.confidence}
+                <Badge variant="outline" className={getConfidenceColor(evaluation.aiEvaluation?.confidenceLevel || 'Medium')}>
+                  Confidence: {evaluation.aiEvaluation?.confidenceLevel || 'Medium'}
                 </Badge>
               </div>
 
@@ -330,7 +217,7 @@ const EvaluationResults = () => {
               <div className="mb-4">
                 <p className="text-sm font-medium mb-2">Key Strengths:</p>
                 <ul className="text-sm text-muted-foreground space-y-1">
-                  {evaluation.strengths.slice(0, 2).map((strength, index) => (
+                  {evaluation.aiEvaluation?.strengths?.slice(0, 2).map((strength, index) => (
                     <li key={index} className="flex items-start">
                       <CheckCircle className="h-4 w-4 text-green-500 mr-2 mt-0.5 flex-shrink-0" />
                       {strength}
@@ -352,14 +239,14 @@ const EvaluationResults = () => {
                   <Button
                     variant="ghost"
                     size="sm"
-                    onClick={() => handleOverride('approve')}
+                    onClick={() => handleOverride('approve', evaluation)}
                   >
                     <ThumbsUp className="h-5 w-5" />
                   </Button>
                   <Button
                     variant="ghost"
                     size="sm"
-                    onClick={() => handleOverride('reject')}
+                    onClick={() => handleOverride('reject', evaluation)}
                   >
                     <ThumbsDown className="h-5 w-5" />
                   </Button>
@@ -374,9 +261,9 @@ const EvaluationResults = () => {
       <Dialog open={!!selectedCandidate} onOpenChange={() => setSelectedCandidate(null)}>
         <DialogContent className="max-w-6xl max-h-[90vh] overflow-hidden">
           <DialogHeader>
-            <DialogTitle className="text-2xl">{selectedCandidate?.candidateName}</DialogTitle>
+            <DialogTitle className="text-2xl">{selectedCandidate?.fileName}</DialogTitle>
             <DialogDescription>
-              {selectedCandidate?.position} • {selectedCandidate?.industry}
+              {selectedCandidate?.roleType} • {selectedCandidate?.industry}
             </DialogDescription>
           </DialogHeader>
 
@@ -388,12 +275,12 @@ const EvaluationResults = () => {
                 <div className="bg-gray-50 rounded-lg p-6">
                   <h3 className="text-lg font-semibold text-gray-900 mb-4">Overall Score</h3>
                   <div className="text-center">
-                    <div className={`text-5xl font-bold ${selectedCandidate ? getScoreColor(selectedCandidate.score) : ''}`}>
-                      {selectedCandidate?.score || 0}
+                    <div className={`text-5xl font-bold ${selectedCandidate ? getScoreColor(selectedCandidate.aiEvaluation?.totalScore) : ''}`}>
+                      {selectedCandidate?.aiEvaluation?.totalScore || 0}
                     </div>
                     <div className="text-gray-500 mt-2">out of 100</div>
-                    <div className={`inline-flex items-center px-3 py-1 rounded-full text-sm font-medium mt-3 ${selectedCandidate ? getConfidenceColor(selectedCandidate.confidence) : ''}`}>
-                      {selectedCandidate?.confidence || 'N/A'} Confidence
+                    <div className={`inline-flex items-center px-3 py-1 rounded-full text-sm font-medium mt-3 ${selectedCandidate ? getConfidenceColor(selectedCandidate.aiEvaluation?.confidenceLevel) : ''}`}>
+                      {selectedCandidate?.aiEvaluation?.confidenceLevel || 'N/A'} Confidence
                     </div>
                   </div>
                 </div>
@@ -402,7 +289,7 @@ const EvaluationResults = () => {
                 <div className="bg-white border border-gray-200 rounded-lg p-6">
                   <h3 className="text-lg font-semibold text-gray-900 mb-4">Score Breakdown</h3>
                   <div className="space-y-3">
-                    {selectedCandidate?.detailedScores && Object.entries(selectedCandidate.detailedScores).map(([category, score]) => (
+                    {selectedCandidate?.aiEvaluation?.details && Object.entries(selectedCandidate.aiEvaluation.details).map(([category, score]) => (
                       <div key={category}>
                         <div className="flex justify-between items-center mb-1">
                           <span className="text-sm font-medium text-gray-700 capitalize">
@@ -413,7 +300,7 @@ const EvaluationResults = () => {
                         <div className="w-full bg-gray-200 rounded-full h-2">
                           <div
                             className={`h-2 rounded-full ${score >= 80 ? 'bg-green-500' :
-                                score >= 60 ? 'bg-yellow-500' : 'bg-red-500'
+                              score >= 60 ? 'bg-yellow-500' : 'bg-red-500'
                               }`}
                             style={{ width: `${score}%` }}
                           ></div>
@@ -430,17 +317,17 @@ const EvaluationResults = () => {
                     <div className="flex items-center text-sm">
                       <ClockIcon className="h-4 w-4 text-gray-400 mr-2" />
                       <span className="text-gray-500">Evaluated:</span>
-                      <span className="text-gray-900 ml-1">{selectedCandidate?.evaluatedAt || 'N/A'}</span>
+                      <span className="text-gray-900 ml-1">{selectedCandidate?.uploadedAt || 'N/A'}</span>
                     </div>
                     <div className="flex items-center text-sm">
                       <DocumentTextIcon className="h-4 w-4 text-gray-400 mr-2" />
                       <span className="text-gray-500">Resume:</span>
-                      <span className="text-gray-900 ml-1">{selectedCandidate?.resumeFile || 'N/A'}</span>
+                      <span className="text-gray-900 ml-1">{selectedCandidate?.fileName || 'N/A'}</span>
                     </div>
                     <div className="flex items-center text-sm">
                       <UserIcon className="h-4 w-4 text-gray-400 mr-2" />
-                      <span className="text-gray-500">Evaluator:</span>
-                      <span className="text-gray-900 ml-1">{selectedCandidate?.evaluator || 'N/A'}</span>
+                      <span className="text-gray-500">Model:</span>
+                      <span className="text-gray-900 ml-1">{selectedCandidate?.aiEvaluation?.metadata?.model || 'N/A'}</span>
                     </div>
                   </div>
                 </div>
@@ -455,7 +342,7 @@ const EvaluationResults = () => {
                     Strengths
                   </h3>
                   <ul className="space-y-2">
-                    {selectedCandidate?.strengths?.map((strength, index) => (
+                    {selectedCandidate?.aiEvaluation?.strengths?.map((strength, index) => (
                       <li key={index} className="flex items-start text-sm text-gray-700">
                         <CheckCircleIcon className="h-4 w-4 text-green-500 mr-2 mt-0.5 flex-shrink-0" />
                         {strength}
@@ -471,7 +358,7 @@ const EvaluationResults = () => {
                     Areas for Improvement
                   </h3>
                   <ul className="space-y-2">
-                    {selectedCandidate?.gaps?.map((gap, index) => (
+                    {selectedCandidate?.aiEvaluation?.weaknesses?.map((gap, index) => (
                       <li key={index} className="flex items-start text-sm text-gray-700">
                         <ExclamationTriangleIcon className="h-4 w-4 text-yellow-500 mr-2 mt-0.5 flex-shrink-0" />
                         {gap}
@@ -489,7 +376,8 @@ const EvaluationResults = () => {
                     Evidence Highlights
                   </h3>
                   <div className="space-y-4">
-                    {selectedCandidate?.evidence?.map((evidence, index) => (
+                    {/* No evidence mapping in schema yet, hiding or adapting */}
+                    {(selectedCandidate?.evidence || []).map((evidence, index) => (
                       <div key={index} className="border-l-4 border-blue-500 pl-4">
                         <div className="flex items-center justify-between mb-2">
                           <span className="text-xs font-medium text-gray-500 uppercase">
@@ -497,8 +385,8 @@ const EvaluationResults = () => {
                           </span>
                           <div className="flex items-center space-x-2">
                             <span className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-medium ${evidence.relevance === 'High' ? 'bg-green-100 text-green-800' :
-                                evidence.relevance === 'Medium' ? 'bg-yellow-100 text-yellow-800' :
-                                  'bg-gray-100 text-gray-800'
+                              evidence.relevance === 'Medium' ? 'bg-yellow-100 text-yellow-800' :
+                                'bg-gray-100 text-gray-800'
                               }`}>
                               {evidence.relevance} Relevance
                             </span>
@@ -523,7 +411,7 @@ const EvaluationResults = () => {
                   <CardContent>
                     <div className="space-y-3">
                       <Button
-                        onClick={() => handleOverride('approve')}
+                        onClick={() => handleOverride('approve', selectedCandidate)}
                         className="w-full"
                         variant="default"
                       >
@@ -531,7 +419,7 @@ const EvaluationResults = () => {
                         Approve Candidate
                       </Button>
                       <Button
-                        onClick={() => handleOverride('reject')}
+                        onClick={() => handleOverride('reject', selectedCandidate)}
                         className="w-full"
                         variant="destructive"
                       >
@@ -539,7 +427,7 @@ const EvaluationResults = () => {
                         Reject Candidate
                       </Button>
                       <Button
-                        onClick={() => handleOverride('review')}
+                        onClick={() => handleOverride('review', selectedCandidate)}
                         className="w-full"
                         variant="secondary"
                       >

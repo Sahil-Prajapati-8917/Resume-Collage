@@ -493,7 +493,7 @@ const GlobalHiringForms = () => {
                     <TableCell>
                       <div>
                         <div className="font-semibold">{form.name}</div>
-                        <div className="text-sm text-muted-foreground">Created: {form.createdAt}</div>
+                        <div className="text-sm text-muted-foreground">Version: {form.version || 1} • Created: {form.createdAt}</div>
                       </div>
                     </TableCell>
                     <TableCell>
@@ -787,8 +787,12 @@ const GlobalHiringForms = () => {
             </div>
             <div className="grid grid-cols-2 gap-4">
               <div className="grid gap-2">
-                <Label htmlFor="editIndustry">Industry</Label>
-                <Select value={editForm.industry} onValueChange={(value) => setEditForm({ ...editForm, industry: value })}>
+                <Label htmlFor="editIndustry">Industry (Locked)</Label>
+                <Select
+                  value={editForm.industry}
+                  onValueChange={(value) => setEditForm({ ...editForm, industry: value })}
+                  disabled
+                >
                   <SelectTrigger>
                     <SelectValue placeholder="Select industry" />
                   </SelectTrigger>

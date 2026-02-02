@@ -37,7 +37,17 @@ const resumeSchema = new mongoose.Schema({
         strengths: [{ type: String }],
         weaknesses: [{ type: String }],
         details: { type: mongoose.Schema.Types.Mixed },
-        confidence: { type: Number },
+        confidence: { type: Number }, // Raw score
+        confidenceLevel: {
+            type: String,
+            enum: ['High', 'Medium', 'Low'],
+            default: 'Medium'
+        },
+        riskFlag: {
+            type: String,
+            enum: ['None', 'Low', 'Medium', 'High'],
+            default: 'None'
+        },
         // Reproducibility Metadata
         metadata: {
             model: { type: String },
@@ -49,9 +59,15 @@ const resumeSchema = new mongoose.Schema({
     // Evaluation Status
     status: {
         type: String,
-        enum: ['uploaded', 'parsed', 'evaluated', 'human_reviewed'],
-        default: 'uploaded'
+        enum: ['Under Process', 'Shortlisted', 'Disqualified', 'Manual Review Required'],
+        default: 'Under Process'
     },
+    statusHistory: [{
+        status: { type: String, required: true },
+        updatedBy: { type: mongoose.Schema.Types.ObjectId, ref: 'User' },
+        updatedAt: { type: Date, default: Date.now },
+        reason: { type: String } // Mandatory for Disqualified
+    }],
     // Human Override Data
     humanOverride: {
         isOverridden: { type: Boolean, default: false },

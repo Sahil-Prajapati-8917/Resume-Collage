@@ -23,6 +23,10 @@ const PromptSchema = new mongoose.Schema({
         type: Boolean,
         default: false
     },
+    isSystem: {
+        type: Boolean,
+        default: false // true for default industry prompts that cannot be edited
+    },
     usageCount: {
         type: Number,
         default: 0

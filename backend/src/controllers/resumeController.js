@@ -50,7 +50,8 @@ exports.parseResume = async (req, res) => {
             fileType: mimetype,
             parsedText: extractedText,
             isResume: isResume,
-            anomalies: anomalies
+            anomalies: anomalies,
+            status: 'Under Process'
         });
 
         await resume.save();
@@ -71,6 +72,133 @@ exports.parseResume = async (req, res) => {
         return res.status(500).json({
             success: false,
             message: 'Failed to parse and store resume',
+            error: error.message
+        });
+    }
+};
+
+// Get all resumes with filtering
+exports.getResumes = async (req, res) => {
+    try {
+        const { status, confidence, riskFlag } = req.query;
+        let query = {};
+
+        if (status) query.status = status;
+        // Handle confidence level separately if needed, but assuming direct mapping for now if schema matches
+        if (confidence) query['aiEvaluation.confidenceLevel'] = confidence;
+        if (riskFlag) query['aiEvaluation.riskFlag'] = riskFlag;
+
+        const resumes = await Resume.find(query).sort({ uploadedAt: -1 });
+
+        return res.status(200).json({
+            success: true,
+            count: resumes.length,
+            data: resumes
+        });
+    } catch (error) {
+        console.error('Error fetching resumes:', error);
+        return res.status(500).json({
+            success: false,
+            message: 'Failed to fetch resumes',
+            error: error.message
+        });
+    }
+};
+
+// Update Resume Status
+exports.updateResumeStatus = async (req, res) => {
+    try {
+        const { status, reason } = req.body;
+        const { id } = req.params;
+
+        const resume = await Resume.findById(id);
+        if (!resume) {
+            return res.status(404).json({
+                success: false,
+                message: 'Resume not found'
+            });
+        }
+
+        // Validate reason for Disqualified
+        if (status === 'Disqualified' && !reason) {
+            return res.status(400).json({
+                success: false,
+                message: 'Reason is required for disqualification'
+            });
+        }
+
+        // Add to history
+        resume.statusHistory.push({
+            status: status,
+            evaluatedBy: req.user?._id, // Assuming auth middleware adds user
+            reason: reason
+        });
+
+        resume.status = status;
+        await resume.save();
+
+        return res.status(200).json({
+            success: true,
+            data: resume
+        });
+
+    } catch (error) {
+        console.error('Error updating resume status:', error);
+        return res.status(500).json({
+            success: false,
+            message: 'Failed to update resume status',
+            error: error.message
+        });
+    }
+};
+
+// Bulk Update Status
+exports.bulkUpdateResumeStatus = async (req, res) => {
+    try {
+        const { resumeIds, status, reason } = req.body;
+
+        if (!resumeIds || !Array.isArray(resumeIds) || resumeIds.length === 0) {
+            return res.status(400).json({
+                success: false,
+                message: 'No resume IDs provided'
+            });
+        }
+
+        if (status === 'Disqualified' && !reason) {
+            return res.status(400).json({
+                success: false,
+                message: 'Reason is required for bulk disqualification'
+            });
+        }
+
+        const updateOperation = {
+            $set: { status: status },
+            $push: {
+                statusHistory: {
+                    status: status,
+                    evaluatedBy: req.user?._id,
+                    reason: reason,
+                    timestamp: new Date()
+                }
+            }
+        };
+
+        const result = await Resume.updateMany(
+            { _id: { $in: resumeIds } },
+            updateOperation
+        );
+
+        return res.status(200).json({
+            success: true,
+            message: `Successfully updated ${result.modifiedCount} resumes`,
+            data: result
+        });
+
+    } catch (error) {
+        console.error('Error bulk updating resumes:', error);
+        return res.status(500).json({
+            success: false,
+            message: 'Failed to bulk update resumes',
             error: error.message
         });
     }
