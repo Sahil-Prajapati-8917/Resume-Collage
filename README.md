@@ -8,7 +8,7 @@ This is a monorepo containing both frontend and backend applications:
 
 - **Frontend**: Modern React application with Vite, Tailwind CSS, and Radix UI
 - **Backend**: Node.js/Express API with MongoDB, Redis, and AI integration
-- **AI Integration**: Holistic evaluation using advanced language models
+- **AI Integration**: Holistic evaluation using advanced language models (OpenAI, Anthropic, Google Gemini)
 - **File Processing**: Intelligent parsing of PDF/DOC files with context preservation
 
 ## � Recent Bug Fixes & Updates
@@ -82,7 +82,7 @@ This is a monorepo containing both frontend and backend applications:
 - **Authentication**: JWT with refresh tokens
 - **File Processing**: Multer, pdf-parse, mammoth (for DOCX)
 - **Queue System**: Bull for background job processing
-- **AI Integration**: OpenAI/Anthropic APIs
+- **AI Integration**: OpenAI/Anthropic/Google Gemini APIs
 - **File Storage**: AWS S3 integration
 - **Security**: Helmet, CORS, rate limiting, input validation
 
@@ -173,6 +173,7 @@ AWS_S3_BUCKET=your-s3-bucket-name
 # AI Service Configuration
 OPENAI_API_KEY=your-openai-api-key
 ANTHROPIC_API_KEY=your-anthropic-api-key
+GEMINI_API_KEY=your-google-gemini-api-key
 
 # Email Configuration (optional)
 SMTP_HOST=smtp.gmail.com

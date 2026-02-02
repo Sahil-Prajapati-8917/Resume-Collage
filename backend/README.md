@@ -38,7 +38,7 @@ A robust Node.js/Express backend API for the AI-Driven Holistic Resume Evaluatio
 - **Authentication**: JWT with refresh tokens
 - **File Processing**: Multer, pdf-parse, mammoth
 - **Queue System**: Bull 4.11.3
-- **AI Integration**: OpenAI/Anthropic APIs
+- **AI Integration**: OpenAI/Anthropic/Google Gemini APIs
 - **File Storage**: AWS S3
 - **Security**: Helmet, CORS, express-rate-limit
 - **Logging**: Winston, Morgan
@@ -192,6 +192,7 @@ See the root README.md for complete environment configuration.
 ### AI Integration
 - **OpenAI**: API key and model selection
 - **Anthropic**: API key and model configuration
+- **Google Generative AI**: API key (Gemini) configuration
 - **Custom Prompts**: Industry-specific evaluation templates
 
 ## 📊 Monitoring & Logging
