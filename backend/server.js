@@ -11,6 +11,9 @@ const rateLimit = require('express-rate-limit');
 const authRoutes = require('./src/routes/auth');
 
 // Import middleware
+const { authenticateToken } = require('./src/middleware/auth');
+
+// Import middleware
 const errorHandler = require('./src/middleware/errorHandler');
 
 const app = express();
@@ -38,22 +41,7 @@ app.use(express.urlencoded({ extended: true, limit: '10mb' }));
 // Logging
 // app.use(morgan('combined'));
 
-// Routes
-app.use('/api/auth', authRoutes);
-app.use('/api/hiring-forms', require('./src/routes/hiringForm'));
-app.use('/api/global-hiring-forms', require('./src/routes/globalHiringForm'));
-app.use('/api/industries', require('./src/routes/industry'));
-app.use('/api/prompts', require('./src/routes/prompt'));
-app.use('/api/prompt-management', require('./src/routes/promptManagement'));
-app.use('/api/resume', require('./src/routes/resume'));
-app.use('/api/company', require('./src/routes/company'));
-app.use('/api/hr-user', require('./src/routes/hrUser'));
-app.use('/api/audit-trail', require('./src/routes/auditTrail'));
-app.use('/api/evaluation-oversight', require('./src/routes/evaluationOversight'));
-app.use('/api/system-analytics', require('./src/routes/systemAnalytics'));
-app.use('/api/system-settings', require('./src/routes/systemSettings'));
-
-// Health check endpoint
+// Health check endpoint (Public)
 app.get('/api/health', async (req, res) => {
   try {
     // Check MongoDB connection
@@ -76,6 +64,28 @@ app.get('/api/health', async (req, res) => {
     });
   }
 });
+
+// Public Routes
+app.use('/api/auth', authRoutes);
+
+// Protected Routes Middleware
+app.use(authenticateToken);
+
+// Protected Routes
+app.use('/api/hiring-forms', require('./src/routes/hiringForm'));
+app.use('/api/global-hiring-forms', require('./src/routes/globalHiringForm'));
+app.use('/api/industries', require('./src/routes/industry'));
+app.use('/api/prompts', require('./src/routes/prompt'));
+app.use('/api/prompt-management', require('./src/routes/promptManagement'));
+app.use('/api/resume', require('./src/routes/resume'));
+app.use('/api/company', require('./src/routes/company'));
+app.use('/api/hr-user', require('./src/routes/hrUser'));
+app.use('/api/audit-trail', require('./src/routes/auditTrail'));
+app.use('/api/evaluation-oversight', require('./src/routes/evaluationOversight'));
+app.use('/api/system-analytics', require('./src/routes/systemAnalytics'));
+app.use('/api/system-settings', require('./src/routes/systemSettings'));
+
+
 
 // Error handling middleware
 app.use(errorHandler);

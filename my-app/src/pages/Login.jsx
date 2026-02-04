@@ -1,5 +1,5 @@
-import React, { useState } from 'react'
-import { useNavigate } from 'react-router-dom'
+import React, { useState, useEffect } from 'react'
+import { useNavigate, useLocation } from 'react-router-dom'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import authService from '../services/auth'
 import { Button } from '@/components/ui/button'
@@ -12,43 +12,25 @@ const Login = () => {
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [showPassword, setShowPassword] = useState(false)
-  const [error, setError] = useState('')
-  const [loading, setLoading] = useState(false)
   const navigate = useNavigate()
+  const location = useLocation()
+  const [error, setError] = useState(location.state?.error || '')
+  const [loading, setLoading] = useState(false)
+
 
   const handleSubmit = async (e) => {
     e.preventDefault()
     setError('')
     setLoading(true)
 
-    // Simulate login - in real app this would call an API
-    await new Promise(resolve => setTimeout(resolve, 1000))
+    const result = await authService.login(email, password)
 
-    const isDev = import.meta.env.DEV
-
-    if (isDev) {
-      // Mock authentication - accept any email/password for demo (DEV ONLY)
-      if (email && password) {
-        localStorage.setItem('isLoggedIn', 'true')
-        localStorage.setItem('userEmail', email)
-        // Set dummy tokens to satisfy ProtectedRoute
-        localStorage.setItem('token', 'mock-jwt-token')
-        localStorage.setItem('refreshToken', 'mock-refresh-token')
-        navigate('/dashboard')
-      } else {
-        setError('Please enter both email and password')
-      }
+    if (result.success) {
+      localStorage.setItem('isLoggedIn', 'true')
+      localStorage.setItem('userEmail', email)
+      navigate('/dashboard')
     } else {
-      // Real authentication (PROD)
-      const result = await authService.login(email, password)
-
-      if (result.success) {
-        localStorage.setItem('isLoggedIn', 'true')
-        localStorage.setItem('userEmail', email)
-        navigate('/dashboard')
-      } else {
-        setError(result.error?.message || 'Invalid email or password')
-      }
+      setError(result.error?.message || 'Invalid email or password')
     }
 
     setLoading(false)

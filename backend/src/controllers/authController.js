@@ -16,37 +16,112 @@ const generateToken = (id) => {
 // @access  Public
 exports.signup = async (req, res) => {
   try {
-    const errors = validationResult(req);
-    if (!errors.isEmpty()) {
+    const {
+      // Account credentials
+      email,
+      password,
+      username,
+
+      // Organization details
+      organizationName,
+      industry,
+      companySize,
+      country,
+      organizationType,
+
+      // Personal information
+      fullName,
+      phoneNumber,
+      linkedinProfile,
+
+      // Professional information
+      jobTitle,
+
+      // Role
+      role,
+
+      // Compliance
+      aiAcknowledgment,
+      humanLoopUnderstanding,
+      auditLoggingAcceptance,
+      dataProcessingAcceptance
+    } = req.body;
+
+    // Validate required fields
+    if (!email || !password || !username || !organizationName || !industry ||
+      !companySize || !country || !organizationType || !fullName || !jobTitle || !role) {
+      const missingFields = [];
+      if (!email) missingFields.push('email');
+      if (!password) missingFields.push('password');
+      if (!username) missingFields.push('username');
+      if (!organizationName) missingFields.push('organizationName');
+      if (!industry) missingFields.push('industry');
+      if (!companySize) missingFields.push('companySize');
+      if (!country) missingFields.push('country');
+      if (!organizationType) missingFields.push('organizationType');
+      if (!fullName) missingFields.push('fullName');
+      if (!jobTitle) missingFields.push('jobTitle');
+      if (!role) missingFields.push('role');
+
+      logger.warn(`Signup attempt failed: Missing fields - ${missingFields.join(', ')}`);
+
       return res.status(400).json({
         error: {
-          code: 'VALIDATION_ERROR',
-          message: 'Invalid input data',
-          details: errors.array()
+          code: 'MISSING_REQUIRED_FIELDS',
+          message: 'All required fields must be provided',
+          details: { missingFields }
         }
       });
     }
 
-    const { email, password, firstName, lastName } = req.body;
-
-    // Check if user already exists
-    const existingUser = await User.findOne({ email });
+    // Check if user already exists (by email or username)
+    const existingUser = await User.findOne({
+      $or: [
+        { email: email.toLowerCase() },
+        { username }
+      ]
+    });
     if (existingUser) {
+      const field = existingUser.email === email.toLowerCase() ? 'email' : 'username';
       return res.status(400).json({
         error: {
           code: 'USER_EXISTS',
-          message: 'User with this email already exists'
+          message: `User with this ${field} already exists`
         }
       });
     }
 
     // Create user (password will be hashed automatically by the pre-save middleware)
     const user = new User({
-      email,
+      // Account credentials
+      email: email.toLowerCase(),
       password,
-      personalInfo: {
-        firstName,
-        lastName
+      username,
+
+      // Organization details
+      organizationName,
+      industry,
+      companySize,
+      country,
+      organizationType,
+
+      // Personal information
+      fullName,
+      phoneNumber,
+      linkedinProfile,
+
+      // Professional information
+      jobTitle,
+
+      // Role
+      role,
+
+      // Compliance and consent
+      complianceAccepted: {
+        aiAcknowledgment: aiAcknowledgment || false,
+        humanLoopUnderstanding: humanLoopUnderstanding || false,
+        auditLoggingAcceptance: auditLoggingAcceptance || false,
+        dataProcessingAcceptance: dataProcessingAcceptance || false
       }
     });
 
@@ -56,7 +131,7 @@ exports.signup = async (req, res) => {
     const token = generateToken(user._id);
     const refreshToken = generateRefreshToken(user._id);
 
-    logger.info(`New user registered: ${email}`);
+    logger.info(`New user registered: ${email} (${username})`);
 
     res.status(201).json({
       message: 'User registered successfully',
@@ -65,8 +140,10 @@ exports.signup = async (req, res) => {
       user: {
         id: user._id,
         email: user.email,
-        name: `${user.personalInfo.firstName} ${user.personalInfo.lastName}`,
-        role: user.role
+        username: user.username,
+        fullName: user.fullName,
+        role: user.role,
+        organizationName: user.organizationName
       }
     });
   } catch (error) {
@@ -175,7 +252,7 @@ exports.login = async (req, res) => {
 exports.getProfile = async (req, res) => {
   try {
     const user = await User.findById(req.user.id);
-    
+
     if (!user) {
       return res.status(404).json({
         error: {
@@ -233,7 +310,7 @@ exports.logout = async (req, res) => {
     // In a real implementation, you would invalidate the token here
     // For now, we'll just return success
     logger.info(`User logged out: ${req.user.id}`);
-    
+
     res.json({
       message: 'Logged out successfully'
     });
@@ -243,6 +320,73 @@ exports.logout = async (req, res) => {
       error: {
         code: 'INTERNAL_ERROR',
         message: 'Server error during logout'
+      }
+    });
+  }
+};
+// @desc    Refresh access token
+// @route   POST /api/auth/refresh
+// @access  Public
+exports.refresh = async (req, res) => {
+  try {
+    const { refreshToken } = req.body;
+
+    if (!refreshToken) {
+      return res.status(401).json({
+        error: {
+          code: 'UNAUTHORIZED',
+          message: 'Refresh token is required'
+        }
+      });
+    }
+
+    // Verify refresh token
+    const decoded = jwt.verify(refreshToken, process.env.JWT_REFRESH_SECRET);
+
+    // Check if user exists
+    const user = await User.findById(decoded.id);
+    if (!user) {
+      return res.status(401).json({
+        error: {
+          code: 'UNAUTHORIZED',
+          message: 'User not found'
+        }
+      });
+    }
+
+    // Check if user is active
+    if (!user.isActive) {
+      return res.status(401).json({
+        error: {
+          code: 'ACCOUNT_DISABLED',
+          message: 'Account has been disabled'
+        }
+      });
+    }
+
+    // Generate new tokens
+    const token = generateToken(user._id);
+    const newRefreshToken = generateRefreshToken(user._id);
+
+    res.json({
+      token,
+      refreshToken: newRefreshToken
+    });
+  } catch (error) {
+    if (error.name === 'TokenExpiredError') {
+      return res.status(401).json({
+        error: {
+          code: 'REFRESH_TOKEN_EXPIRED',
+          message: 'Refresh token has expired'
+        }
+      });
+    }
+
+    logger.error('Token refresh error:', error);
+    res.status(401).json({
+      error: {
+        code: 'UNAUTHORIZED',
+        message: 'Invalid refresh token'
       }
     });
   }

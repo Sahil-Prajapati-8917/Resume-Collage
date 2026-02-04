@@ -7,7 +7,7 @@ const auth = async (req, res, next) => {
   try {
     // Get token from header
     const authHeader = req.header('Authorization');
-    
+
     if (!authHeader) {
       return res.status(401).json({
         error: {
@@ -32,10 +32,10 @@ const auth = async (req, res, next) => {
 
     // Verify token
     const decoded = jwt.verify(token, process.env.JWT_SECRET);
-    
+
     // Get user from database
     const user = await User.findById(decoded.id);
-    
+
     if (!user) {
       return res.status(401).json({
         error: {
@@ -59,6 +59,15 @@ const auth = async (req, res, next) => {
     req.user = user;
     next();
   } catch (error) {
+    if (error.name === 'TokenExpiredError') {
+      return res.status(401).json({
+        error: {
+          code: 'TOKEN_EXPIRED',
+          message: 'Access denied. Token has expired.'
+        }
+      });
+    }
+
     if (error.name === 'JsonWebTokenError') {
       return res.status(401).json({
         error: {
@@ -67,7 +76,7 @@ const auth = async (req, res, next) => {
         }
       });
     }
-    
+
     logger.error('Auth middleware error:', error);
     res.status(500).json({
       error: {

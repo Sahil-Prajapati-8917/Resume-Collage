@@ -71,7 +71,7 @@ const ProtectedRoute = ({ children, requiredRole = null, requiredPermission = nu
 
   // Redirect to login if not authenticated
   if (!isAuthenticated) {
-    return <Navigate to="/login" state={{ from: location }} replace />
+    return <Navigate to="/login" state={{ from: location, error: "Please log in to access this page" }} replace />
   }
 
   // Show access denied if no access
@@ -83,7 +83,7 @@ const ProtectedRoute = ({ children, requiredRole = null, requiredPermission = nu
           <p className="text-muted-foreground mt-2">
             You don't have permission to access this page.
           </p>
-          <button 
+          <button
             onClick={() => window.history.back()}
             className="mt-4 px-4 py-2 bg-primary text-white rounded-md hover:bg-primary/90"
           >

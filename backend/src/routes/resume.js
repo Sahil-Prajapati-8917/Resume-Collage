@@ -26,11 +26,10 @@ const upload = multer({
 });
 
 // POST /api/resume/parse
-// POST /api/resume/parse
-router.post('/parse', upload.single('resume'), resumeController.parseResume);
+router.post('/parse', auth, upload.single('resume'), resumeController.parseResume);
 
 // GET /api/resume - Get all resumes (with optional filters)
-router.get('/', resumeController.getResumes);
+router.get('/', auth, resumeController.getResumes);
 
 // PUT /api/resume/bulk-status - Bulk update status
 router.put('/bulk-status', auth, resumeController.bulkUpdateResumeStatus);

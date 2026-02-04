@@ -8,6 +8,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Checkbox } from '@/components/ui/checkbox'
 import { Alert, AlertDescription } from '@/components/ui/alert'
 import { CheckCircle, ArrowLeft, ArrowRight, UserPlus, Building, User, Settings, Shield, Eye, EyeOff } from 'lucide-react'
+import apiService from '../services/api'
 
 const CreateAccount = () => {
   const [currentStep, setCurrentStep] = useState(1)
@@ -31,7 +32,6 @@ const CreateAccount = () => {
     password: '',
     confirmPassword: '',
     role: '',
-    accessCode: '',
 
     // Step 4: Compliance & Consent
     aiAcknowledgment: false,
@@ -111,7 +111,6 @@ const CreateAccount = () => {
         break
 
       case 3:
-        if (formData.accessCode !== 'admin123') newErrors.accessCode = 'Invalid access code'
         if (!formData.username.trim()) newErrors.username = 'Username is required'
         if (!formData.password) {
           newErrors.password = 'Password is required'
@@ -151,10 +150,36 @@ const CreateAccount = () => {
   const handleSubmit = async () => {
     setIsSubmitting(true)
 
-    // Simulate API call
-    await new Promise(resolve => setTimeout(resolve, 2000))
+    // Prepare user data for API
+    const userData = {
+      email: formData.workEmail,
+      password: formData.password,
+      username: formData.username,
+      organizationName: formData.organizationName,
+      industry: formData.industry,
+      companySize: formData.companySize,
+      country: formData.country,
+      organizationType: formData.organizationType,
+      fullName: formData.fullName,
+      phoneNumber: formData.phoneNumber,
+      linkedinProfile: formData.linkedinProfile,
+      jobTitle: formData.jobTitle,
+      role: formData.role,
+      aiAcknowledgment: formData.aiAcknowledgment,
+      humanLoopUnderstanding: formData.humanLoopUnderstanding,
+      auditLoggingAcceptance: formData.auditLoggingAcceptance,
+      dataProcessingAcceptance: formData.dataProcessingAcceptance
+    }
 
-    setCurrentStep(6) // Success step
+    const result = await apiService.signup(userData)
+
+    if (result.success) {
+      setCurrentStep(6) // Success step
+    } else {
+      // Handle error - show error message
+      setErrors({ submit: result.error?.message || 'Failed to create account' })
+    }
+
     setIsSubmitting(false)
   }
 
@@ -322,21 +347,6 @@ const CreateAccount = () => {
       case 3:
         return (
           <div className="space-y-6">
-            <div>
-              <Label htmlFor="accessCode">Access Code *</Label>
-              <Input
-                id="accessCode"
-                type="password"
-                value={formData.accessCode}
-                onChange={(e) => handleInputChange('accessCode', e.target.value)}
-                placeholder="Enter access code"
-                className={errors.accessCode ? 'border-red-500' : ''}
-              />
-              {errors.accessCode && (
-                <p className="text-sm text-red-500 mt-1">{errors.accessCode}</p>
-              )}
-            </div>
-
             <div>
               <Label htmlFor="username">Username *</Label>
               <Input
@@ -626,7 +636,7 @@ const CreateAccount = () => {
       case 2:
         return formData.fullName && formData.workEmail && formData.jobTitle && /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.workEmail)
       case 3:
-        return formData.accessCode === 'admin123' && formData.username && formData.password && formData.confirmPassword && formData.password === formData.confirmPassword && formData.password.length >= 8 && formData.role
+        return formData.username && formData.password && formData.confirmPassword && formData.password === formData.confirmPassword && formData.password.length >= 8 && formData.role
       case 4:
         return formData.aiAcknowledgment && formData.humanLoopUnderstanding && formData.auditLoggingAcceptance && formData.dataProcessingAcceptance
       case 5:
@@ -695,6 +705,11 @@ const CreateAccount = () => {
               </CardHeader>
               <CardContent className="pb-6">
                 {renderStepContent()}
+                {errors.submit && (
+                  <Alert variant="destructive" className="mt-4">
+                    <AlertDescription>{errors.submit}</AlertDescription>
+                  </Alert>
+                )}
               </CardContent>
               {currentStep < 6 && (
                 <div className="flex justify-between items-center px-6 py-4 border-t bg-muted/50">
