@@ -35,7 +35,11 @@ const ResumeUpload = () => {
         const response = await apiService.get('/hiring-forms');
         if (response.ok) {
           const result = await response.json();
-          setHiringForms(Array.isArray(result.data) ? result.data : []);
+          const forms = Array.isArray(result.data) ? result.data : [];
+          // Filter out invalid forms to ensure only valid DB entries are shown
+          const validForms = forms.filter(f => f && f._id && f.formName);
+          setHiringForms(validForms);
+          console.log('Fetched hiring forms:', validForms.length);
         } else {
           console.error('Failed to fetch hiring forms');
         }

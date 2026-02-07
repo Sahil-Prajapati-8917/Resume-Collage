@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react'
+import apiService from '@/services/api'
 import axios from 'axios'
 import {
   BarChart3,
@@ -41,12 +42,13 @@ const EvaluationResults = () => {
   const fetchResumes = async () => {
     setLoading(true)
     try {
-      const token = localStorage.getItem('token');
-      const config = {
-        headers: { Authorization: `Bearer ${token}` }
-      };
-      const response = await axios.get('http://localhost:5000/api/resume', config);
-      setEvaluations(response.data.data);
+      const response = await apiService.get('/resume');
+      if (response.ok) {
+        const result = await response.json();
+        setEvaluations(result.data || []);
+      } else {
+        console.error('Failed to fetch resumes');
+      }
     } catch (error) {
       console.error("Failed to fetch resumes", error);
     } finally {
@@ -60,14 +62,10 @@ const EvaluationResults = () => {
 
   const handleStatusChange = async (evaluationId, newStatus, reason = '') => {
     try {
-      const token = localStorage.getItem('token');
-      const config = {
-        headers: { Authorization: `Bearer ${token}` }
-      };
-      await axios.put(`http://localhost:5000/api/resume/${evaluationId}/status`, {
+      await apiService.put(`/resume/${evaluationId}/status`, {
         status: newStatus,
         reason: reason
-      }, config);
+      });
 
       fetchResumes(); // Refresh data
       setShowOverrideModal(false);
