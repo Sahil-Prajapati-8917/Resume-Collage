@@ -10,6 +10,14 @@ import {
 } from '@heroicons/react/24/outline'
 
 const PromptManagement = () => {
+  const getAuthHeaders = () => {
+    const token = localStorage.getItem('token')
+    return {
+      'Content-Type': 'application/json',
+      'Authorization': `Bearer ${token}`
+    }
+  }
+
   const [selectedIndustry, setSelectedIndustry] = useState('Information Technology')
   const [editingPrompt, setEditingPrompt] = useState(null)
   const [viewingPrompt, setViewingPrompt] = useState(null)
@@ -26,7 +34,9 @@ const PromptManagement = () => {
 
   const fetchIndustries = async () => {
     try {
-      const response = await fetch('http://localhost:3001/api/industries')
+      const response = await fetch('http://localhost:3001/api/industries', {
+        headers: getAuthHeaders()
+      })
       const data = await response.json()
       if (data.success) {
         setIndustries(data.data) // Store full objects
@@ -45,7 +55,7 @@ const PromptManagement = () => {
     try {
       const response = await fetch('http://localhost:3001/api/industries', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: getAuthHeaders(),
         body: JSON.stringify({ name: newIndustryName })
       })
       const data = await response.json()
@@ -70,7 +80,8 @@ const PromptManagement = () => {
 
     try {
       const response = await fetch(`http://localhost:3001/api/industries/${id}`, {
-        method: 'DELETE'
+        method: 'DELETE',
+        headers: getAuthHeaders()
       })
       const data = await response.json()
 
@@ -107,7 +118,9 @@ const PromptManagement = () => {
   const fetchPrompts = async (industryId) => {
     setLoadingPrompts(true)
     try {
-      const response = await fetch(`http://localhost:3001/api/prompts/industry/${industryId}`)
+      const response = await fetch(`http://localhost:3001/api/prompts/industry/${industryId}`, {
+        headers: getAuthHeaders()
+      })
       const data = await response.json()
       if (data.success) {
         setPrompts(data.data)
@@ -136,7 +149,7 @@ const PromptManagement = () => {
       try {
         const response = await fetch(`http://localhost:3001/api/prompts/${editingPrompt._id}`, {
           method: 'PUT',
-          headers: { 'Content-Type': 'application/json' },
+          headers: getAuthHeaders(),
           body: JSON.stringify({
             prompt: editingContent,
             name: editingPrompt.name // Ensure name is passed if needed or just patch
@@ -158,7 +171,8 @@ const PromptManagement = () => {
     if (!window.confirm('Delete this prompt?')) return;
     try {
       const response = await fetch(`http://localhost:3001/api/prompts/${promptId}`, {
-        method: 'DELETE'
+        method: 'DELETE',
+        headers: getAuthHeaders()
       })
       if (response.ok) {
         setPrompts(prev => prev.filter(p => p._id !== promptId))
@@ -175,7 +189,7 @@ const PromptManagement = () => {
     try {
       const response = await fetch('http://localhost:3001/api/prompts', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: getAuthHeaders(),
         body: JSON.stringify({
           name: `${prompt.name} (Copy)`,
           industryId,
@@ -197,7 +211,7 @@ const PromptManagement = () => {
     try {
       const response = await fetch(`http://localhost:3001/api/prompts/${promptId}`, {
         method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
+        headers: getAuthHeaders(),
         body: JSON.stringify({ isDefault: true })
       })
       const data = await response.json()
@@ -217,7 +231,7 @@ const PromptManagement = () => {
       try {
         const response = await fetch('http://localhost:3001/api/prompts', {
           method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
+          headers: getAuthHeaders(),
           body: JSON.stringify({
             name: newPromptName,
             industryId,

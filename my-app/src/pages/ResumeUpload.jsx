@@ -1,4 +1,5 @@
 import React, { useState, useRef, useEffect } from 'react'
+import { useNavigate } from 'react-router-dom'
 import {
   CloudUpload,
   FileText,
@@ -26,6 +27,7 @@ const ResumeUpload = () => {
   const [explainableAI, setExplainableAI] = useState(true)
   const [strictMode, setStrictMode] = useState(false)
   const fileInputRef = useRef(null)
+  const navigate = useNavigate()
 
   useEffect(() => {
     const fetchHiringForms = async () => {
@@ -109,25 +111,45 @@ const ResumeUpload = () => {
         projects: [],
         rawText: result.data.text, // Add this field
         isResume: result.data.isResume,
-        anomalies: result.data.anomalies || []
+        anomalies: result.data.anomalies || [],
+        resumeId: result.data.resumeId // Store resumeId
       };
 
       setParsedContent(newParsedContent);
       setUploadStatus('success');
+      return result.data; // Return data for chaining
     } catch (error) {
       console.error('Error parsing resume:', error);
       setUploadStatus('error');
       alert('Failed to parse resume. Please check if the backend is running.');
+      throw error;
     }
   };
 
-  const handleEvaluate = () => {
+  const handleEvaluate = async () => {
     if (uploadedFiles.length > 0 && selectedHiringForm) {
-      handleParse(uploadedFiles[0])
-      // In a real app, this would trigger the AI evaluation
-      setTimeout(() => {
-        alert('Resume submitted for evaluation! Check results in the Evaluation Results page.')
-      }, 1000)
+      try {
+        // 1. Parse the resume first
+        const parseResult = await handleParse(uploadedFiles[0]);
+
+        // 2. Trigger Evaluation
+        if (parseResult && parseResult.resumeId) {
+          const response = await apiService.post('/resume/evaluate', {
+            resumeId: parseResult.resumeId,
+            hiringFormId: selectedHiringForm
+          });
+
+          if (response.ok) {
+            alert('Resume evaluated successfully! Redirecting to results...');
+            navigate('/results');
+          } else {
+            console.error('Evaluation failed');
+            alert('Failed to evaluate resume.');
+          }
+        }
+      } catch (error) {
+        console.error("Evaluation process failed", error);
+      }
     }
   }
 

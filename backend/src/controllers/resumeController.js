@@ -1,17 +1,15 @@
 const pdf = require('pdf-parse');
 const mammoth = require('mammoth');
 const Resume = require('../models/Resume');
-
+const HiringForm = require('../models/HiringForm');
+const Prompt = require('../models/Prompt');
+const { GoogleGenerativeAI } = require('@google/generative-ai');
 
 exports.parseResume = async (req, res) => {
     try {
         if (!req.file) {
-            return res.status(400).json({
-                success: false,
-                message: 'No file uploaded'
-            });
+            return res.status(400).json({ success: false, message: 'No file uploaded' });
         }
-
         const { buffer, mimetype, originalname } = req.file;
         let extractedText = '';
         let isResume = true;
@@ -29,23 +27,16 @@ exports.parseResume = async (req, res) => {
         } else if (mimetype === 'text/plain') {
             extractedText = buffer.toString('utf8');
         } else {
-            return res.status(400).json({
-                success: false,
-                message: 'Unsupported file type. Please upload a PDF, DOCX, or TXT file.'
-            });
+            return res.status(400).json({ success: false, message: 'Unsupported file type.' });
         }
 
-        // Validate if the content is a resume
         const validationResult = validateResumeContent(extractedText);
         isResume = validationResult.isResume;
         anomalies = validationResult.anomalies;
-
-        // Clean up text (optional but recommended)
         extractedText = extractedText.replace(/\s+/g, ' ').trim();
 
-        // Save parsed text to the database
         const resume = new Resume({
-            userId: req.user?._id || 'anonymous', // Use anonymous if user is not authenticated
+            userId: req.user?._id || 'anonymous',
             fileName: originalname,
             fileType: mimetype,
             parsedText: extractedText,
@@ -69,177 +60,263 @@ exports.parseResume = async (req, res) => {
         });
     } catch (error) {
         console.error('Resume parsing error:', error);
-        return res.status(500).json({
-            success: false,
-            message: 'Failed to parse and store resume',
-            error: error.message
-        });
+        return res.status(500).json({ success: false, message: 'Failed to parse resume', error: error.message });
     }
 };
 
-// Get all resumes with filtering
 exports.getResumes = async (req, res) => {
     try {
         const { status, confidence, riskFlag } = req.query;
         let query = {};
-
         if (status) query.status = status;
-        // Handle confidence level separately if needed, but assuming direct mapping for now if schema matches
         if (confidence) query['aiEvaluation.confidenceLevel'] = confidence;
         if (riskFlag) query['aiEvaluation.riskFlag'] = riskFlag;
 
         const resumes = await Resume.find(query).sort({ uploadedAt: -1 });
-
-        return res.status(200).json({
-            success: true,
-            count: resumes.length,
-            data: resumes
-        });
+        return res.status(200).json({ success: true, count: resumes.length, data: resumes });
     } catch (error) {
-        console.error('Error fetching resumes:', error);
-        return res.status(500).json({
-            success: false,
-            message: 'Failed to fetch resumes',
-            error: error.message
-        });
+        return res.status(500).json({ success: false, message: 'Failed to fetch resumes', error: error.message });
     }
 };
 
-// Update Resume Status
 exports.updateResumeStatus = async (req, res) => {
     try {
         const { status, reason } = req.body;
         const { id } = req.params;
-
         const resume = await Resume.findById(id);
-        if (!resume) {
-            return res.status(404).json({
-                success: false,
-                message: 'Resume not found'
-            });
-        }
+        if (!resume) return res.status(404).json({ success: false, message: 'Resume not found' });
+        if (status === 'Disqualified' && !reason) return res.status(400).json({ success: false, message: 'Reason required for disqualification' });
 
-        // Validate reason for Disqualified
-        if (status === 'Disqualified' && !reason) {
-            return res.status(400).json({
-                success: false,
-                message: 'Reason is required for disqualification'
-            });
-        }
-
-        // Add to history
-        resume.statusHistory.push({
-            status: status,
-            evaluatedBy: req.user?._id, // Assuming auth middleware adds user
-            reason: reason
-        });
-
+        resume.statusHistory.push({ status, evaluatedBy: req.user?._id, reason });
         resume.status = status;
         await resume.save();
-
-        return res.status(200).json({
-            success: true,
-            data: resume
-        });
-
+        return res.status(200).json({ success: true, data: resume });
     } catch (error) {
-        console.error('Error updating resume status:', error);
-        return res.status(500).json({
-            success: false,
-            message: 'Failed to update resume status',
-            error: error.message
-        });
+        return res.status(500).json({ success: false, message: 'Failed to update status', error: error.message });
     }
 };
 
-// Bulk Update Status
 exports.bulkUpdateResumeStatus = async (req, res) => {
     try {
         const { resumeIds, status, reason } = req.body;
-
-        if (!resumeIds || !Array.isArray(resumeIds) || resumeIds.length === 0) {
-            return res.status(400).json({
-                success: false,
-                message: 'No resume IDs provided'
-            });
-        }
-
-        if (status === 'Disqualified' && !reason) {
-            return res.status(400).json({
-                success: false,
-                message: 'Reason is required for bulk disqualification'
-            });
-        }
-
-        const updateOperation = {
-            $set: { status: status },
-            $push: {
-                statusHistory: {
-                    status: status,
-                    evaluatedBy: req.user?._id,
-                    reason: reason,
-                    timestamp: new Date()
-                }
-            }
-        };
+        if (!resumeIds || !Array.isArray(resumeIds) || resumeIds.length === 0) return res.status(400).json({ success: false, message: 'No resume IDs' });
+        if (status === 'Disqualified' && !reason) return res.status(400).json({ success: false, message: 'Reason required' });
 
         const result = await Resume.updateMany(
             { _id: { $in: resumeIds } },
-            updateOperation
+            { $set: { status }, $push: { statusHistory: { status, evaluatedBy: req.user?._id, reason, timestamp: new Date() } } }
         );
-
-        return res.status(200).json({
-            success: true,
-            message: `Successfully updated ${result.modifiedCount} resumes`,
-            data: result
-        });
-
+        return res.status(200).json({ success: true, message: `Updated ${result.modifiedCount}`, data: result });
     } catch (error) {
-        console.error('Error bulk updating resumes:', error);
-        return res.status(500).json({
-            success: false,
-            message: 'Failed to bulk update resumes',
-            error: error.message
-        });
+        return res.status(500).json({ success: false, message: 'Failed to bulk update', error: error.message });
     }
 };
 
-// Helper function to validate if the content is a resume
 function validateResumeContent(text) {
     const anomalies = [];
     let isResume = true;
+    const resumeKeywords = ['experience', 'education', 'skills', 'summary', 'objective', 'work history', 'employment', 'qualifications', 'certifications', 'contact', 'phone', 'email', 'address', 'linkedin', 'github'];
+    const keywordMatches = resumeKeywords.filter(keyword => text.toLowerCase().includes(keyword));
 
-    // Check for common resume keywords
-    const resumeKeywords = [
-        'experience', 'education', 'skills', 'summary', 'objective',
-        'work history', 'employment', 'qualifications', 'certifications',
-        'contact', 'phone', 'email', 'address', 'linkedin', 'github'
-    ];
-
-    const keywordMatches = resumeKeywords.filter(keyword =>
-        text.toLowerCase().includes(keyword)
-    );
-
-    // If fewer than 3 keywords are found, it might not be a resume
-    if (keywordMatches.length < 3) {
-        isResume = false;
-        anomalies.push('Fewer than 3 common resume keywords found');
-    }
-
-    // Check for minimum length
-    if (text.length < 200) {
-        isResume = false;
-        anomalies.push('Text is too short to be a resume');
-    }
-
-    // Check for excessive repetition (possible spam or non-resume content)
-    const wordCount = text.split(/\s+/).length;
-    const uniqueWords = new Set(text.toLowerCase().split(/\s+/));
-    const uniqueWordCount = uniqueWords.size;
-
-    if (wordCount > 100 && uniqueWordCount / wordCount < 0.2) {
-        anomalies.push('Excessive repetition detected');
-    }
+    if (keywordMatches.length < 3) { isResume = false; anomalies.push('Fewer than 3 common resume keywords found'); }
+    if (text.length < 200) { isResume = false; anomalies.push('Text is too short'); }
 
     return { isResume, anomalies };
 }
+
+function performHeuristicEvaluation(resumeText, hiringForm) {
+    console.log("Starting Heuristic Evaluation...");
+    const text = (resumeText || "").toLowerCase();
+    let score = 0;
+    const strengths = [];
+    const weaknesses = [];
+    const details = { skillsMatch: 0, experienceMatch: 0, requirementsMatch: 0 };
+
+    const keywords = [...(hiringForm.requirements || []), ...(hiringForm.responsibilities || [])].map(k => k.toLowerCase());
+
+    if (keywords.length === 0) {
+        score = 50;
+        details.requirementsMatch = 50;
+    } else {
+        let matches = 0;
+        keywords.forEach(keyword => {
+            if (text.includes(keyword)) {
+                matches++;
+                if (strengths.length < 5) strengths.push(`Matches: ${keyword}`);
+            } else {
+                if (weaknesses.length < 5) weaknesses.push(`Missing: ${keyword}`);
+            }
+        });
+        const matchRatio = matches / keywords.length;
+        score += matchRatio * 60;
+        details.requirementsMatch = Math.round(matchRatio * 100);
+    }
+
+    if (text.length > 500) { score += 40; } else { score += 20; weaknesses.push("Resume content is brief"); }
+    const totalScore = Math.min(Math.round(score), 100);
+
+    return {
+        totalScore,
+        summary: `[Fallback Evaluation] Candidate scored ${totalScore}/100 based on keyword matching.`,
+        strengths,
+        weaknesses,
+        details,
+        confidence: 60,
+        confidenceLevel: 'Low',
+        riskFlag: totalScore < 40 ? 'High' : 'Low'
+    };
+}
+
+exports.evaluateResume = async (req, res) => {
+    console.log('Starting evaluateResume...');
+    try {
+        const { resumeId, hiringFormId } = req.body;
+        if (!resumeId || !hiringFormId) return res.status(400).json({ success: false, message: 'Resume ID and Hiring Form ID required' });
+
+        const resume = await Resume.findById(resumeId);
+        if (!resume) return res.status(404).json({ success: false, message: 'Resume not found' });
+        const hiringForm = await HiringForm.findById(hiringFormId);
+        if (!hiringForm) return res.status(404).json({ success: false, message: 'Hiring Form not found' });
+
+        let basePromptInstructions = "You are an expert HR AI assistant.";
+        if (hiringForm.promptId) {
+            try {
+                const promptDoc = await Prompt.findById(hiringForm.promptId);
+                if (promptDoc && promptDoc.prompt) basePromptInstructions = promptDoc.prompt;
+            } catch (pError) { console.error("Error fetching prompt:", pError); }
+        }
+
+        const apiKey = process.env.GOOGLE_API_KEY;
+        let evaluationResult = null;
+        let usedModel = 'None';
+
+        // Prepare Prompt
+        const responsibilities = hiringForm.responsibilities || [];
+        const requirements = hiringForm.requirements || [];
+        const roleExpectations = hiringForm.roleExpectations || [];
+        const performanceIndicators = hiringForm.performanceIndicators || [];
+
+        const promptText = `
+${basePromptInstructions}
+
+Job Details:
+- Title: ${hiringForm.title || 'N/A'}
+- Industry: ${hiringForm.industry || 'N/A'}
+- Experience Level: ${hiringForm.experienceLevel || 'N/A'}
+- Job Type: ${hiringForm.jobType || 'N/A'}
+
+Responsibilities:
+${responsibilities.map(r => `- ${r}`).join('\n')}
+
+Requirements:
+${requirements.map(r => `- ${r}`).join('\n')}
+
+Role Expectations:
+${roleExpectations.map(r => `- ${r}`).join('\n')}
+
+Performance Indicators:
+${performanceIndicators.map(r => `- ${r}`).join('\n')}
+
+Candidate Resume Content:
+${resume.parsedText || ''}
+
+Task: Evaluate the candidate's resume against the provided job details.
+
+Output Format: Return valid JSON ONLY.
+{
+  "totalScore": number (0-100),
+  "summary": string,
+  "strengths": [string],
+  "weaknesses": [string],
+  "details": { "skillsMatch": number, "experienceMatch": number, "requirementsMatch": number },
+  "confidence": number,
+  "confidenceLevel": string,
+  "riskFlag": string
+}
+`;
+
+        if (apiKey) {
+            const genAI = new GoogleGenerativeAI(apiKey);
+
+            // Try Gemini 1.5 Flash
+            try {
+                console.log('Sending request to Gemini 1.5 Flash...');
+                const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
+                const result = await model.generateContent(promptText);
+                const response = await result.response;
+                let text = response.text();
+
+                text = text.replace(/```json/g, '').replace(/```/g, '').trim();
+                const jsonStartIndex = text.indexOf('{');
+                const jsonEndIndex = text.lastIndexOf('}');
+                if (jsonStartIndex !== -1 && jsonEndIndex !== -1) {
+                    text = text.substring(jsonStartIndex, jsonEndIndex + 1);
+                }
+
+                evaluationResult = JSON.parse(text);
+                usedModel = 'Gemini-1.5-Flash';
+                console.log('Gemini 1.5 Flash success');
+            } catch (flashError) {
+                console.error('Gemini 1.5 Flash failed:', flashError.message);
+
+                // Try Gemini Pro
+                try {
+                    console.log('Retrying with Gemini Pro...');
+                    const modelPro = genAI.getGenerativeModel({ model: "gemini-pro" });
+                    const result = await modelPro.generateContent(promptText);
+                    const response = await result.response;
+                    let text = response.text();
+
+                    text = text.replace(/```json/g, '').replace(/```/g, '').trim();
+                    const jsonStartIndex = text.indexOf('{');
+                    const jsonEndIndex = text.lastIndexOf('}');
+                    if (jsonStartIndex !== -1 && jsonEndIndex !== -1) {
+                        text = text.substring(jsonStartIndex, jsonEndIndex + 1);
+                    }
+
+                    evaluationResult = JSON.parse(text);
+                    usedModel = 'Gemini-Pro';
+                    console.log('Gemini Pro success');
+                } catch (proError) {
+                    console.error('Gemini Pro failed:', proError.message);
+                }
+            }
+        }
+
+        // Fallback
+        if (!evaluationResult) {
+            console.log('Falling back to Heuristic Evaluation');
+            evaluationResult = performHeuristicEvaluation(resume.parsedText, hiringForm);
+            usedModel = 'Heuristic-Fallback';
+        }
+
+        resume.aiEvaluation = {
+            totalScore: evaluationResult.totalScore || 0,
+            summary: evaluationResult.summary || 'No summary',
+            strengths: evaluationResult.strengths || [],
+            weaknesses: evaluationResult.weaknesses || [],
+            details: evaluationResult.details || { skillsMatch: 0, experienceMatch: 0, requirementsMatch: 0 },
+            confidence: evaluationResult.confidence || 0,
+            confidenceLevel: evaluationResult.confidenceLevel || 'Low',
+            riskFlag: evaluationResult.riskFlag || 'Medium',
+            metadata: { model: usedModel, timestamp: new Date() }
+        };
+
+        const score = evaluationResult.totalScore || 0;
+        if (score >= 80) resume.status = 'Shortlisted';
+        else if (score >= 50) resume.status = 'Manual Review Required';
+        else resume.status = 'Disqualified';
+
+        resume.industry = hiringForm.industry;
+        resume.roleType = hiringForm.title;
+
+        await resume.save();
+        console.log('Resume updated successfully with model:', usedModel);
+
+        return res.status(200).json({ success: true, message: 'Evaluated successfully', data: resume, evalModel: usedModel });
+
+    } catch (error) {
+        console.error('Error evaluating resume:', error);
+        return res.status(500).json({ success: false, message: 'Evaluation failed', error: error.message });
+    }
+};
