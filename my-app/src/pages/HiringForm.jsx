@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react'
+import apiService from '@/services/api'
 import { Plus, Trash2, AlertTriangle, Loader2 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
@@ -45,9 +46,9 @@ const HiringForm = () => {
 
   const fetchPrompts = async (industryId) => {
     try {
-      const response = await fetch(`http://localhost:3001/api/prompts/industry/${industryId}`)
-      const data = await response.json()
-      if (data.success) {
+      const response = await apiService.get(`/prompts/industry/${industryId}`)
+      if (response.ok) {
+        const data = await response.json()
         setAvailablePrompts(data.data)
       }
     } catch (error) {
@@ -58,24 +59,14 @@ const HiringForm = () => {
 
   const fetchIndustries = async () => {
     try {
-      const response = await fetch('http://localhost:3001/api/industries')
-      const data = await response.json()
-      if (data.success) {
+      const response = await apiService.get('/industries')
+      if (response.ok) {
+        const data = await response.json()
         setIndustries(data.data)
       }
     } catch (error) {
       console.error('Failed to fetch industries:', error)
-      setIndustries([
-        { name: 'Information Technology' },
-        { name: 'Automobile & Car Industry' },
-        { name: 'Manufacturing & Production' },
-        { name: 'Electronics & Hardware' },
-        { name: 'Banking & Finance' },
-        { name: 'Healthcare & Medical Technology' },
-        { name: 'Logistics & Supply Chain' },
-        { name: 'Education & Research' },
-        { name: 'Retail & Corporate Services' }
-      ])
+      // No fallback list here, let's keep it empty or same as original if preferred
     }
   }
 
@@ -124,14 +115,7 @@ const HiringForm = () => {
     setStatus({ type: '', message: '' })
 
     try {
-      const response = await fetch('http://localhost:3001/api/hiring-forms', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(formData),
-      })
-
+      const response = await apiService.post('/hiring-forms', formData)
       const data = await response.json()
 
       if (!response.ok) {
@@ -139,7 +123,6 @@ const HiringForm = () => {
       }
 
       setStatus({ type: 'success', message: 'Hiring form saved successfully!' })
-      // Optional: Reset form or redirect
     } catch (error) {
       setStatus({ type: 'error', message: error.message })
     } finally {

@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react'
+import apiService from '@/services/api'
 import {
   PencilIcon,
   TrashIcon,
@@ -10,13 +11,7 @@ import {
 } from '@heroicons/react/24/outline'
 
 const PromptManagement = () => {
-  const getAuthHeaders = () => {
-    const token = localStorage.getItem('token')
-    return {
-      'Content-Type': 'application/json',
-      'Authorization': `Bearer ${token}`
-    }
-  }
+  // Removed getAuthHeaders as apiService handles it
 
   const [selectedIndustry, setSelectedIndustry] = useState('Information Technology')
   const [editingPrompt, setEditingPrompt] = useState(null)
@@ -34,17 +29,13 @@ const PromptManagement = () => {
 
   const fetchIndustries = async () => {
     try {
-      const response = await fetch('http://localhost:3001/api/industries', {
-        headers: getAuthHeaders()
-      })
-      const data = await response.json()
-      if (data.success) {
+      const response = await apiService.get('/industries')
+      if (response.ok) {
+        const data = await response.json()
         setIndustries(data.data) // Store full objects
       }
     } catch (error) {
       console.error('Failed to fetch industries:', error)
-      // Fallback (mock ids for fallback strings if needed, or just strings? 
-      // Better to just rely on backend, but if error, maybe valid strings are okay but won't be deletable)
       setIndustries([])
     }
   }
@@ -53,20 +44,16 @@ const PromptManagement = () => {
     if (!newIndustryName.trim()) return
 
     try {
-      const response = await fetch('http://localhost:3001/api/industries', {
-        method: 'POST',
-        headers: getAuthHeaders(),
-        body: JSON.stringify({ name: newIndustryName })
-      })
-      const data = await response.json()
-
-      if (data.success) {
+      const response = await apiService.post('/industries', { name: newIndustryName })
+      if (response.ok) {
+        const data = await response.json()
         const newName = newIndustryName
         setNewIndustryName('')
         setIsAddingIndustry(false)
         await fetchIndustries()
         setSelectedIndustry(newName)
       } else {
+        const data = await response.json()
         alert(data.message || 'Failed to add industry')
       }
     } catch (error) {
@@ -79,19 +66,15 @@ const PromptManagement = () => {
     if (!window.confirm('Are you sure you want to delete this industry?')) return
 
     try {
-      const response = await fetch(`http://localhost:3001/api/industries/${id}`, {
-        method: 'DELETE',
-        headers: getAuthHeaders()
-      })
-      const data = await response.json()
-
-      if (data.success) {
+      const response = await apiService.delete(`/industries/${id}`)
+      if (response.ok) {
         // If deleted industry was selected, select first available or default
         if (selectedIndustry === industries.find(i => i._id === id)?.name) {
           setSelectedIndustry(industries.length > 1 ? industries.find(i => i._id !== id).name : 'Information Technology')
         }
         fetchIndustries()
       } else {
+        const data = await response.json()
         alert(data.message || 'Failed to delete industry')
       }
     } catch (error) {
@@ -118,11 +101,9 @@ const PromptManagement = () => {
   const fetchPrompts = async (industryId) => {
     setLoadingPrompts(true)
     try {
-      const response = await fetch(`http://localhost:3001/api/prompts/industry/${industryId}`, {
-        headers: getAuthHeaders()
-      })
-      const data = await response.json()
-      if (data.success) {
+      const response = await apiService.get(`/prompts/industry/${industryId}`)
+      if (response.ok) {
+        const data = await response.json()
         setPrompts(data.data)
       }
     } catch (error) {
@@ -147,19 +128,17 @@ const PromptManagement = () => {
   const handleSave = async () => {
     if (editingPrompt) {
       try {
-        const response = await fetch(`http://localhost:3001/api/prompts/${editingPrompt._id}`, {
-          method: 'PUT',
-          headers: getAuthHeaders(),
-          body: JSON.stringify({
-            prompt: editingContent,
-            name: editingPrompt.name // Ensure name is passed if needed or just patch
-          })
+        const response = await apiService.put(`/prompts/${editingPrompt._id}`, {
+          prompt: editingContent,
+          name: editingPrompt.name // Ensure name is passed if needed or just patch
         })
-        const data = await response.json()
-        if (data.success) {
+        if (response.ok) {
+          const data = await response.json()
           setPrompts(prev => prev.map(p => p._id === editingPrompt._id ? data.data : p))
           setEditingPrompt(null)
           setEditingContent('')
+        } else {
+          alert('Failed to save prompt')
         }
       } catch (error) {
         alert('Failed to save prompt')
@@ -170,10 +149,7 @@ const PromptManagement = () => {
   const handleDelete = async (promptId) => {
     if (!window.confirm('Delete this prompt?')) return;
     try {
-      const response = await fetch(`http://localhost:3001/api/prompts/${promptId}`, {
-        method: 'DELETE',
-        headers: getAuthHeaders()
-      })
+      const response = await apiService.delete(`/prompts/${promptId}`)
       if (response.ok) {
         setPrompts(prev => prev.filter(p => p._id !== promptId))
       }
@@ -187,19 +163,15 @@ const PromptManagement = () => {
     if (!industryId) return
 
     try {
-      const response = await fetch('http://localhost:3001/api/prompts', {
-        method: 'POST',
-        headers: getAuthHeaders(),
-        body: JSON.stringify({
-          name: `${prompt.name} (Copy)`,
-          industryId,
-          prompt: prompt.prompt,
-          version: prompt.version,
-          isDefault: false
-        })
+      const response = await apiService.post('/prompts', {
+        name: `${prompt.name} (Copy)`,
+        industryId,
+        prompt: prompt.prompt,
+        version: prompt.version,
+        isDefault: false
       })
-      const data = await response.json()
-      if (data.success) {
+      if (response.ok) {
+        const data = await response.json()
         setPrompts(prev => [data.data, ...prev])
       }
     } catch (error) {
@@ -209,13 +181,8 @@ const PromptManagement = () => {
 
   const handleSetDefault = async (promptId) => {
     try {
-      const response = await fetch(`http://localhost:3001/api/prompts/${promptId}`, {
-        method: 'PUT',
-        headers: getAuthHeaders(),
-        body: JSON.stringify({ isDefault: true })
-      })
-      const data = await response.json()
-      if (data.success) {
+      const response = await apiService.put(`/prompts/${promptId}`, { isDefault: true })
+      if (response.ok) {
         // Refresh all to update the previous default
         const industryId = getSelectedIndustryId()
         if (industryId) fetchPrompts(industryId)
@@ -229,19 +196,15 @@ const PromptManagement = () => {
     const industryId = getSelectedIndustryId()
     if (newPromptName.trim() && industryId) {
       try {
-        const response = await fetch('http://localhost:3001/api/prompts', {
-          method: 'POST',
-          headers: getAuthHeaders(),
-          body: JSON.stringify({
-            name: newPromptName,
-            industryId,
-            prompt: `Enter your evaluation prompt for ${selectedIndustry} here...`,
-            version: '1.0',
-            isDefault: false
-          })
+        const response = await apiService.post('/prompts', {
+          name: newPromptName,
+          industryId,
+          prompt: `Enter your evaluation prompt for ${selectedIndustry} here...`,
+          version: '1.0',
+          isDefault: false
         })
-        const data = await response.json()
-        if (data.success) {
+        if (response.ok) {
+          const data = await response.json()
           setPrompts(prev => [data.data, ...prev])
           setNewPromptName('')
           setShowCreateForm(false)

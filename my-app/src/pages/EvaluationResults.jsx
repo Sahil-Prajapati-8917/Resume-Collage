@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react'
+import { useLocation } from 'react-router-dom'
 import apiService from '@/services/api'
 import axios from 'axios'
 import {
@@ -38,6 +39,8 @@ const EvaluationResults = () => {
   const [overrideAction, setOverrideAction] = useState('')
   const [evaluations, setEvaluations] = useState([])
   const [loading, setLoading] = useState(true)
+  const location = useLocation()
+  const singleViewId = location.state?.resumeId
 
   const fetchResumes = async () => {
     setLoading(true)
@@ -60,6 +63,15 @@ const EvaluationResults = () => {
     fetchResumes()
   }, [])
 
+  useEffect(() => {
+    if (singleViewId && evaluations.length > 0) {
+      const target = evaluations.find(e => e._id === singleViewId);
+      if (target) {
+        setSelectedCandidate(target);
+      }
+    }
+  }, [singleViewId, evaluations])
+
   const handleStatusChange = async (evaluationId, newStatus, reason = '') => {
     try {
       await apiService.put(`/resume/${evaluationId}/status`, {
@@ -81,6 +93,9 @@ const EvaluationResults = () => {
   }
 
   const filteredEvaluations = evaluations.filter(evaluation => {
+    if (singleViewId) {
+      return evaluation._id === singleViewId;
+    }
     if (filterStatus === 'all') return true
     return evaluation.status.toLowerCase() === filterStatus.toLowerCase()
   })

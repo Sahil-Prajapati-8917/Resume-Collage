@@ -34,6 +34,9 @@ router.post('/evaluate', auth, resumeController.evaluateResume);
 // GET /api/resume - Get all resumes (with optional filters)
 router.get('/', auth, resumeController.getResumes);
 
+// GET /api/resume/:id - Get single resume
+router.get('/:id', auth, resumeController.getResumeById);
+
 // PUT /api/resume/bulk-status - Bulk update status
 router.put('/bulk-status', auth, resumeController.bulkUpdateResumeStatus);
 

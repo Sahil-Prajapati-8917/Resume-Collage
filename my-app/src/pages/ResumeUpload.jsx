@@ -145,7 +145,7 @@ const ResumeUpload = () => {
 
           if (response.ok) {
             alert('Resume evaluated successfully! Redirecting to results...');
-            navigate('/results');
+            navigate('/results', { state: { resumeId: parseResult.resumeId } });
           } else {
             console.error('Evaluation failed');
             alert('Failed to evaluate resume.');
