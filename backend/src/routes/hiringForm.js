@@ -1,14 +1,17 @@
 const express = require('express');
 const { createHiringForm, getAllHiringForms, getHiringForm, updateHiringForm } = require('../controllers/hiringFormController');
+const { authenticateToken: auth } = require('../middleware/auth');
 
 const router = express.Router();
+
+router.use(auth);
 
 router.route('/')
     .post(createHiringForm)
     .get(getAllHiringForms);
 
 router.route('/:id')
-    .get(getHiringForm) // You need to import this!
-    .put(updateHiringForm); // You need to import this!
+    .get(getHiringForm)
+    .put(updateHiringForm);
 
 module.exports = router;

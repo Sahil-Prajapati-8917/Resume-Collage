@@ -1,18 +1,25 @@
 import React, { useState, useRef, useEffect } from 'react'
+import { useNavigate } from 'react-router-dom'
 import {
   CloudUpload,
   FileText,
-  CheckCircle,
-  AlertTriangle,
-  X
+  CheckCircle2,
+  AlertCircle,
+  X,
+  Plus,
+  ArrowRight,
+  Loader2,
+  Trash2,
+  BrainCircuit,
 } from 'lucide-react'
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
+import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { Badge } from '@/components/ui/badge'
 import { Checkbox } from '@/components/ui/checkbox'
+import { Separator } from '@/components/ui/separator'
 import apiService from '@/services/api'
 
 const ResumeUpload = () => {
@@ -26,6 +33,7 @@ const ResumeUpload = () => {
   const [explainableAI, setExplainableAI] = useState(true)
   const [strictMode, setStrictMode] = useState(false)
   const fileInputRef = useRef(null)
+  const navigate = useNavigate()
 
   useEffect(() => {
     const fetchHiringForms = async () => {
@@ -33,15 +41,14 @@ const ResumeUpload = () => {
         const response = await apiService.get('/hiring-forms');
         if (response.ok) {
           const result = await response.json();
-          setHiringForms(Array.isArray(result.data) ? result.data : []);
-        } else {
-          console.error('Failed to fetch hiring forms');
+          const forms = Array.isArray(result.data) ? result.data : [];
+          const validForms = forms.filter(f => f && f._id && f.formName);
+          setHiringForms(validForms);
         }
       } catch (error) {
         console.error('Error fetching hiring forms:', error);
       }
     };
-
     fetchHiringForms();
   }, []);
 
@@ -51,14 +58,8 @@ const ResumeUpload = () => {
     const maxSize = 10 * 1024 * 1024 // 10MB
 
     const validFiles = files.filter(file => {
-      if (!acceptedTypes.includes(file.type)) {
-        alert(`${file.name} is not a supported file type. Please upload PDF, DOC, or DOCX files.`)
-        return false
-      }
-      if (file.size > maxSize) {
-        alert(`${file.name} is too large. Please upload files smaller than 10MB.`)
-        return false
-      }
+      if (!acceptedTypes.includes(file.type)) return false
+      if (file.size > maxSize) return false
       return true
     })
 
@@ -67,8 +68,7 @@ const ResumeUpload = () => {
       id: Math.random().toString(36).substr(2, 9),
       name: file.name,
       size: file.size,
-      type: file.type,
-      uploadTime: new Date().toLocaleString()
+      uploadTime: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
     }))
 
     setUploadedFiles(prev => [...prev, ...newFiles])
@@ -77,9 +77,7 @@ const ResumeUpload = () => {
 
   const removeFile = (fileId) => {
     setUploadedFiles(prev => prev.filter(f => f.id !== fileId))
-    if (uploadedFiles.length === 1) {
-      setUploadStatus('idle')
-    }
+    if (uploadedFiles.length === 1) setUploadStatus('idle')
   }
 
   const handleParse = async (fileData) => {
@@ -87,317 +85,259 @@ const ResumeUpload = () => {
     try {
       const formData = new FormData();
       formData.append('resume', fileData.file);
-
       const response = await apiService.postFormData('/resume/parse', formData);
-
-      if (!response.ok) {
-        throw new Error('Failed to parse resume');
-      }
-
+      if (!response.ok) throw new Error('Failed to parse resume');
       const result = await response.json();
 
-      // We'll keep the mock structure for other fields but fill the real text
-      const newParsedContent = {
-        fileName: result.data.fileName,
-        candidateName: 'Extracted from resume',
-        email: 'extracted@example.com',
-        phone: 'Included in text',
-        experience: 'Included in text',
-        education: 'Included in text',
-        skills: ['Parsed Text below'],
-        summary: 'Full text extracted successfully.',
-        projects: [],
-        rawText: result.data.text, // Add this field
-        isResume: result.data.isResume,
-        anomalies: result.data.anomalies || []
-      };
-
-      setParsedContent(newParsedContent);
+      setParsedContent({
+        ...result.data,
+        rawText: result.data.text,
+        candidateName: 'Extracted Candidate',
+      });
       setUploadStatus('success');
+      return result.data;
     } catch (error) {
-      console.error('Error parsing resume:', error);
       setUploadStatus('error');
-      alert('Failed to parse resume. Please check if the backend is running.');
+      throw error;
     }
   };
 
-  const handleEvaluate = () => {
+  const handleEvaluate = async () => {
     if (uploadedFiles.length > 0 && selectedHiringForm) {
-      handleParse(uploadedFiles[0])
-      // In a real app, this would trigger the AI evaluation
-      setTimeout(() => {
-        alert('Resume submitted for evaluation! Check results in the Evaluation Results page.')
-      }, 1000)
+      try {
+        const parseResult = await handleParse(uploadedFiles[0]);
+        if (parseResult && parseResult.resumeId) {
+          const response = await apiService.post('/resume/evaluate', {
+            resumeId: parseResult.resumeId,
+            hiringFormId: selectedHiringForm
+          });
+          if (response.ok) {
+            navigate('/results', { state: { resumeId: parseResult.resumeId } });
+          }
+        }
+      } catch (error) {
+        console.error("Evaluation process failed", error);
+      }
     }
   }
 
   const formatFileSize = (bytes) => {
-    if (bytes === 0) return '0 Bytes'
+    if (bytes === 0) return '0 B'
     const k = 1024
-    const sizes = ['Bytes', 'KB', 'MB', 'GB']
     const i = Math.floor(Math.log(bytes) / Math.log(k))
-    return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i]
+    return parseFloat((bytes / Math.pow(k, i)).toFixed(1)) + ' ' + ['B', 'KB', 'MB'][i]
   }
 
   return (
-    <div className="space-y-6">
-      {/* Header */}
-      <Card>
-        <CardHeader>
-          <CardTitle className="text-2xl">Upload Resume</CardTitle>
-          <CardDescription>
-            Upload resumes for AI-powered holistic evaluation. Supports PDF and DOC formats.
-          </CardDescription>
-        </CardHeader>
-      </Card>
+    <div className="flex flex-col gap-8 pb-12">
+      <div className="flex flex-col gap-1">
+        <h1 className="text-3xl font-semibold tracking-tight">Upload Resumes</h1>
+        <p className="text-muted-foreground">Add candidate resumes for AI holistic evaluation.</p>
+      </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        {/* Upload Section */}
-        <div className="lg:col-span-2 space-y-6">
-          {/* File Upload */}
-          <Card>
-            <CardContent className="p-6">
-              <div className="space-y-4">
-                <div className="text-center">
-                  <CloudUpload className="mx-auto h-12 w-12 text-muted-foreground" />
-                  <div className="mt-4">
-                    <Label htmlFor="file-upload" className="cursor-pointer">
-                      <span className="text-lg font-medium">Click to upload resumes</span>
-                      <span className="text-sm text-muted-foreground block">
-                        Supports PDF, DOC, DOCX files up to 10MB
-                      </span>
-                    </Label>
-                  </div>
-                </div>
-                <Input
-                  id="file-upload"
-                  type="file"
-                  ref={fileInputRef}
-                  onChange={handleFileSelect}
-                  accept=".pdf,.doc,.docx"
-                  multiple
-                  className="cursor-pointer"
-                />
+      <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
+        <div className="lg:col-span-8 flex flex-col gap-6">
+          {/* Dropzone */}
+          <Card className="border-dashed border-2 hover:border-primary/50 transition-colors bg-card/50">
+            <CardContent className="p-10 text-center flex flex-col items-center gap-4">
+              <div className="size-14 rounded-full bg-primary/10 flex items-center justify-center mb-2">
+                <CloudUpload className="size-7 text-primary" />
               </div>
+              <div className="space-y-1">
+                <p className="text-lg font-medium">Select your resume files</p>
+                <p className="text-sm text-muted-foreground max-w-sm">
+                  Drag and drop PDF, DOCX or DOC files. Max size 10MB per file.
+                </p>
+              </div>
+              <Button
+                variant="outline"
+                className="mt-2"
+                onClick={() => fileInputRef.current?.click()}
+              >
+                <Plus className="size-4 mr-2" />
+                Browse Files
+              </Button>
+              <Input
+                id="file-upload"
+                type="input" // hide this
+                ref={(node) => {
+                  if (node) {
+                    node.type = 'file';
+                    fileInputRef.current = node;
+                  }
+                }}
+                onChange={handleFileSelect}
+                accept=".pdf,.doc,.docx"
+                multiple
+                className="hidden"
+              />
             </CardContent>
           </Card>
 
-          {/* Uploaded Files */}
+          {/* Uploaded List */}
           {uploadedFiles.length > 0 && (
-            <Card>
-              <CardHeader>
-                <CardTitle>Uploaded Files</CardTitle>
-              </CardHeader>
-              <CardContent className="p-0">
-                <div className="divide-y">
-                  {uploadedFiles.map((file) => (
-                    <div key={file.id} className="p-4">
-                      <div className="flex items-center justify-between">
-                        <div className="flex items-center overflow-hidden mr-2">
-                          <FileText className="h-8 w-8 text-gray-400 mr-3 flex-shrink-0" />
-                          <div className="min-w-0">
-                            <p className="font-medium truncate">{file.name}</p>
-                            <p className="text-sm text-muted-foreground truncate">
-                              {formatFileSize(file.size)} • {file.uploadTime}
-                            </p>
-                          </div>
-                        </div>
-                        <div className="flex items-center space-x-2">
-                          <Button
-                            variant="ghost"
-                            size="sm"
-                            onClick={() => handleParse(file)}
-                          >
-                            Parse
-                          </Button>
-                          <Button
-                            variant="ghost"
-                            size="sm"
-                            onClick={() => removeFile(file.id)}
-                          >
-                            <X className="h-4 w-4" />
-                          </Button>
-                        </div>
+            <div className="flex flex-col gap-3">
+              <h3 className="text-sm font-semibold text-muted-foreground uppercase tracking-wider pl-1">
+                Selected Files ({uploadedFiles.length})
+              </h3>
+              {uploadedFiles.map((file) => (
+                <Card key={file.id} className="border-border/40 bg-card/50 overflow-hidden group">
+                  <div className="flex items-center justify-between p-4">
+                    <div className="flex items-center gap-4">
+                      <div className="size-10 rounded-lg bg-accent flex items-center justify-center">
+                        <FileText className="size-5 text-muted-foreground" />
+                      </div>
+                      <div>
+                        <p className="text-sm font-medium">{file.name}</p>
+                        <p className="text-xs text-muted-foreground">
+                          {formatFileSize(file.size)} • {file.uploadTime}
+                        </p>
                       </div>
                     </div>
-                  ))}
-                </div>
-              </CardContent>
-            </Card>
+                    <div className="flex items-center gap-2">
+                      {uploadStatus === 'uploading' ? (
+                        <Loader2 className="size-4 animate-spin text-muted-foreground mr-2" />
+                      ) : (
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          className="text-muted-foreground hover:text-destructive opacity-0 group-hover:opacity-100 transition-opacity"
+                          onClick={() => removeFile(file.id)}
+                        >
+                          <Trash2 className="size-4" />
+                        </Button>
+                      )}
+                    </div>
+                  </div>
+                </Card>
+              ))}
+            </div>
           )}
 
-          {/* Parsed Content Preview */}
+          {/* Parsed Preview */}
           {parsedContent && (
-            <Card>
+            <Card className="border-border/40 bg-card/50">
               <CardHeader>
-                <CardTitle>Parsed Resume Content</CardTitle>
+                <CardTitle className="text-base font-semibold">AI Extraction Preview</CardTitle>
+                <CardDescription>Verify the extracted data before evaluation.</CardDescription>
               </CardHeader>
-              <CardContent>
-                <div className="mt-4">
-                  <Label>Full Extracted Text</Label>
-                  <div className="mt-2 p-4 bg-muted rounded-md max-h-96 overflow-y-auto whitespace-pre-wrap text-sm font-mono">
-                    {parsedContent.rawText || "No text extracted"}
+              <CardContent className="space-y-6">
+                <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                  <div className="space-y-1">
+                    <p className="text-xs text-muted-foreground uppercase">Candidate</p>
+                    <p className="text-sm font-medium">{parsedContent.candidateName}</p>
+                  </div>
+                  <div className="space-y-1">
+                    <p className="text-xs text-muted-foreground uppercase">Email</p>
+                    <p className="text-sm font-medium truncate">{parsedContent.email || 'N/A'}</p>
+                  </div>
+                  <div className="space-y-1">
+                    <p className="text-xs text-muted-foreground uppercase">Status</p>
+                    <Badge variant={parsedContent.isResume ? "default" : "destructive"} className="h-5 text-[10px]">
+                      {parsedContent.isResume ? "Valid Resume" : "Warning"}
+                    </Badge>
                   </div>
                 </div>
-
-                <div className="mt-6 pt-6 border-t">
-                  <h4 className="font-semibold mb-4">Extracted Fields (Placeholder)</h4>
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <div>
-                      <Label>Name</Label>
-                      <p className="font-medium">{parsedContent.candidateName}</p>
-                    </div>
-                    <div>
-                      <Label>Email</Label>
-                      <p className="font-medium">{parsedContent.email}</p>
-                    </div>
-                    <div>
-                      <Label>Phone</Label>
-                      <p className="font-medium">{parsedContent.phone}</p>
-                    </div>
-                    <div>
-                      <Label>Experience</Label>
-                      <p className="font-medium">{parsedContent.experience}</p>
-                    </div>
-                  </div>
-
-                  <div className="mt-4">
-                    <Label>Skills</Label>
-                    <div className="flex flex-wrap gap-2 mt-1">
-                      {parsedContent.skills.map((skill, index) => (
-                        <Badge key={index} variant="secondary">
-                          {skill}
-                        </Badge>
-                      ))}
-                    </div>
-                  </div>
+                <Separator className="bg-border/40" />
+                <div className="space-y-2">
+                  <p className="text-xs text-muted-foreground uppercase">Extracted Summary</p>
+                  <p className="text-sm leading-relaxed text-muted-foreground italic">
+                    {parsedContent.summary || "No summary extracted."}
+                  </p>
                 </div>
-              </CardContent>
-            </Card>
-          )}
-
-          {/* Validation Results */}
-          {parsedContent && !parsedContent.isResume && (
-            <Card className="border-red-200 bg-red-50">
-              <CardHeader>
-                <CardTitle className="text-red-600">Validation Warning</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <p className="text-red-700 mb-4">
-                  The uploaded file does not appear to be a resume. Please review the following issues:
-                </p>
-                <ul className="list-disc list-inside text-red-700">
-                  {parsedContent.anomalies.map((anomaly, index) => (
-                    <li key={index}>{anomaly}</li>
-                  ))}
-                </ul>
               </CardContent>
             </Card>
           )}
         </div>
 
-        {/* Sidebar */}
-        <div className="space-y-6">
-          {/* Hiring Form Selection */}
-          <Card>
+        <div className="lg:col-span-4 flex flex-col gap-6">
+          <Card className="border-border/40 bg-card/50 sticky top-24">
             <CardHeader>
-              <CardTitle className="mb-4">Select Hiring Form</CardTitle>
+              <CardTitle className="text-base font-semibold">Evaluation Settings</CardTitle>
+              <CardDescription>Configure AI constraints.</CardDescription>
             </CardHeader>
-            <CardContent>
-              <Select value={selectedHiringForm} onValueChange={setSelectedHiringForm}>
-                <SelectTrigger>
-                  <SelectValue placeholder="Choose a hiring form..." />
-                </SelectTrigger>
-                <SelectContent>
-                  {hiringForms.map((form) => (
-                    <SelectItem key={form._id} value={form._id}>
-                      {form.formName}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-
-              {selectedHiringForm && (
-                <div className="mt-3 p-3 bg-muted rounded-md">
-                  <p className="text-sm text-muted-foreground">
-                    {hiringForms.find(f => f._id === selectedHiringForm)?.industry}
-                  </p>
-                </div>
-              )}
-            </CardContent>
-          </Card>
-
-          {/* Evaluation Settings */}
-          <Card>
-            <CardHeader>
-              <CardTitle className="mb-4">Evaluation Settings</CardTitle>
-            </CardHeader>
-            <CardContent>
+            <CardContent className="space-y-6">
               <div className="space-y-3">
-                <div className="flex items-center space-x-2">
-                  <Checkbox
-                    id="holistic"
-                    checked={holisticEvaluation}
-                    onCheckedChange={setHolisticEvaluation}
-                  />
-                  <Label htmlFor="holistic" className="text-sm">Holistic evaluation</Label>
-                </div>
-                <div className="flex items-center space-x-2">
-                  <Checkbox
-                    id="evidence"
-                    checked={evidenceHighlighting}
-                    onCheckedChange={setEvidenceHighlighting}
-                  />
-                  <Label htmlFor="evidence" className="text-sm">Evidence highlighting</Label>
-                </div>
-                <div className="flex items-center space-x-2">
-                  <Checkbox
-                    id="explainable"
-                    checked={explainableAI}
-                    onCheckedChange={setExplainableAI}
-                  />
-                  <Label htmlFor="explainable" className="text-sm">Explainable AI</Label>
-                </div>
-                <div className="flex items-center space-x-2">
-                  <Checkbox
-                    id="strict"
-                    checked={strictMode}
-                    onCheckedChange={setStrictMode}
-                  />
-                  <Label htmlFor="strict" className="text-sm">Strict mode</Label>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-
-          {/* Action Button */}
-          <Button
-            onClick={handleEvaluate}
-            disabled={uploadedFiles.length === 0 || !selectedHiringForm}
-            className="w-full"
-            size="lg"
-          >
-            Start AI Evaluation
-          </Button>
-
-          {/* Info Box */}
-          <Card className="border-blue-200 bg-blue-50">
-            <CardContent className="p-4">
-              <div className="flex">
-                <AlertTriangle className="h-5 w-5 text-blue-600 mr-2 flex-shrink-0" />
-                <div>
-                  <p className="text-sm text-blue-800 font-medium">AI Evaluation Notice</p>
-                  <p className="text-sm text-blue-700 mt-1">
-                    Our AI evaluates candidates holistically, considering experience context rather than just keywords. Missing links (GitHub, LinkedIn) are treated as soft signals, not automatic penalties.
+                <Label>Hiring Role / Form</Label>
+                <Select value={selectedHiringForm} onValueChange={setSelectedHiringForm}>
+                  <SelectTrigger className="w-full bg-background/50">
+                    <SelectValue placeholder="Select a criteria..." />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {hiringForms.map((form) => (
+                      <SelectItem key={form._id} value={form._id}>
+                        {form.formName}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+                {selectedHiringForm && (
+                  <p className="text-[10px] text-muted-foreground pl-1">
+                    Sector: {hiringForms.find(f => f._id === selectedHiringForm)?.industry}
                   </p>
+                )}
+              </div>
+
+              <Separator className="bg-border/40" />
+
+              <div className="space-y-4">
+                <div className="flex items-center justify-between">
+                  <div className="flex flex-col gap-0.5">
+                    <Label htmlFor="holistic" className="text-sm">Holistic Model</Label>
+                    <p className="text-[10px] text-muted-foreground">Deep latent analysis</p>
+                  </div>
+                  <Checkbox id="holistic" checked={holisticEvaluation} onCheckedChange={setHolisticEvaluation} />
+                </div>
+                <div className="flex items-center justify-between">
+                  <div className="flex flex-col gap-0.5">
+                    <Label htmlFor="evidence" className="text-sm">Evidence Engine</Label>
+                    <p className="text-[10px] text-muted-foreground">Highlight sources</p>
+                  </div>
+                  <Checkbox id="evidence" checked={evidenceHighlighting} onCheckedChange={setEvidenceHighlighting} />
+                </div>
+                <div className="flex items-center justify-between">
+                  <div className="flex flex-col gap-0.5">
+                    <Label htmlFor="strict" className="text-sm">Strict Validation</Label>
+                    <p className="text-[10px] text-muted-foreground">Fail on gaps</p>
+                  </div>
+                  <Checkbox id="strict" checked={strictMode} onCheckedChange={setStrictMode} />
                 </div>
               </div>
             </CardContent>
+            <CardFooter className="pt-0">
+              <Button
+                className="w-full group"
+                size="lg"
+                disabled={uploadedFiles.length === 0 || !selectedHiringForm || uploadStatus === 'uploading'}
+                onClick={handleEvaluate}
+              >
+                {uploadStatus === 'uploading' ? (
+                  <>
+                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                    Analyzing...
+                  </>
+                ) : (
+                  <>
+                    <BrainCircuit className="mr-2 h-4 w-4" />
+                    Process Evaluation
+                    <ArrowRight className="ml-2 h-4 w-4 group-hover:translate-x-1 transition-transform" />
+                  </>
+                )}
+              </Button>
+            </CardFooter>
           </Card>
+
+          <div className="p-4 rounded-xl border border-primary/10 bg-primary/5 flex gap-3">
+            <AlertCircle className="size-5 text-primary shrink-0 mt-0.5" />
+            <p className="text-xs text-muted-foreground leading-relaxed">
+              <span className="text-primary font-medium">Pro Tip:</span> Our AI evaluates candidates holistically, considering experience context rather than just keyword matching.
+            </p>
+          </div>
         </div>
       </div>
-    </div >
+    </div>
   )
 }
 
 export default ResumeUpload
+

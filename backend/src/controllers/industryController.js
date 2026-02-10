@@ -2,7 +2,7 @@ const Industry = require('../models/Industry');
 
 exports.getIndustries = async (req, res) => {
     try {
-        const industries = await Industry.find().sort({ name: 1 });
+        const industries = await Industry.find().sort({ name: 1 }).lean();
 
         res.status(200).json({
             success: true,

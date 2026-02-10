@@ -1,181 +1,282 @@
 import React from 'react'
 import { Link } from 'react-router-dom'
 import {
-  Upload,
+  FileText,
   ClipboardList,
-  BarChart,
-  Users,
+  BarChart3,
+  TrendingUp,
   Clock,
-  CheckCircle
+  CheckCircle2,
+  AlertCircle,
+  ArrowUpRight,
+  Zap,
+  Target,
+  Users,
+  Brain
 } from 'lucide-react'
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
+import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
+import { Separator } from '@/components/ui/separator'
+import {
+  ChartContainer,
+  ChartTooltip,
+  ChartTooltipContent
+} from '@/components/ui/chart'
+import {
+  Bar,
+  BarChart,
+  ResponsiveContainer,
+  XAxis,
+  YAxis,
+  Tooltip,
+  Cell,
+  Line,
+  LineChart,
+  CartesianGrid,
+  Area,
+  AreaChart
+} from 'recharts'
 
 const Dashboard = () => {
   const stats = [
-    { name: 'Total Resumes Processed', value: '247', icon: Upload, change: '+12%', changeType: 'positive' },
-    { name: 'Active Hiring Forms', value: '8', icon: ClipboardList, change: '+2', changeType: 'positive' },
-    { name: 'Average Evaluation Score', value: '72.5', icon: BarChart, change: '+5.2%', changeType: 'positive' },
-    { name: 'Candidates Shortlisted', value: '43', icon: Users, change: '+8', changeType: 'positive' },
+    { name: 'Total Resumes', value: '1,284', icon: FileText, change: '+12.5%', trend: 'up', color: 'blue' },
+    { name: 'AI Evaluations', value: '432', icon: Brain, change: '+18.2%', trend: 'up', color: 'purple' },
+    { name: 'Avg. Match Score', value: '74%', icon: Target, change: '+4.3%', trend: 'up', color: 'green' },
+    { name: 'Active Openings', value: '24', icon: Users, change: '-1.1%', trend: 'down', color: 'orange' },
+  ]
+
+  const chartData = [
+    { month: 'Jan', evaluations: 45, accuracy: 82 },
+    { month: 'Feb', evaluations: 52, accuracy: 85 },
+    { month: 'Mar', evaluations: 48, accuracy: 84 },
+    { month: 'Apr', evaluations: 61, accuracy: 88 },
+    { month: 'May', evaluations: 55, accuracy: 87 },
+    { month: 'Jun', evaluations: 67, accuracy: 91 },
+  ]
+
+  const industryData = [
+    { name: 'Information Tech', value: 45, color: '#6366f1' },
+    { name: 'Healthcare', value: 30, color: '#10b981' },
+    { name: 'Banking & Finance', value: 25, color: '#f59e0b' },
+    { name: 'Manufacturing', value: 20, color: '#ef4444' },
   ]
 
   const recentActivity = [
-    { id: 1, candidate: 'John Smith', position: 'Senior Developer', score: 85, status: 'Shortlisted', time: '2 hours ago' },
-    { id: 2, candidate: 'Sarah Johnson', position: 'Product Manager', score: 78, status: 'Under Process', time: '4 hours ago' },
-    { id: 3, candidate: 'Michael Chen', position: 'Data Scientist', score: 92, status: 'Shortlisted', time: '6 hours ago' },
-    { id: 4, candidate: 'Emily Davis', position: 'UX Designer', score: 68, status: 'Manual Review Required', time: '8 hours ago' },
-  ]
-
-  const industries = [
-    { name: 'Information Technology', count: 45, color: 'bg-blue-500' },
-    { name: 'Healthcare', count: 32, color: 'bg-green-500' },
-    { name: 'Finance', count: 28, color: 'bg-yellow-500' },
-    { name: 'Manufacturing', count: 21, color: 'bg-purple-500' },
-    { name: 'Retail', count: 18, color: 'bg-pink-500' },
+    { id: 1, candidate: 'John Smith', position: 'Senior Developer', score: 88, status: 'Qualified', time: '2h ago' },
+    { id: 2, candidate: 'Sarah Johnson', position: 'Product Lead', score: 72, status: 'Review', time: '4h ago' },
+    { id: 3, candidate: 'Michael Chen', position: 'Data Scientist', score: 91, status: 'Qualified', time: '6h ago' },
+    { id: 4, candidate: 'Emily Davis', position: 'UX Designer', score: 65, status: 'Rejected', time: '8h ago' },
   ]
 
   return (
-    <div className="space-y-6">
-      {/* Welcome Header */}
-      <Card>
-        <CardHeader>
-          <CardTitle className="text-xl md:text-2xl">
-            Welcome to AI Resume Evaluation Platform
-          </CardTitle>
-          <CardDescription>
-            Evaluate candidates holistically across multiple industries with AI-driven insights
-          </CardDescription>
-        </CardHeader>
-      </Card>
+    <div className="flex flex-col gap-10 pb-20">
+      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+        <div className="flex flex-col gap-1">
+          <h1 className="text-3xl font-semibold tracking-tight text-foreground">Intelligence Matrix</h1>
+          <p className="text-muted-foreground font-medium">Real-time analytics for your AI-driven recruitment engine.</p>
+        </div>
+        <div className="flex items-center gap-2">
+          <Button variant="outline" className="h-10 bg-card/40 border-border/40 font-bold">
+            <Zap className="size-4 mr-2 text-primary" /> System Health
+          </Button>
+          <Button asChild className="h-10 shadow-lg shadow-primary/20 font-bold">
+            <Link to="/upload">Process Resumes</Link>
+          </Button>
+        </div>
+      </div>
 
-      {/* Stats Grid */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-        {stats.map((stat) => (
-          <Card key={stat.name}>
-            <CardContent className="p-4 md:p-6">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-sm font-medium text-muted-foreground">{stat.name}</p>
-                  <p className="text-2xl font-bold mt-1">{stat.value}</p>
-                  <div className="flex items-center mt-2">
-                    <span className={`text-sm font-medium ${stat.changeType === 'positive' ? 'text-green-600' : 'text-red-600'
-                      }`}>
-                      {stat.change}
-                    </span>
-                    <span className="text-sm text-muted-foreground ml-1">from last month</span>
-                  </div>
-                </div>
-                <div className="bg-blue-50 rounded-full p-3">
-                  <stat.icon className="h-6 w-6 text-blue-600" />
-                </div>
+      {/* KPI Grid */}
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+        {stats.map((stat, i) => (
+          <Card key={i} className="group border-border/40 bg-card/50 transition-all hover:bg-card hover:border-primary/30 relative overflow-hidden">
+            <div className={`absolute top-0 right-0 size-24 blur-3xl -mr-12 -mt-12 opacity-10 transition-opacity group-hover:opacity-20 bg-${stat.color}-500`} />
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+              <CardTitle className="text-[10px] uppercase font-black tracking-widest text-muted-foreground">{stat.name}</CardTitle>
+              <stat.icon className={`h-4 w-4 text-${stat.color}-500`} />
+            </CardHeader>
+            <CardContent>
+              <div className="text-3xl font-black tracking-tighter">{stat.value}</div>
+              <div className="flex items-center gap-2 mt-1">
+                <Badge variant="secondary" className={`h-4 px-1.5 text-[9px] font-black uppercase ${stat.trend === 'up' ? 'bg-green-500/10 text-green-500 border-green-500/20' : 'bg-red-500/10 text-red-500 border-red-500/20'}`}>
+                  {stat.change}
+                </Badge>
+                <span className="text-[10px] font-bold text-muted-foreground uppercase opacity-60">vs Period</span>
               </div>
             </CardContent>
           </Card>
         ))}
       </div>
 
-      {/* Quick Actions */}
-      <Card>
-        <CardHeader>
-          <CardTitle>Quick Actions</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-            <Button variant="outline" asChild className="h-auto p-4 justify-start">
-              <Link to="/upload" className="flex items-center">
-                <Upload className="h-8 w-8 text-blue-600 mr-3" />
-                <div className="text-left">
-                  <p className="font-medium">Upload Resume</p>
-                  <p className="text-sm text-muted-foreground">Start evaluating new candidates</p>
-                </div>
-              </Link>
-            </Button>
-
-            <Button variant="outline" asChild className="h-auto p-4 justify-start">
-              <Link to="/hiring-form" className="flex items-center">
-                <ClipboardList className="h-8 w-8 text-green-600 mr-3" />
-                <div className="text-left">
-                  <p className="font-medium">Create Hiring Form</p>
-                  <p className="text-sm text-muted-foreground">Define role requirements</p>
-                </div>
-              </Link>
-            </Button>
-
-            <Button variant="outline" asChild className="h-auto p-4 justify-start">
-              <Link to="/prompts" className="flex items-center">
-                <BarChart className="h-8 w-8 text-purple-600 mr-3" />
-                <div className="text-left">
-                  <p className="font-medium">Manage Prompts</p>
-                  <p className="text-sm text-muted-foreground">Configure industry-specific evaluation</p>
-                </div>
-              </Link>
-            </Button>
-          </div>
-        </CardContent>
-      </Card>
-
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        {/* Recent Activity */}
-        <Card>
-          <CardHeader>
-            <CardTitle>Recent Evaluations</CardTitle>
+      <div className="grid grid-cols-1 lg:grid-cols-12 gap-4">
+        {/* Main Flow Chart */}
+        <Card className="lg:col-span-8 border-border/40 bg-card/50 relative overflow-hidden">
+          <CardHeader className="flex flex-row items-center justify-between pb-8">
+            <div className="space-y-1">
+              <CardTitle className="text-lg font-bold tracking-tight">Recruitment Velocity</CardTitle>
+              <CardDescription className="text-xs font-medium">Evaluation throughput and AI accuracy drift over time.</CardDescription>
+            </div>
+            <div className="flex items-center gap-4">
+              <div className="flex items-center gap-1.5">
+                <div className="size-2 rounded-full bg-primary" />
+                <span className="text-[10px] font-black uppercase text-muted-foreground">Volume</span>
+              </div>
+              <div className="flex items-center gap-1.5">
+                <div className="size-2 rounded-full bg-primary/30" />
+                <span className="text-[10px] font-black uppercase text-muted-foreground">Accuracy</span>
+              </div>
+            </div>
           </CardHeader>
-          <CardContent className="p-0">
-            <div className="divide-y">
-              {recentActivity.map((activity) => (
-                <div key={activity.id} className="p-4 hover:bg-muted/50">
-                  <div className="flex items-center justify-between">
-                    <div>
-                      <p className="font-medium">{activity.candidate}</p>
-                      <p className="text-sm text-muted-foreground">{activity.position}</p>
-                    </div>
-                    <div className="text-right">
-                      <div className="flex items-center">
-                        <span className="text-lg font-semibold">{activity.score}</span>
-                        <span className="text-sm text-muted-foreground ml-1">/100</span>
-                      </div>
-                      <Badge
-                        variant={
-                          activity.status === 'Shortlisted' ? 'default' :
-                            activity.status === 'Under Process' ? 'secondary' :
-                              activity.status === 'Manual Review Required' ? 'outline' :
-                                'destructive'
-                        }
-                        className="mt-1"
-                      >
-                        {activity.status}
-                      </Badge>
-                    </div>
-                  </div>
-                  <div className="flex items-center mt-2 text-sm text-muted-foreground">
-                    <Clock className="h-4 w-4 mr-1" />
-                    {activity.time}
-                  </div>
-                </div>
-              ))}
+          <CardContent className="px-2">
+            <div className="h-[350px] w-full">
+              <ResponsiveContainer width="100%" height="100%">
+                <AreaChart data={chartData} margin={{ top: 10, right: 10, left: 10, bottom: 0 }}>
+                  <defs>
+                    <linearGradient id="colorEval" x1="0" y1="0" x2="0" y2="1">
+                      <stop offset="5%" stopColor="var(--primary)" stopOpacity={0.1} />
+                      <stop offset="95%" stopColor="var(--primary)" stopOpacity={0} />
+                    </linearGradient>
+                  </defs>
+                  <CartesianGrid vertical={false} stroke="var(--border)" strokeDasharray="3 3" opacity={0.2} />
+                  <XAxis
+                    dataKey="month"
+                    stroke="var(--muted-foreground)"
+                    fontSize={10}
+                    fontFamily="Inter"
+                    fontWeight="bold"
+                    tickLine={false}
+                    axisLine={false}
+                    dy={10}
+                  />
+                  <YAxis hide />
+                  <Tooltip
+                    contentStyle={{ backgroundColor: 'var(--card)', borderColor: 'var(--border)', borderRadius: '12px' }}
+                    labelStyle={{ fontSize: '12px', fontWeight: 'bold' }}
+                  />
+                  <Area
+                    type="monotone"
+                    dataKey="evaluations"
+                    stroke="var(--primary)"
+                    strokeWidth={3}
+                    fillOpacity={1}
+                    fill="url(#colorEval)"
+                  />
+                  <Area
+                    type="monotone"
+                    dataKey="accuracy"
+                    stroke="var(--primary)"
+                    strokeWidth={1}
+                    strokeDasharray="4 4"
+                    fillOpacity={0}
+                  />
+                </AreaChart>
+              </ResponsiveContainer>
             </div>
           </CardContent>
         </Card>
 
-        {/* Industry Distribution */}
-        <Card>
-          <CardHeader>
-            <CardTitle>Industry Distribution</CardTitle>
+        {/* Sector Analytics */}
+        <Card className="lg:col-span-4 border-border/40 bg-card/50">
+          <CardHeader className="pb-8">
+            <CardTitle className="text-lg font-bold tracking-tight text-center">Sector Distribution</CardTitle>
+            <CardDescription className="text-xs font-medium text-center">Evaluations segmented by job vertical.</CardDescription>
           </CardHeader>
           <CardContent>
-            <div className="space-y-4">
-              {industries.map((industry) => (
-                <div key={industry.name} className="flex items-center justify-between">
-                  <div className="flex items-center">
-                    <div className={`w-3 h-3 rounded-full ${industry.color} mr-3`}></div>
-                    <span className="text-sm font-medium">{industry.name}</span>
+            <div className="h-[250px] w-full flex items-center justify-center relative">
+              <ResponsiveContainer width="100%" height="100%">
+                <BarChart data={industryData} layout="vertical" margin={{ left: 20, right: 20 }}>
+                  <XAxis type="number" hide />
+                  <YAxis
+                    dataKey="name"
+                    type="category"
+                    stroke="var(--muted-foreground)"
+                    fontSize={10}
+                    fontFamily="Inter"
+                    fontWeight="bold"
+                    tickLine={false}
+                    axisLine={false}
+                    width={80}
+                  />
+                  <Bar dataKey="value" radius={[0, 8, 8, 0]} barSize={24}>
+                    {industryData.map((entry, index) => (
+                      <Cell key={`cell-${index}`} fill={entry.color} opacity={0.8} />
+                    ))}
+                  </Bar>
+                </BarChart>
+              </ResponsiveContainer>
+              <div className="absolute inset-x-0 bottom-0 py-4 px-6 flex flex-wrap justify-center gap-4 border-t border-border/20">
+                {industryData.map((d, i) => (
+                  <div key={i} className="flex items-center gap-1.5">
+                    <div className="size-2 rounded-full" style={{ backgroundColor: d.color }} />
+                    <span className="text-[10px] font-black uppercase text-muted-foreground">{Math.round((d.value / 120) * 100)}%</span>
                   </div>
-                  <span className="text-sm text-muted-foreground">{industry.count} candidates</span>
-                </div>
-              ))}
+                ))}
+              </div>
             </div>
           </CardContent>
+        </Card>
+      </div>
+
+      <div className="grid grid-cols-1 lg:grid-cols-12 gap-4">
+        {/* Recent Operations */}
+        <Card className="lg:col-span-8 border-border/40 bg-card/50">
+          <CardHeader className="flex flex-row items-center justify-between pb-6">
+            <div className="space-y-1">
+              <CardTitle className="text-base font-bold tracking-tight">Intelligence Logs</CardTitle>
+              <CardDescription className="text-xs font-medium">Stream of recent AI analysis outcomes.</CardDescription>
+            </div>
+            <Button variant="ghost" size="sm" className="text-[10px] font-black uppercase tracking-widest h-8" asChild>
+              <Link to="/history">Expand Log <ArrowUpRight className="ml-1.5 size-3" /></Link>
+            </Button>
+          </CardHeader>
+          <CardContent className="space-y-1">
+            {recentActivity.map((item) => (
+              <div key={item.id} className="group flex items-center justify-between p-3 rounded-xl hover:bg-muted/50 transition-colors">
+                <div className="flex items-center gap-4">
+                  <div className="flex size-10 items-center justify-center rounded-2xl bg-primary/5 text-primary group-hover:bg-primary/10 transition-colors">
+                    <FileText className="size-5" />
+                  </div>
+                  <div>
+                    <p className="text-sm font-bold leading-none">{item.candidate}</p>
+                    <p className="text-[11px] font-bold text-muted-foreground uppercase opacity-60 mt-1">{item.position}</p>
+                  </div>
+                </div>
+                <div className="flex items-center gap-8">
+                  <div className="text-right">
+                    <div className="flex items-center gap-2">
+                      <span className={`text-sm font-black ${item.score >= 80 ? 'text-green-500' : 'text-orange-500'}`}>{item.score}%</span>
+                      <Badge variant="outline" className="h-5 text-[9px] font-black uppercase border-border/40 bg-background/50">
+                        {item.status}
+                      </Badge>
+                    </div>
+                  </div>
+                  <div className="flex items-center text-[10px] font-bold text-muted-foreground uppercase opacity-40 w-16 justify-end">
+                    <Clock className="mr-1 size-3" />
+                    {item.time}
+                  </div>
+                </div>
+              </div>
+            ))}
+          </CardContent>
+        </Card>
+
+        {/* Neural Engine Stat */}
+        <Card className="lg:col-span-4 border-none bg-gradient-to-br from-primary to-primary/80 text-primary-foreground p-8 flex flex-col items-center text-center relative overflow-hidden">
+          <div className="absolute inset-0 bg-[url('https://grainy-gradients.vercel.app/noise.svg')] opacity-20 brightness-100 contrast-150" />
+          <div className="absolute top-0 right-0 size-64 bg-white/20 blur-3xl rounded-full -mr-32 -mt-32" />
+
+          <div className="relative z-10 flex flex-col items-center">
+            <div className="size-16 rounded-3xl bg-white/20 backdrop-blur-md flex items-center justify-center mb-6 border border-white/30 shadow-2xl">
+              <TrendingUp className="size-8" />
+            </div>
+            <h3 className="font-black text-2xl tracking-tighter leading-tight">Neural Performance Optimized</h3>
+            <p className="text-sm text-primary-foreground/80 mt-3 max-w-[240px] font-medium leading-relaxed">
+              System throughput has integrated with the new evaluation protocols, increasing precision by <span className="underline font-black">12.4%</span> this cycle.
+            </p>
+            <Button variant="secondary" className="mt-8 w-full bg-white text-primary hover:bg-white/90 font-black tracking-tight" asChild>
+              <Link to="/upload">Initialize New Analysis</Link>
+            </Button>
+          </div>
         </Card>
       </div>
     </div>
@@ -183,3 +284,5 @@ const Dashboard = () => {
 }
 
 export default Dashboard
+
+

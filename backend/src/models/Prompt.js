@@ -35,6 +35,9 @@ const PromptSchema = new mongoose.Schema({
     timestamps: true
 });
 
+// Index for faster queries by industry
+PromptSchema.index({ industryId: 1 });
+
 // Ensure one default prompt per industry
 PromptSchema.pre('save', async function (next) {
     if (this.isDefault) {

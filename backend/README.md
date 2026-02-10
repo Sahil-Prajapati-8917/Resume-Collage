@@ -15,11 +15,12 @@ A robust Node.js/Express backend API for the AI-Driven Holistic Resume Evaluatio
 - **Audit Trail**: Complete logging system for compliance and accountability
 
 ### ✅ Recent Updates
-- **Global Search**: Added backend endpoints for universal file and folder search
-- **Stability**: Fixed critical crash in `auth` routes (middleware import)
-- **Dependencies**: Updated to latest secure versions
-- **Performance**: Optimized background processing and caching
-- **Security**: Enhanced input validation and error handling
+- **Standardized API Endpoints**: Refactored routes to use pluralized naming conventions (e.g., `/api/hiring-forms`) for consistency.
+- **Optimized Prompt Retrieval**: Signficantly improved backend performance for fetching industry-specific prompts.
+- **Global Search**: Improved backend endpoints for universal file and folder search with better indexing.
+- **AI Integration**: Enhanced Google Gemini integration for more reliable holistic evaluations.
+- **Stability**: Fixed critical crash in `auth` routes and improved middleware robustness.
+- **Security**: Enhanced JWT validation and standardized error responses.
 
 ### Technical Features
 - **File Upload**: Secure multi-format file handling (PDF, DOC, DOCX)

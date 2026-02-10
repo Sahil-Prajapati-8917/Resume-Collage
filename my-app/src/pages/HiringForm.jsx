@@ -1,11 +1,27 @@
 import React, { useState, useEffect } from 'react'
-import { Plus, Trash2, AlertTriangle, Loader2 } from 'lucide-react'
+import apiService from '@/services/api'
+import {
+  Plus,
+  Trash2,
+  AlertCircle,
+  Loader2,
+  ChevronRight,
+  Briefcase,
+  Target,
+  Settings2,
+  ListChecks,
+  History,
+  CheckCircle2,
+  Trash
+} from 'lucide-react'
 import { Button } from '@/components/ui/button'
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
+import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from '@/components/ui/card'
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
+import { Separator } from '@/components/ui/separator'
+import { Badge } from '@/components/ui/badge'
 
 const HiringForm = () => {
   const [formData, setFormData] = useState({
@@ -21,13 +37,17 @@ const HiringForm = () => {
     performanceIndicators: ['']
   })
   const [loading, setLoading] = useState(false)
+  const [fetchingForms, setFetchingForms] = useState(false)
   const [status, setStatus] = useState({ type: '', message: '' })
+  const [savedForms, setSavedForms] = useState([])
+  const [editingId, setEditingId] = useState(null)
 
   const [industries, setIndustries] = useState([])
   const [availablePrompts, setAvailablePrompts] = useState([])
 
   useEffect(() => {
     fetchIndustries()
+    fetchSavedForms()
   }, [])
 
   useEffect(() => {
@@ -45,42 +65,89 @@ const HiringForm = () => {
 
   const fetchPrompts = async (industryId) => {
     try {
-      const response = await fetch(`http://localhost:3001/api/prompts/industry/${industryId}`)
-      const data = await response.json()
-      if (data.success) {
+      const response = await apiService.get(`/prompts/industry/${industryId}`)
+      if (response.ok) {
+        const data = await response.json()
         setAvailablePrompts(data.data)
       }
     } catch (error) {
-      console.error('Failed to fetch prompts:', error)
       setAvailablePrompts([])
     }
   }
 
   const fetchIndustries = async () => {
     try {
-      const response = await fetch('http://localhost:3001/api/industries')
-      const data = await response.json()
-      if (data.success) {
+      const response = await apiService.get('/industries')
+      if (response.ok) {
+        const data = await response.json()
         setIndustries(data.data)
       }
     } catch (error) {
       console.error('Failed to fetch industries:', error)
-      setIndustries([
-        { name: 'Information Technology' },
-        { name: 'Automobile & Car Industry' },
-        { name: 'Manufacturing & Production' },
-        { name: 'Electronics & Hardware' },
-        { name: 'Banking & Finance' },
-        { name: 'Healthcare & Medical Technology' },
-        { name: 'Logistics & Supply Chain' },
-        { name: 'Education & Research' },
-        { name: 'Retail & Corporate Services' }
-      ])
     }
   }
 
+  const fetchSavedForms = async () => {
+    setFetchingForms(true)
+    try {
+      const response = await apiService.get('/hiring-forms')
+      if (response.ok) {
+        const data = await response.json()
+        setSavedForms(data.data)
+      }
+    } catch (error) {
+      console.error('Failed to fetch saved forms:', error)
+    } finally {
+      setFetchingForms(false)
+    }
+  }
 
+  const handleEdit = (form) => {
+    setEditingId(form._id)
+    setFormData({
+      formName: form.formName,
+      title: form.title,
+      industry: form.industry,
+      promptId: form.promptId,
+      experienceLevel: form.experienceLevel,
+      jobType: form.jobType || 'full-time',
+      responsibilities: form.responsibilities?.length > 0 ? form.responsibilities : [''],
+      requirements: form.requirements?.length > 0 ? form.requirements : [''],
+      roleExpectations: form.roleExpectations?.length > 0 ? form.roleExpectations : [''],
+      performanceIndicators: form.performanceIndicators?.length > 0 ? form.performanceIndicators : ['']
+    })
+    window.scrollTo({ top: 0, behavior: 'smooth' })
+  }
 
+  const handleCancelEdit = () => {
+    setEditingId(null)
+    setFormData({
+      formName: '',
+      title: '',
+      industry: '',
+      promptId: '',
+      experienceLevel: '',
+      jobType: 'full-time',
+      responsibilities: [''],
+      requirements: [''],
+      roleExpectations: [''],
+      performanceIndicators: ['']
+    })
+  }
+
+  const handleDelete = async (id) => {
+    if (!window.confirm('Are you sure? This action cannot be undone.')) return
+    try {
+      const response = await apiService.delete(`/hiring-forms/${id}`)
+      if (response.ok) {
+        setSavedForms(prev => prev.filter(f => f._id !== id))
+        if (editingId === id) handleCancelEdit()
+        setStatus({ type: 'success', message: 'Evaluation criteria deleted.' })
+      }
+    } catch (error) {
+      setStatus({ type: 'error', message: error.message })
+    }
+  }
 
   const experienceLevels = [
     'Entry Level (0-2 years)',
@@ -122,24 +189,19 @@ const HiringForm = () => {
   const handleSave = async () => {
     setLoading(true)
     setStatus({ type: '', message: '' })
-
     try {
-      const response = await fetch('http://localhost:3001/api/hiring-forms', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(formData),
-      })
+      let response = editingId
+        ? await apiService.put(`/hiring-forms/${editingId}`, formData)
+        : await apiService.post('/hiring-forms', formData)
 
-      const data = await response.json()
-
-      if (!response.ok) {
-        throw new Error(data.message || 'Failed to save hiring form')
+      if (response.ok) {
+        setStatus({ type: 'success', message: editingId ? 'Criteria updated successfully' : 'Criteria saved successfully' })
+        fetchSavedForms()
+        if (!editingId) handleCancelEdit()
+      } else {
+        const data = await response.json()
+        throw new Error(data.message || 'Validation failed.')
       }
-
-      setStatus({ type: 'success', message: 'Hiring form saved successfully!' })
-      // Optional: Reset form or redirect
     } catch (error) {
       setStatus({ type: 'error', message: error.message })
     } finally {
@@ -148,117 +210,51 @@ const HiringForm = () => {
   }
 
   return (
-    <div className="space-y-6">
-      <Card>
-        <CardHeader>
-          <CardTitle className="text-2xl">Create Hiring Form</CardTitle>
-        </CardHeader>
-        <CardContent>
-          Define role requirements and evaluation criteria for AI-powered candidate assessment.
-        </CardContent>
-      </Card>
+    <div className="flex flex-col gap-10 pb-20">
+      <div className="flex flex-col gap-1">
+        <h1 className="text-3xl font-semibold tracking-tight">Hiring Criteria</h1>
+        <p className="text-muted-foreground">Define deep evaluation constraints for AI candidate analysis.</p>
+      </div>
 
-      {status.message && (
-        <Alert variant={status.type === 'error' ? 'destructive' : 'default'} className={`mb-6 ${status.type === 'success' ? 'bg-green-50 text-green-800 border-green-200' : ''}`}>
-          {status.type === 'error' && <AlertTriangle className="h-4 w-4" />}
-          <AlertTitle>{status.type === 'success' ? 'Success' : 'Error'}</AlertTitle>
-          <AlertDescription>
-            {status.message}
-          </AlertDescription>
-        </Alert>
-      )}
+      <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
+        <div className="lg:col-span-8 flex flex-col gap-8">
+          {status.message && (
+            <Alert variant={status.type === 'error' ? 'destructive' : 'default'} className="bg-card/50 border-border/40">
+              <AlertCircle className="h-4 w-4" />
+              <AlertTitle>{status.type === 'success' ? 'Success' : 'Error'}</AlertTitle>
+              <AlertDescription>{status.message}</AlertDescription>
+            </Alert>
+          )}
 
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        <div className="lg:col-span-2 space-y-6">
-          <Card>
-            <CardHeader>
-              <CardTitle>Basic Information</CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-4">
+          <Card className="border-border/40 bg-card/50">
+            <CardHeader className="flex flex-row items-center gap-4">
+              <div className="size-10 rounded-xl bg-primary/10 flex items-center justify-center text-primary">
+                <Briefcase className="size-5" />
+              </div>
               <div>
-                <Label htmlFor="formName">Form Name *</Label>
-                <Input
-                  id="formName"
-                  name="formName"
-                  value={formData.formName}
-                  onChange={handleInputChange}
-                  placeholder="e.g., Senior Developer Assessment v1"
-                />
+                <CardTitle className="text-xl">Core Configuration</CardTitle>
+                <CardDescription>Primary job identity and industry sector.</CardDescription>
               </div>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div>
-                  <Label htmlFor="title">Job Title *</Label>
-                  <Input
-                    id="title"
-                    name="title"
-                    value={formData.title}
-                    onChange={handleInputChange}
-                    placeholder="e.g., Senior Software Engineer"
-                  />
+            </CardHeader>
+            <CardContent className="space-y-6 pt-2">
+              <div className="space-y-2">
+                <Label htmlFor="formName" className="text-xs uppercase tracking-widest text-muted-foreground font-bold">Criteria Name</Label>
+                <Input id="formName" name="formName" value={formData.formName} onChange={handleInputChange} placeholder="e.g., Q3 Senior React Engineer" className="bg-background/50 h-11" />
+              </div>
+              <div className="grid md:grid-cols-2 gap-6">
+                <div className="space-y-2">
+                  <Label htmlFor="title" className="text-xs uppercase tracking-widest text-muted-foreground font-bold">Job Title</Label>
+                  <Input id="title" name="title" value={formData.title} onChange={handleInputChange} placeholder="e.g., Frontend Lead" className="bg-background/50 h-11" />
                 </div>
-                <div>
-                  <Label htmlFor="industry">Industry *</Label>
-                  <Select value={formData.industry} onValueChange={(value) => setFormData(prev => ({ ...prev, industry: value }))}>
-                    <SelectTrigger>
-                      <SelectValue placeholder="Select industry..." />
+                <div className="space-y-2">
+                  <Label htmlFor="industry" className="text-xs uppercase tracking-widest text-muted-foreground font-bold">Industry</Label>
+                  <Select value={formData.industry} onValueChange={(v) => setFormData(p => ({ ...p, industry: v }))} disabled={!!editingId}>
+                    <SelectTrigger className="bg-background/50 h-11">
+                      <SelectValue placeholder="Select Sector" />
                     </SelectTrigger>
                     <SelectContent>
-                      {industries.map(industry => (
-                        <SelectItem key={industry._id || industry} value={industry.name || industry}>
-                          {industry.name || industry}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                </div>
-                <div>
-                  <Label htmlFor="promptId">Evaluation Prompt *</Label>
-                  <Select
-                    value={formData.promptId}
-                    onValueChange={(value) => setFormData(prev => ({ ...prev, promptId: value }))}
-                    disabled={!formData.industry || availablePrompts.length === 0}
-                  >
-                    <SelectTrigger>
-                      <SelectValue placeholder="Select prompt..." />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {availablePrompts.map(prompt => (
-                        <SelectItem key={prompt._id} value={prompt._id}>
-                          {prompt.name} (v{prompt.version})
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                  {formData.industry && availablePrompts.length === 0 && (
-                    <p className="text-xs text-orange-500 mt-1">No prompts available for this industry.</p>
-                  )}
-                </div>
-                <div>
-                  <Label htmlFor="experienceLevel">Experience Level *</Label>
-                  <Select value={formData.experienceLevel} onValueChange={(value) => setFormData(prev => ({ ...prev, experienceLevel: value }))}>
-                    <SelectTrigger>
-                      <SelectValue placeholder="Select experience level..." />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {experienceLevels.map(level => (
-                        <SelectItem key={level} value={level}>
-                          {level}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                </div>
-                <div>
-                  <Label htmlFor="jobType">Job Type *</Label>
-                  <Select value={formData.jobType} onValueChange={(value) => setFormData(prev => ({ ...prev, jobType: value }))}>
-                    <SelectTrigger>
-                      <SelectValue placeholder="Select job type..." />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {jobTypes.map(type => (
-                        <SelectItem key={type.value} value={type.value}>
-                          {type.label}
-                        </SelectItem>
+                      {industries.map(i => (
+                        <SelectItem key={i._id || i} value={i.name || i}>{i.name || i}</SelectItem>
                       ))}
                     </SelectContent>
                   </Select>
@@ -267,156 +263,157 @@ const HiringForm = () => {
             </CardContent>
           </Card>
 
-          <Card>
-            <CardHeader>
-              <CardTitle>Key Responsibilities</CardTitle>
+          <Card className="border-border/40 bg-card/50">
+            <CardHeader className="flex flex-row items-center gap-4">
+              <div className="size-10 rounded-xl bg-orange-500/10 flex items-center justify-center text-orange-500">
+                <Target className="size-5" />
+              </div>
+              <div>
+                <CardTitle className="text-xl">Evaluation Metrics</CardTitle>
+                <CardDescription>Define responsibilities and key qualifications.</CardDescription>
+              </div>
             </CardHeader>
-            <CardContent>
-              {formData.responsibilities.map((responsibility, index) => (
-                <div key={index} className="flex space-x-2 mb-3">
-                  <Input
-                    type="text"
-                    value={responsibility}
-                    onChange={(e) => handleArrayChange('responsibilities', index, e.target.value)}
-                    placeholder="e.g., Lead development of web applications"
-                    className="flex-1"
-                  />
-                  {formData.responsibilities.length > 1 && (
-                    <Button variant="ghost" size="sm" onClick={() => removeArrayItem('responsibilities', index)}>
-                      <Trash2 className="h-4 w-4" />
-                    </Button>
-                  )}
+            <CardContent className="space-y-8 pt-2">
+              <div className="space-y-4">
+                <div className="flex items-center justify-between">
+                  <Label className="text-xs uppercase tracking-widest text-muted-foreground font-bold">Key Responsibilities</Label>
+                  <Button variant="ghost" size="sm" onClick={() => addArrayItem('responsibilities')} className="h-7 text-[10px] uppercase font-bold tracking-wider">
+                    <Plus className="size-3 mr-1" /> Add Item
+                  </Button>
                 </div>
-              ))}
-              <Button onClick={() => addArrayItem('responsibilities')} variant="ghost" className="w-full sm:w-auto">
-                <Plus className="h-4 w-4 mr-1" />
-                Add Responsibility
-              </Button>
-            </CardContent>
-          </Card>
+                <div className="flex flex-col gap-3">
+                  {formData.responsibilities.map((r, i) => (
+                    <div key={i} className="group relative">
+                      <Input value={r} onChange={(e) => handleArrayChange('responsibilities', i, e.target.value)} placeholder="Enter responsibility..." className="bg-background/50 pr-10" />
+                      {formData.responsibilities.length > 1 && (
+                        <Button variant="ghost" size="icon" className="absolute right-1 top-1/2 -translate-y-1/2 size-8 text-muted-foreground opacity-0 group-hover:opacity-100 transition-opacity" onClick={() => removeArrayItem('responsibilities', i)}>
+                          <Trash className="size-4" />
+                        </Button>
+                      )}
+                    </div>
+                  ))}
+                </div>
+              </div>
 
-          <Card>
-            <CardHeader>
-              <CardTitle>Required Qualifications</CardTitle>
-            </CardHeader>
-            <CardContent>
-              {formData.requirements.map((requirement, index) => (
-                <div key={index} className="flex space-x-2 mb-3">
-                  <Input
-                    type="text"
-                    value={requirement}
-                    onChange={(e) => handleArrayChange('requirements', index, e.target.value)}
-                    placeholder="e.g., 5+ years of experience with React"
-                    className="flex-1"
-                  />
-                  {formData.requirements.length > 1 && (
-                    <Button variant="ghost" size="sm" onClick={() => removeArrayItem('requirements', index)}>
-                      <Trash2 className="h-4 w-4" />
-                    </Button>
-                  )}
-                </div>
-              ))}
-              <Button onClick={() => addArrayItem('requirements')} variant="ghost" className="w-full sm:w-auto">
-                <Plus className="h-4 w-4 mr-1" />
-                Add Requirement
-              </Button>
-            </CardContent>
-          </Card>
+              <Separator className="bg-border/20" />
 
-          <Card>
-            <CardHeader>
-              <CardTitle>Role Expectations</CardTitle>
-              <CardDescription>
-                Define what you expect from candidate in this role (performance goals, cultural fit, etc.)
-              </CardDescription>
-            </CardHeader>
-            <CardContent>
-              {formData.roleExpectations.map((expectation, index) => (
-                <div key={index} className="flex space-x-2 mb-3">
-                  <Input
-                    type="text"
-                    value={expectation}
-                    onChange={(e) => handleArrayChange('roleExpectations', index, e.target.value)}
-                    placeholder="e.g., Lead a team of 3-5 developers"
-                    className="flex-1"
-                  />
-                  {formData.roleExpectations.length > 1 && (
-                    <Button variant="ghost" size="sm" onClick={() => removeArrayItem('roleExpectations', index)}>
-                      <Trash2 className="h-4 w-4" />
-                    </Button>
-                  )}
+              <div className="space-y-4">
+                <div className="flex items-center justify-between">
+                  <Label className="text-xs uppercase tracking-widest text-muted-foreground font-bold">Minimum Qualifications</Label>
+                  <Button variant="ghost" size="sm" onClick={() => addArrayItem('requirements')} className="h-7 text-[10px] uppercase font-bold tracking-wider">
+                    <Plus className="size-3 mr-1" /> Add Item
+                  </Button>
                 </div>
-              ))}
-              <Button onClick={() => addArrayItem('roleExpectations')} variant="ghost" className="w-full sm:w-auto">
-                <Plus className="h-4 w-4 mr-1" />
-                Add Role Expectation
-              </Button>
-            </CardContent>
-          </Card>
-
-          <Card>
-            <CardHeader>
-              <CardTitle>Key Performance Indicators</CardTitle>
-              <CardDescription>
-                Define measurable indicators for success in this role
-              </CardDescription>
-            </CardHeader>
-            <CardContent>
-              {formData.performanceIndicators.map((indicator, index) => (
-                <div key={index} className="flex space-x-2 mb-3">
-                  <Input
-                    type="text"
-                    value={indicator}
-                    onChange={(e) => handleArrayChange('performanceIndicators', index, e.target.value)}
-                    placeholder="e.g., Complete projects within 10% of budget"
-                    className="flex-1"
-                  />
-                  {formData.performanceIndicators.length > 1 && (
-                    <Button variant="ghost" size="sm" onClick={() => removeArrayItem('performanceIndicators', index)}>
-                      <Trash2 className="h-4 w-4" />
-                    </Button>
-                  )}
+                <div className="flex flex-col gap-3">
+                  {formData.requirements.map((r, i) => (
+                    <div key={i} className="group relative">
+                      <Input value={r} onChange={(e) => handleArrayChange('requirements', i, e.target.value)} placeholder="Required skill or experience..." className="bg-background/50 pr-10" />
+                      {formData.requirements.length > 1 && (
+                        <Button variant="ghost" size="icon" className="absolute right-1 top-1/2 -translate-y-1/2 size-8 text-muted-foreground opacity-0 group-hover:opacity-100 transition-opacity" onClick={() => removeArrayItem('requirements', i)}>
+                          <Trash className="size-4" />
+                        </Button>
+                      )}
+                    </div>
+                  ))}
                 </div>
-              ))}
-              <Button onClick={() => addArrayItem('performanceIndicators')} variant="ghost" className="w-full sm:w-auto">
-                <Plus className="h-4 w-4 mr-1" />
-                Add Performance Indicator
-              </Button>
+              </div>
             </CardContent>
           </Card>
         </div>
 
-        <div className="space-y-6">
-          <div className="space-y-3">
-            <Button
-              onClick={handleSave}
-              disabled={loading || !formData.formName || !formData.title || !formData.industry || !formData.experienceLevel}
-              className="w-full"
-            >
-              {loading ? (
-                <>
-                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                  Saving...
-                </>
-              ) : (
-                'Save Hiring Form'
-              )}
-            </Button>
-          </div>
-
-          <Card className="border-blue-200 bg-blue-50">
-            <CardContent className="p-4">
-              <div className="flex">
-                <AlertTriangle className="h-5 w-5 text-blue-600 mr-2 flex-shrink-0" />
-                <div>
-                  <p className="text-sm text-blue-800 font-medium">Smart Evaluation</p>
-                  <p className="text-sm text-blue-700 mt-1">
-                    The AI will use these criteria to evaluate candidates holistically, considering context and experience depth rather than just keyword matching.
-                  </p>
-                </div>
+        <div className="lg:col-span-4 flex flex-col gap-6">
+          <Card className="border-border/40 bg-card/50 sticky top-24">
+            <CardHeader>
+              <CardTitle className="text-base font-semibold">Deployment Settings</CardTitle>
+              <CardDescription>AI Model constraints and levels.</CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-6">
+              <div className="space-y-2">
+                <Label className="text-[10px] uppercase font-black text-muted-foreground">Evaluation Prompt</Label>
+                <Select value={formData.promptId} onValueChange={(v) => setFormData(p => ({ ...p, promptId: v }))} disabled={!formData.industry || availablePrompts.length === 0}>
+                  <SelectTrigger className="bg-background/50">
+                    <SelectValue placeholder="Select AI Prompt" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {availablePrompts.map(p => (
+                      <SelectItem key={p._id} value={p._id}>{p.name} (v{p.version})</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+              <div className="space-y-2">
+                <Label className="text-[10px] uppercase font-black text-muted-foreground">Seniority Level</Label>
+                <Select value={formData.experienceLevel} onValueChange={(v) => setFormData(p => ({ ...p, experienceLevel: v }))}>
+                  <SelectTrigger className="bg-background/50">
+                    <SelectValue placeholder="Select Level" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {experienceLevels.map(l => (
+                      <SelectItem key={l} value={l}>{l}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
               </div>
             </CardContent>
+            <CardFooter className="flex flex-col gap-3 pt-0">
+              <Button className="w-full h-11" disabled={loading || !formData.formName || !formData.title} onClick={handleSave}>
+                {loading ? <Loader2 className="size-4 animate-spin mr-2" /> : editingId ? 'Update Criteria' : 'Save Criteria'}
+              </Button>
+              {editingId && (
+                <Button variant="ghost" className="w-full" onClick={handleCancelEdit}>Cancel Modification</Button>
+              )}
+            </CardFooter>
           </Card>
+
+          <div className="p-4 rounded-xl border border-primary/10 bg-primary/5 flex gap-3">
+            <Settings2 className="size-5 text-primary shrink-0 mt-0.5" />
+            <p className="text-[11px] text-muted-foreground leading-relaxed">
+              <span className="text-primary font-bold">Notice:</span> Detailed criteria directly influences the AI's scoring weighting. Be specific about non-negotiable requirements.
+            </p>
+          </div>
+        </div>
+      </div>
+
+      <div className="flex flex-col gap-6">
+        <div className="flex items-center gap-3">
+          <History className="size-5 text-muted-foreground" />
+          <h2 className="text-xl font-semibold tracking-tight">Active Configurations</h2>
+        </div>
+
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+          {fetchingForms ? (
+            <div className="col-span-full py-10 flex flex-col items-center justify-center gap-2 text-muted-foreground">
+              <Loader2 className="size-8 animate-spin" />
+              <p className="text-xs uppercase tracking-widest font-bold">Synchronizing...</p>
+            </div>
+          ) : savedForms.map((form) => (
+            <Card key={form._id} className={`group border-border/40 bg-card/40 transition-all hover:bg-card hover:border-primary/30 ${editingId === form._id ? 'ring-2 ring-primary border-primary/50' : ''}`}>
+              <CardHeader className="p-5 pb-2">
+                <div className="flex justify-between items-start mb-2">
+                  <Badge variant="secondary" className="text-[10px] px-1.5 h-4 bg-primary/5 text-primary border-primary/10">{form.industry}</Badge>
+                  <div className="flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                    <Button variant="ghost" size="icon" className="size-6 text-muted-foreground hover:text-primary" onClick={() => handleEdit(form)}>
+                      <ChevronRight className="size-4" />
+                    </Button>
+                  </div>
+                </div>
+                <CardTitle className="text-sm font-bold line-clamp-1">{form.formName}</CardTitle>
+                <CardDescription className="text-xs line-clamp-1">{form.title}</CardDescription>
+              </CardHeader>
+              <CardFooter className="p-5 pt-4 flex items-center justify-between border-t border-border/20 mt-4">
+                <span className="text-[10px] text-muted-foreground font-medium">{form.experienceLevel.split('(')[0]}</span>
+                <Button variant="ghost" size="icon" className="size-7 text-muted-foreground hover:text-destructive" onClick={() => handleDelete(form._id)}>
+                  <Trash2 className="size-3.5" />
+                </Button>
+              </CardFooter>
+            </Card>
+          ))}
+          {!fetchingForms && savedForms.length === 0 && (
+            <div className="col-span-full py-12 border-2 border-dashed border-border/40 rounded-3xl flex flex-col items-center justify-center text-muted-foreground">
+              <ListChecks className="size-10 mb-2 opacity-20" />
+              <p className="text-sm">No criteria configurations found.</p>
+            </div>
+          )}
         </div>
       </div>
     </div>
@@ -424,3 +421,4 @@ const HiringForm = () => {
 }
 
 export default HiringForm
+

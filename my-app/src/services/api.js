@@ -1,6 +1,6 @@
 // API Service for Backend Integration
 
-const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:3001/api';
+const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:3001/api';
 
 class ApiService {
   constructor() {
@@ -27,7 +27,11 @@ class ApiService {
   // Generic request method
   async request(endpoint, options = {}) {
     const url = `${API_BASE_URL}${endpoint}`;
-    
+
+    // Always get the latest tokens from localStorage
+    this.token = localStorage.getItem('token');
+    this.refreshToken = localStorage.getItem('refreshToken');
+
     const config = {
       headers: {
         ...options.headers
@@ -42,7 +46,7 @@ class ApiService {
 
     try {
       const response = await fetch(url, config);
-      
+
       // Handle 401 Unauthorized - token expired
       if (response.status === 401) {
         await this.refreshAccessToken();
@@ -90,7 +94,7 @@ class ApiService {
   async get(endpoint, params = {}) {
     const queryString = new URLSearchParams(params).toString();
     const url = queryString ? `${endpoint}?${queryString}` : endpoint;
-    
+
     return this.request(url, {
       method: 'GET'
     });
@@ -101,7 +105,10 @@ class ApiService {
     return this.request(endpoint, {
       method: 'POST',
       body: JSON.stringify(data),
-      headers
+      headers: {
+        'Content-Type': 'application/json',
+        ...headers
+      }
     });
   }
 
@@ -118,7 +125,10 @@ class ApiService {
   async put(endpoint, data = {}) {
     return this.request(endpoint, {
       method: 'PUT',
-      body: JSON.stringify(data)
+      body: JSON.stringify(data),
+      headers: {
+        'Content-Type': 'application/json'
+      }
     });
   }
 
@@ -130,6 +140,23 @@ class ApiService {
   }
 
   // Authentication APIs
+  async signup(userData) {
+    try {
+      const response = await this.post('/auth/signup', userData);
+      const data = await response.json();
+
+      if (response.ok) {
+        this.setTokens(data.token, data.refreshToken);
+        return { success: true, data };
+      } else {
+        return { success: false, error: data.error };
+      }
+    } catch (error) {
+      console.error('Signup error:', error);
+      return { success: false, error: { message: 'Network error occurred' } };
+    }
+  }
+
   async login(email, password) {
     try {
       const response = await this.post('/auth/login', { email, password });
@@ -149,7 +176,7 @@ class ApiService {
 
   async logout() {
     try {
-      const response = await this.post('/auth/logout');
+      await this.post('/auth/logout');
       this.clearTokens();
       return { success: true };
     } catch (error) {

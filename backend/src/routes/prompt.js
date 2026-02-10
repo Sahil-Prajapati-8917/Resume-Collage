@@ -1,4 +1,3 @@
-
 const express = require('express');
 const router = express.Router();
 const {
@@ -7,6 +6,9 @@ const {
     updatePrompt,
     deletePrompt
 } = require('../controllers/promptController');
+const { authenticateToken: auth } = require('../middleware/auth');
+
+router.use(auth);
 
 router.route('/industry/:industryId').get(getPromptsByIndustry);
 router.route('/').post(createPrompt);
