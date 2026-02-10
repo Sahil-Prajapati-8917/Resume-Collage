@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react'
+import React, { useState, useEffect, useMemo } from 'react'
 import apiService from '@/services/api'
 import {
   PencilIcon,
@@ -19,7 +19,11 @@ const PromptManagement = () => {
   const [newPromptName, setNewPromptName] = useState('')
   const [showCreateForm, setShowCreateForm] = useState(false)
 
-  const [industries, setIndustries] = useState([])
+  const [industries, setIndustries] = useState(() => {
+    const cached = localStorage.getItem('cached_industries')
+    return cached ? JSON.parse(cached) : []
+  })
+  const [loadingIndustries, setLoadingIndustries] = useState(false)
   const [isAddingIndustry, setIsAddingIndustry] = useState(false)
   const [newIndustryName, setNewIndustryName] = useState('')
 
@@ -28,15 +32,19 @@ const PromptManagement = () => {
   }, [])
 
   const fetchIndustries = async () => {
+    setLoadingIndustries(true)
     try {
       const response = await apiService.get('/industries')
       if (response.ok) {
         const data = await response.json()
         setIndustries(data.data) // Store full objects
+        localStorage.setItem('cached_industries', JSON.stringify(data.data))
       }
     } catch (error) {
       console.error('Failed to fetch industries:', error)
-      setIndustries([])
+      if (industries.length === 0) setIndustries([])
+    } finally {
+      setLoadingIndustries(false)
     }
   }
 
@@ -84,27 +92,29 @@ const PromptManagement = () => {
 
   const [prompts, setPrompts] = useState([]) // Prompts for the selected industry
   const [loadingPrompts, setLoadingPrompts] = useState(false)
+  const [promptsCache, setPromptsCache] = useState({}) // Cache for prompts by industryId
 
-  // ... (keep existing simple states like editingPrompt etc if they don't depend on the Map structure)
-
-  useEffect(() => {
-    if (selectedIndustry && industries.length > 0) {
-      const industry = industries.find(i => (i.name || i) === selectedIndustry)
-      if (industry && industry._id) {
-        fetchPrompts(industry._id)
-      } else {
-        setPrompts([])
-      }
-    }
+  const selectedIndustryId = useMemo(() => {
+    const industry = industries.find(i => (i.name || i) === selectedIndustry)
+    return industry?._id
   }, [selectedIndustry, industries])
+
+  const stats = useMemo(() => ({
+    totalPrompts: prompts.length,
+    activeIndustries: industries.length,
+    totalUsage: prompts.reduce((sum, p) => sum + (p.usageCount || 0), 0)
+  }), [prompts, industries])
 
   const fetchPrompts = async (industryId) => {
     setLoadingPrompts(true)
     try {
-      const response = await apiService.get(`/prompts/industry/${industryId}`)
+      // Use all=true to keep current behavior but indexed and lean on backend
+      const response = await apiService.get(`/prompts/industry/${industryId}?all=true`)
       if (response.ok) {
         const data = await response.json()
-        setPrompts(data.data)
+        const fetchedPrompts = data.data
+        setPrompts(fetchedPrompts)
+        setPromptsCache(prev => ({ ...prev, [industryId]: fetchedPrompts }))
       }
     } catch (error) {
       console.error('Failed to fetch prompts:', error)
@@ -113,16 +123,33 @@ const PromptManagement = () => {
     }
   }
 
+  useEffect(() => {
+    if (selectedIndustry && industries.length > 0) {
+      if (selectedIndustryId) {
+        if (promptsCache[selectedIndustryId]) {
+          setPrompts(promptsCache[selectedIndustryId])
+        } else {
+          fetchPrompts(selectedIndustryId)
+        }
+      } else {
+        setPrompts([])
+      }
+    }
+  }, [selectedIndustry, industries, selectedIndustryId])
+
+  // Sync cache when prompts change
+  useEffect(() => {
+    if (selectedIndustryId) {
+      setPromptsCache(prev => ({ ...prev, [selectedIndustryId]: prompts }))
+    }
+  }, [prompts, selectedIndustryId])
+
   const [editingContent, setEditingContent] = useState('')
+
 
   const handleEdit = (prompt) => {
     setEditingPrompt(prompt)
     setEditingContent(prompt.prompt)
-  }
-
-  const getSelectedIndustryId = () => {
-    const industry = industries.find(i => (i.name || i) === selectedIndustry)
-    return industry?._id
   }
 
   const handleSave = async () => {
@@ -159,13 +186,12 @@ const PromptManagement = () => {
   }
 
   const handleDuplicate = async (prompt) => {
-    const industryId = getSelectedIndustryId()
-    if (!industryId) return
+    if (!selectedIndustryId) return
 
     try {
       const response = await apiService.post('/prompts', {
         name: `${prompt.name} (Copy)`,
-        industryId,
+        industryId: selectedIndustryId,
         prompt: prompt.prompt,
         version: prompt.version,
         isDefault: false
@@ -184,8 +210,7 @@ const PromptManagement = () => {
       const response = await apiService.put(`/prompts/${promptId}`, { isDefault: true })
       if (response.ok) {
         // Refresh all to update the previous default
-        const industryId = getSelectedIndustryId()
-        if (industryId) fetchPrompts(industryId)
+        if (selectedIndustryId) fetchPrompts(selectedIndustryId)
       }
     } catch (error) {
       alert('Failed to set default')
@@ -193,12 +218,11 @@ const PromptManagement = () => {
   }
 
   const handleCreateNew = async () => {
-    const industryId = getSelectedIndustryId()
-    if (newPromptName.trim() && industryId) {
+    if (newPromptName.trim() && selectedIndustryId) {
       try {
         const response = await apiService.post('/prompts', {
           name: newPromptName,
-          industryId,
+          industryId: selectedIndustryId,
           prompt: `Enter your evaluation prompt for ${selectedIndustry} here...`,
           version: '1.0',
           isDefault: false
@@ -237,7 +261,7 @@ const PromptManagement = () => {
               <h2 className="text-lg font-semibold text-gray-900">Industries</h2>
               <button
                 onClick={() => setIsAddingIndustry(!isAddingIndustry)}
-                className="text-blue-600 hover:text-blue-800 focus:outline-none"
+                className="text-primary hover:text-primary/80 focus:outline-none"
                 title="Add New Industry"
               >
                 <PlusIcon className="h-5 w-5" />
@@ -255,7 +279,7 @@ const PromptManagement = () => {
                 />
                 <button
                   onClick={handleAddIndustry}
-                  className="p-1 bg-green-600 text-white rounded-md hover:bg-green-700"
+                  className="p-1 bg-accent text-accent-foreground rounded-md hover:bg-accent/90"
                   disabled={!newIndustryName.trim()}
                 >
                   <CheckIcon className="h-4 w-4" />
@@ -264,28 +288,37 @@ const PromptManagement = () => {
             )}
 
             <div className="space-y-2">
-              {industries.map(industry => (
-                <div key={industry._id || industry} className="flex items-center gap-2 group">
-                  <button
-                    onClick={() => setSelectedIndustry(industry.name || industry)}
-                    className={`flex-1 text-left px-3 py-2 rounded-md transition-colors ${selectedIndustry === (industry.name || industry)
-                      ? 'bg-blue-50 text-blue-700 border-r-2 border-blue-700'
-                      : 'text-gray-600 hover:bg-gray-50'
-                      }`}
-                  >
-                    {industry.name || industry}
-                  </button>
-                  {industry._id && (
+              {loadingIndustries && industries.length === 0 ? (
+                // Skeleton loading for industries
+                [...Array(6)].map((_, i) => (
+                  <div key={i} className="h-10 bg-gray-50 animate-pulse rounded-md" />
+                ))
+              ) : industries.length === 0 ? (
+                <p className="text-sm text-gray-500 text-center py-4">No industries found</p>
+              ) : (
+                industries.map(industry => (
+                  <div key={industry._id || (industry.name || industry)} className="flex items-center gap-2 group">
                     <button
-                      onClick={(e) => handleDeleteIndustry(industry._id, e)}
-                      className="p-2 text-gray-400 hover:text-red-600 opacity-0 group-hover:opacity-100 transition-opacity"
-                      title="Delete Industry"
+                      onClick={() => setSelectedIndustry(industry.name || industry)}
+                      className={`flex-1 text-left px-3 py-2 rounded-md transition-colors ${selectedIndustry === (industry.name || industry)
+                        ? 'bg-primary/10 text-primary border-r-2 border-primary'
+                        : 'text-muted-foreground hover:bg-muted/50'
+                        }`}
                     >
-                      <TrashIcon className="h-4 w-4" />
+                      {industry.name || industry}
                     </button>
-                  )}
-                </div>
-              ))}
+                    {industry._id && (
+                      <button
+                        onClick={(e) => handleDeleteIndustry(industry._id, e)}
+                        className="p-2 text-muted-foreground hover:text-destructive opacity-0 group-hover:opacity-100 transition-opacity"
+                        title="Delete Industry"
+                      >
+                        <TrashIcon className="h-4 w-4" />
+                      </button>
+                    )}
+                  </div>
+                ))
+              )}
             </div>
           </div>
 
@@ -296,19 +329,19 @@ const PromptManagement = () => {
               <div>
                 <p className="text-sm text-gray-500">Total Prompts</p>
                 <p className="text-xl font-bold text-gray-900">
-                  {prompts.length}
+                  {stats.totalPrompts}
                 </p>
               </div>
               <div>
                 <p className="text-sm text-gray-500">Active Industries</p>
                 <p className="text-xl font-bold text-gray-900">
-                  {industries.length}
+                  {stats.activeIndustries}
                 </p>
               </div>
               <div>
                 <p className="text-sm text-gray-500">Total Usage</p>
                 <p className="text-xl font-bold text-gray-900">
-                  {prompts.reduce((sum, p) => sum + (p.usageCount || 0), 0)}
+                  {stats.totalUsage}
                 </p>
               </div>
             </div>
@@ -325,7 +358,7 @@ const PromptManagement = () => {
                 </h2>
                 <button
                   onClick={() => setShowCreateForm(true)}
-                  className="flex items-center px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors"
+                  className="flex items-center px-4 py-2 bg-primary text-primary-foreground rounded-md hover:bg-primary/90 transition-colors"
                 >
                   <PlusIcon className="h-4 w-4 mr-2" />
                   New Prompt
@@ -335,7 +368,7 @@ const PromptManagement = () => {
 
             {/* Create New Form */}
             {showCreateForm && (
-              <div className="p-6 border-b border-gray-200 bg-gray-50">
+              <div className="p-6 border-b bg-muted/30">
                 <div className="flex items-center space-x-3">
                   <input
                     type="text"
@@ -347,7 +380,7 @@ const PromptManagement = () => {
                   <button
                     onClick={handleCreateNew}
                     disabled={!newPromptName.trim()}
-                    className="px-4 py-2 bg-green-600 text-white rounded-md hover:bg-green-700 disabled:bg-gray-300 disabled:cursor-not-allowed transition-colors"
+                    className="px-4 py-2 bg-accent text-accent-foreground rounded-md hover:bg-accent/90 disabled:bg-muted disabled:cursor-not-allowed transition-colors"
                   >
                     <CheckIcon className="h-5 w-5" />
                   </button>
@@ -356,7 +389,7 @@ const PromptManagement = () => {
                       setShowCreateForm(false)
                       setNewPromptName('')
                     }}
-                    className="px-4 py-2 bg-gray-600 text-white rounded-md hover:bg-gray-700 transition-colors"
+                    className="px-4 py-2 bg-secondary text-secondary-foreground rounded-md hover:bg-secondary/90 transition-colors"
                   >
                     <XMarkIcon className="h-5 w-5" />
                   </button>
@@ -364,12 +397,17 @@ const PromptManagement = () => {
               </div>
             )}
 
-            {currentPrompts.length === 0 ? (
+            {loadingPrompts ? (
+              <div className="p-12 text-center">
+                <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto mb-4"></div>
+                <p className="text-gray-500">Loading prompts...</p>
+              </div>
+            ) : currentPrompts.length === 0 ? (
               <div className="p-12 text-center">
                 <p className="text-gray-500">No prompts found for {selectedIndustry}</p>
                 <button
                   onClick={() => setShowCreateForm(true)}
-                  className="mt-4 text-blue-600 hover:text-blue-800 font-medium"
+                  className="mt-4 text-primary hover:text-primary/80 font-medium"
                 >
                   Create the first prompt
                 </button>
@@ -391,7 +429,7 @@ const PromptManagement = () => {
                           <div className="flex items-center space-x-2">
                             <button
                               onClick={handleSave}
-                              className="px-3 py-1 bg-green-600 text-white rounded-md hover:bg-green-700 transition-colors"
+                              className="px-3 py-1 bg-accent text-accent-foreground rounded-md hover:bg-accent/90 transition-colors"
                             >
                               <CheckIcon className="h-4 w-4" />
                             </button>
@@ -400,7 +438,7 @@ const PromptManagement = () => {
                                 setEditingPrompt(null)
                                 setEditingContent('')
                               }}
-                              className="px-3 py-1 bg-gray-600 text-white rounded-md hover:bg-gray-700 transition-colors"
+                              className="px-3 py-1 bg-secondary text-secondary-foreground rounded-md hover:bg-secondary/90 transition-colors"
                             >
                               <XMarkIcon className="h-4 w-4" />
                             </button>
@@ -423,7 +461,7 @@ const PromptManagement = () => {
                                 {prompt.name}
                               </h3>
                               {prompt.isDefault && (
-                                <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-green-100 text-green-800">
+                                <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-accent/10 text-accent-foreground">
                                   Default
                                 </span>
                               )}
@@ -443,21 +481,21 @@ const PromptManagement = () => {
                           <div className="flex items-center space-x-2 w-full sm:w-auto justify-end mt-2 sm:mt-0">
                             <button
                               onClick={() => setViewingPrompt(prompt)}
-                              className="p-2 text-gray-600 hover:text-blue-600"
+                              className="p-2 text-muted-foreground hover:text-primary"
                               title="View"
                             >
                               <EyeIcon className="h-5 w-5" />
                             </button>
                             <button
                               onClick={() => handleEdit(prompt)}
-                              className="p-2 text-gray-600 hover:text-blue-600"
+                              className="p-2 text-muted-foreground hover:text-primary"
                               title="Edit"
                             >
                               <PencilIcon className="h-5 w-5" />
                             </button>
                             <button
                               onClick={() => handleDuplicate(prompt)}
-                              className="p-2 text-gray-600 hover:text-green-600"
+                              className="p-2 text-muted-foreground hover:text-accent"
                               title="Duplicate"
                             >
                               <DocumentDuplicateIcon className="h-5 w-5" />
@@ -465,7 +503,7 @@ const PromptManagement = () => {
                             {!prompt.isDefault && (
                               <button
                                 onClick={() => handleSetDefault(prompt._id)}
-                                className="p-2 text-gray-600 hover:text-yellow-600"
+                                className="p-2 text-muted-foreground hover:text-muted"
                                 title="Set as Default"
                               >
                                 <CheckIcon className="h-5 w-5" />
@@ -473,7 +511,7 @@ const PromptManagement = () => {
                             )}
                             <button
                               onClick={() => handleDelete(prompt._id)}
-                              className="p-2 text-gray-600 hover:text-red-600"
+                              className="p-2 text-muted-foreground hover:text-destructive"
                               title="Delete"
                             >
                               <TrashIcon className="h-5 w-5" />
@@ -511,7 +549,7 @@ const PromptManagement = () => {
               </div>
             </div>
             <div className="p-6 overflow-y-auto max-h-[60vh]">
-              <pre className="whitespace-pre-wrap text-sm text-gray-700 font-mono bg-gray-50 p-4 rounded-lg">
+              <pre className="whitespace-pre-wrap text-sm text-foreground font-mono bg-muted/30 p-4 rounded-lg">
                 {viewingPrompt.prompt}
               </pre>
             </div>

@@ -1,23 +1,30 @@
 import React from 'react'
-import { Link } from 'react-router-dom'
+import { Link, useNavigate } from 'react-router-dom'
 import {
   Upload,
   ClipboardList,
   BarChart,
   Users,
   Clock,
-  CheckCircle
+  CheckCircle,
+  TrendingUp,
+  FileText
 } from 'lucide-react'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
+import { HeroSection } from '@/components/ui/hero-section'
+import { StatCard } from '@/components/ui/stat-card'
+import { FeatureCard } from '@/components/ui/feature-card'
 
 const Dashboard = () => {
+  const navigate = useNavigate()
+
   const stats = [
-    { name: 'Total Resumes Processed', value: '247', icon: Upload, change: '+12%', changeType: 'positive' },
-    { name: 'Active Hiring Forms', value: '8', icon: ClipboardList, change: '+2', changeType: 'positive' },
-    { name: 'Average Evaluation Score', value: '72.5', icon: BarChart, change: '+5.2%', changeType: 'positive' },
-    { name: 'Candidates Shortlisted', value: '43', icon: Users, change: '+8', changeType: 'positive' },
+    { name: 'Total Resumes Processed', value: 247, icon: Upload, change: '+12%', changeType: 'positive', description: 'from last month' },
+    { name: 'Active Hiring Forms', value: 8, icon: ClipboardList, change: '+2', changeType: 'positive', description: 'new this week' },
+    { name: 'Average Evaluation Score', value: '72.5', icon: BarChart, change: '+5.2%', changeType: 'positive', description: 'improvement' },
+    { name: 'Candidates Shortlisted', value: 43, icon: Users, change: '+8', changeType: 'positive', description: 'this month' },
   ]
 
   const recentActivity = [
@@ -35,112 +42,117 @@ const Dashboard = () => {
     { name: 'Retail', count: 18, color: 'bg-pink-500' },
   ]
 
+  const quickActions = [
+    {
+      title: 'Upload Resume',
+      description: 'Start evaluating new candidates with AI-powered analysis',
+      icon: Upload,
+      iconColor: 'text-blue-500',
+      onClick: () => navigate('/upload')
+    },
+    {
+      title: 'Create Hiring Form',
+      description: 'Define role requirements and evaluation criteria',
+      icon: ClipboardList,
+      iconColor: 'text-green-500',
+      onClick: () => navigate('/hiring-form')
+    },
+    {
+      title: 'Manage Prompts',
+      description: 'Configure industry-specific evaluation templates',
+      icon: FileText,
+      iconColor: 'text-purple-500',
+      onClick: () => navigate('/prompts')
+    },
+  ]
+
   return (
-    <div className="space-y-6">
-      {/* Welcome Header */}
-      <Card>
-        <CardHeader>
-          <CardTitle className="text-xl md:text-2xl">
-            Welcome to AI Resume Evaluation Platform
-          </CardTitle>
-          <CardDescription>
-            Evaluate candidates holistically across multiple industries with AI-driven insights
-          </CardDescription>
-        </CardHeader>
-      </Card>
+    <div className="space-y-8 animate-fade-in">
+      {/* Hero Section */}
+      <HeroSection
+        subtitle="AI-POWERED HIRING"
+        title="Welcome to Your Dashboard"
+        description="Evaluate candidates holistically across multiple industries with AI-driven insights. Make smarter hiring decisions faster."
+        primaryAction={{
+          label: 'Upload Resume',
+          onClick: () => navigate('/upload')
+        }}
+        secondaryAction={{
+          label: 'View Results',
+          onClick: () => navigate('/results')
+        }}
+      />
 
       {/* Stats Grid */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-        {stats.map((stat) => (
-          <Card key={stat.name}>
-            <CardContent className="p-4 md:p-6">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-sm font-medium text-muted-foreground">{stat.name}</p>
-                  <p className="text-2xl font-bold mt-1">{stat.value}</p>
-                  <div className="flex items-center mt-2">
-                    <span className={`text-sm font-medium ${stat.changeType === 'positive' ? 'text-green-600' : 'text-red-600'
-                      }`}>
-                      {stat.change}
-                    </span>
-                    <span className="text-sm text-muted-foreground ml-1">from last month</span>
-                  </div>
-                </div>
-                <div className="bg-blue-50 rounded-full p-3">
-                  <stat.icon className="h-6 w-6 text-blue-600" />
-                </div>
-              </div>
-            </CardContent>
-          </Card>
+        {stats.map((stat, index) => (
+          <div key={stat.name} className="animate-slide-up" style={{ animationDelay: `${index * 0.1}s` }}>
+            <StatCard
+              title={stat.name}
+              value={stat.value}
+              icon={stat.icon}
+              change={stat.change}
+              changeType={stat.changeType}
+              description={stat.description}
+              gradient={index % 2 === 0}
+              animate={true}
+            />
+          </div>
         ))}
       </div>
 
       {/* Quick Actions */}
-      <Card>
-        <CardHeader>
-          <CardTitle>Quick Actions</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-            <Button variant="outline" asChild className="h-auto p-4 justify-start">
-              <Link to="/upload" className="flex items-center">
-                <Upload className="h-8 w-8 text-blue-600 mr-3" />
-                <div className="text-left">
-                  <p className="font-medium">Upload Resume</p>
-                  <p className="text-sm text-muted-foreground">Start evaluating new candidates</p>
-                </div>
-              </Link>
-            </Button>
-
-            <Button variant="outline" asChild className="h-auto p-4 justify-start">
-              <Link to="/hiring-form" className="flex items-center">
-                <ClipboardList className="h-8 w-8 text-green-600 mr-3" />
-                <div className="text-left">
-                  <p className="font-medium">Create Hiring Form</p>
-                  <p className="text-sm text-muted-foreground">Define role requirements</p>
-                </div>
-              </Link>
-            </Button>
-
-            <Button variant="outline" asChild className="h-auto p-4 justify-start">
-              <Link to="/prompts" className="flex items-center">
-                <BarChart className="h-8 w-8 text-purple-600 mr-3" />
-                <div className="text-left">
-                  <p className="font-medium">Manage Prompts</p>
-                  <p className="text-sm text-muted-foreground">Configure industry-specific evaluation</p>
-                </div>
-              </Link>
-            </Button>
-          </div>
-        </CardContent>
-      </Card>
+      <div>
+        <h2 className="text-2xl font-bold mb-6 gradient-text">Quick Actions</h2>
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+          {quickActions.map((action, index) => (
+            <div key={action.title} className="animate-slide-up" style={{ animationDelay: `${index * 0.1}s` }}>
+              <FeatureCard
+                title={action.title}
+                description={action.description}
+                icon={action.icon}
+                iconColor={action.iconColor}
+                onClick={action.onClick}
+                gradient={index === 1}
+              />
+            </div>
+          ))}
+        </div>
+      </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         {/* Recent Activity */}
-        <Card>
+        <Card hover className="animate-slide-up">
           <CardHeader>
-            <CardTitle>Recent Evaluations</CardTitle>
+            <div className="flex items-center justify-between">
+              <CardTitle className="flex items-center gap-2">
+                <TrendingUp className="h-5 w-5 text-primary" />
+                Recent Evaluations
+              </CardTitle>
+              <Button variant="ghost" size="sm" asChild>
+                <Link to="/results">View All</Link>
+              </Button>
+            </div>
           </CardHeader>
           <CardContent className="p-0">
             <div className="divide-y">
               {recentActivity.map((activity) => (
-                <div key={activity.id} className="p-4 hover:bg-muted/50">
+                <div key={activity.id} className="p-4 hover:bg-muted/50 transition-colors duration-200 cursor-pointer">
                   <div className="flex items-center justify-between">
                     <div>
                       <p className="font-medium">{activity.candidate}</p>
                       <p className="text-sm text-muted-foreground">{activity.position}</p>
                     </div>
                     <div className="text-right">
-                      <div className="flex items-center">
-                        <span className="text-lg font-semibold">{activity.score}</span>
-                        <span className="text-sm text-muted-foreground ml-1">/100</span>
+                      <div className="flex items-center gap-2">
+                        <span className="text-2xl font-bold">{activity.score}</span>
+                        <span className="text-sm text-muted-foreground">/100</span>
                       </div>
                       <Badge
                         variant={
                           activity.status === 'Shortlisted' ? 'default' :
                             activity.status === 'Under Process' ? 'secondary' :
-                              activity.status === 'Manual Review Required' ? 'outline' :
-                                'destructive'
+                              'outline'
                         }
                         className="mt-1"
                       >
@@ -159,25 +171,57 @@ const Dashboard = () => {
         </Card>
 
         {/* Industry Distribution */}
-        <Card>
+        <Card hover className="animate-slide-up">
           <CardHeader>
-            <CardTitle>Industry Distribution</CardTitle>
+            <CardTitle className="flex items-center gap-2">
+              <BarChart className="h-5 w-5 text-primary" />
+              Industry Distribution
+            </CardTitle>
+            <CardDescription>Candidates by industry sector</CardDescription>
           </CardHeader>
           <CardContent>
             <div className="space-y-4">
-              {industries.map((industry) => (
-                <div key={industry.name} className="flex items-center justify-between">
-                  <div className="flex items-center">
-                    <div className={`w-3 h-3 rounded-full ${industry.color} mr-3`}></div>
-                    <span className="text-sm font-medium">{industry.name}</span>
+              {industries.map((industry) => {
+                const percentage = (industry.count / industries.reduce((sum, i) => sum + i.count, 0)) * 100
+                return (
+                  <div key={industry.name} className="space-y-2">
+                    <div className="flex items-center justify-between text-sm">
+                      <div className="flex items-center gap-2">
+                        <div className={`w-3 h-3 rounded-full ${industry.color}`}></div>
+                        <span className="font-medium">{industry.name}</span>
+                      </div>
+                      <span className="text-muted-foreground">{industry.count} candidates</span>
+                    </div>
+                    <div className="h-2 bg-muted rounded-full overflow-hidden">
+                      <div
+                        className={`h-full ${industry.color} transition-all duration-1000 ease-out`}
+                        style={{ width: `${percentage}%` }}
+                      />
+                    </div>
                   </div>
-                  <span className="text-sm text-muted-foreground">{industry.count} candidates</span>
-                </div>
-              ))}
+                )
+              })}
             </div>
           </CardContent>
         </Card>
       </div>
+
+      {/* Performance Insights */}
+      <Card variant="gradient" className="animate-slide-up">
+        <CardContent className="p-8">
+          <div className="flex items-center justify-between">
+            <div>
+              <h3 className="text-xl font-semibold mb-2">🎉 Great Progress!</h3>
+              <p className="text-muted-foreground">
+                You've processed 12% more resumes this month. Keep up the excellent work!
+              </p>
+            </div>
+            <Button variant="secondary" asChild>
+              <Link to="/analytics">View Analytics</Link>
+            </Button>
+          </div>
+        </CardContent>
+      </Card>
     </div>
   )
 }

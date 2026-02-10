@@ -25,10 +25,14 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog'
 import { Label } from '@/components/ui/label'
 import { Textarea } from '@/components/ui/textarea'
+import apiService from '@/services/api'
+import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert'
+import { AlertTriangle, Loader2 } from 'lucide-react'
 
 const GlobalHiringForms = () => {
   const [forms, setForms] = useState([])
   const [loading, setLoading] = useState(true)
+  const [error, setError] = useState(null)
   const [searchTerm, setSearchTerm] = useState('')
   const [industryFilter, setIndustryFilter] = useState('all')
   const [roleTypeFilter, setRoleTypeFilter] = useState('all')
@@ -76,124 +80,29 @@ const GlobalHiringForms = () => {
     isActive: true
   })
 
-  // Mock data
   useEffect(() => {
-    const mockForms = [
-      {
-        id: '1',
-        name: 'Senior Software Engineer - IT',
-        industry: 'IT',
-        roleType: 'Senior Developer',
-        experienceLevel: '8+ years',
-        evaluationWeights: {
-          technicalSkills: 35,
-          experience: 30,
-          education: 10,
-          softSkills: 15,
-          culturalFit: 10
-        },
-        cutOffThresholds: {
-          minimumScore: 70,
-          technicalSkills: 25,
-          experience: 21,
-          education: 6,
-          softSkills: 9,
-          culturalFit: 6
-        },
-        isActive: true,
-        createdBy: 'Master Admin',
-        createdAt: '2024-01-10',
-        usageCount: 156,
-        lastUsed: '2024-01-15'
-      },
-      {
-        id: '2',
-        name: 'Registered Nurse - Healthcare',
-        industry: 'Healthcare',
-        roleType: 'Clinical Staff',
-        experienceLevel: '3+ years',
-        evaluationWeights: {
-          technicalSkills: 40,
-          experience: 25,
-          education: 20,
-          softSkills: 10,
-          culturalFit: 5
-        },
-        cutOffThresholds: {
-          minimumScore: 75,
-          technicalSkills: 30,
-          experience: 15,
-          education: 12,
-          softSkills: 6,
-          culturalFit: 3
-        },
-        isActive: true,
-        createdBy: 'Master Admin',
-        createdAt: '2024-01-08',
-        usageCount: 89,
-        lastUsed: '2024-01-14'
-      },
-      {
-        id: '3',
-        name: 'Financial Analyst - Finance',
-        industry: 'Finance',
-        roleType: 'Analyst',
-        experienceLevel: '2+ years',
-        evaluationWeights: {
-          technicalSkills: 30,
-          experience: 20,
-          education: 25,
-          softSkills: 15,
-          culturalFit: 10
-        },
-        cutOffThresholds: {
-          minimumScore: 65,
-          technicalSkills: 18,
-          experience: 12,
-          education: 15,
-          softSkills: 9,
-          culturalFit: 6
-        },
-        isActive: true,
-        createdBy: 'Master Admin',
-        createdAt: '2024-01-05',
-        usageCount: 123,
-        lastUsed: '2024-01-13'
-      },
-      {
-        id: '4',
-        name: 'Production Manager - Manufacturing',
-        industry: 'Manufacturing',
-        roleType: 'Manager',
-        experienceLevel: '5+ years',
-        evaluationWeights: {
-          technicalSkills: 25,
-          experience: 35,
-          education: 15,
-          softSkills: 15,
-          culturalFit: 10
-        },
-        cutOffThresholds: {
-          minimumScore: 60,
-          technicalSkills: 15,
-          experience: 21,
-          education: 9,
-          softSkills: 9,
-          culturalFit: 6
-        },
-        isActive: false,
-        createdBy: 'Master Admin',
-        createdAt: '2024-01-03',
-        usageCount: 45,
-        lastUsed: '2024-01-10'
-      }
-    ]
-
-    setTimeout(() => {
-      setForms(mockForms)
-      setLoading(false)
-    }, 1000)
+    fetchForms()
   }, [])
+
+  const fetchForms = async () => {
+    setLoading(true)
+    setError(null)
+    try {
+      const response = await apiService.get('/global-hiring-forms')
+      if (response.ok) {
+        const result = await response.json()
+        setForms(result.data || [])
+      } else {
+        const data = await response.json()
+        setError(data.error?.message || 'Failed to fetch global hiring forms')
+      }
+    } catch (err) {
+      setError('Failed to connect to the server')
+      console.error(err)
+    } finally {
+      setLoading(false)
+    }
+  }
 
   const filteredForms = forms
     .filter(form =>
@@ -261,54 +170,80 @@ const GlobalHiringForms = () => {
   }
 
   const handleCreateForm = async () => {
-    const newFormObj = {
-      ...newForm,
-      id: Date.now().toString(),
-      createdBy: 'Master Admin',
-      createdAt: new Date().toISOString().split('T')[0],
-      usageCount: 0,
-      lastUsed: null
+    setLoading(true)
+    setError(null)
+    try {
+      const response = await apiService.post('/global-hiring-forms', newForm)
+      if (response.ok) {
+        setShowCreateDialog(false)
+        setNewForm({
+          name: '',
+          industry: '',
+          roleType: '',
+          experienceLevel: '',
+          evaluationWeights: {
+            technicalSkills: 30,
+            experience: 25,
+            education: 15,
+            softSkills: 20,
+            culturalFit: 10
+          },
+          cutOffThresholds: {
+            minimumScore: 60,
+            technicalSkills: 18,
+            experience: 15,
+            education: 9,
+            softSkills: 12,
+            culturalFit: 6
+          },
+          isActive: true
+        })
+        fetchForms()
+      } else {
+        const data = await response.json()
+        setError(data.error?.message || 'Failed to create template')
+      }
+    } catch (err) {
+      setError('Failed to connect to the server')
+    } finally {
+      setLoading(false)
     }
-
-    setForms([...forms, newFormObj])
-    setShowCreateDialog(false)
-    setNewForm({
-      name: '',
-      industry: '',
-      roleType: '',
-      experienceLevel: '',
-      evaluationWeights: {
-        technicalSkills: 30,
-        experience: 25,
-        education: 15,
-        softSkills: 20,
-        culturalFit: 10
-      },
-      cutOffThresholds: {
-        minimumScore: 60,
-        technicalSkills: 18,
-        experience: 15,
-        education: 9,
-        softSkills: 12,
-        culturalFit: 6
-      },
-      isActive: true
-    })
   }
 
   const handleEditForm = async () => {
-    const updatedForms = forms.map(form =>
-      form.id === selectedForm.id ? { ...form, ...editForm } : form
-    )
-    setForms(updatedForms)
-    setShowEditDialog(false)
+    setLoading(true)
+    setError(null)
+    try {
+      const response = await apiService.put(`/global-hiring-forms/${selectedForm._id}`, editForm)
+      if (response.ok) {
+        setShowEditDialog(false)
+        fetchForms()
+      } else {
+        const data = await response.json()
+        setError(data.error?.message || 'Failed to update template')
+      }
+    } catch (err) {
+      setError('Failed to connect to the server')
+    } finally {
+      setLoading(false)
+    }
   }
 
-  const handleToggleFormStatus = (formId) => {
-    const updatedForms = forms.map(form =>
-      form.id === formId ? { ...form, isActive: !form.isActive } : form
-    )
-    setForms(updatedForms)
+  const handleToggleFormStatus = async (form) => {
+    setError(null)
+    try {
+      const response = await apiService.put(`/global-hiring-forms/${form._id}`, {
+        isActive: !form.isActive
+      })
+      if (response.ok) {
+        fetchForms()
+      } else {
+        const data = await response.json()
+        setError(data.error?.message || 'Failed to update status')
+      }
+    } catch (err) {
+      setError('Failed to connect to the server')
+    }
   }
 
   const handleCloneForm = (form) => {
@@ -316,20 +251,24 @@ const GlobalHiringForms = () => {
     setShowCloneDialog(true)
   }
 
-  const handleCloneConfirm = () => {
-    const clonedForm = {
-      ...selectedForm,
-      id: Date.now().toString(),
-      name: `${selectedForm.name} (Clone)`,
-      createdBy: 'Master Admin',
-      createdAt: new Date().toISOString().split('T')[0],
-      usageCount: 0,
-      lastUsed: null
+  const handleCloneConfirm = async () => {
+    setLoading(true)
+    setError(null)
+    try {
+      const response = await apiService.post(`/global-hiring-forms/${selectedForm._id}/clone`)
+      if (response.ok) {
+        setShowCloneDialog(false)
+        setSelectedForm(null)
+        fetchForms()
+      } else {
+        const data = await response.json()
+        setError(data.error?.message || 'Failed to clone template')
+      }
+    } catch (err) {
+      setError('Failed to connect to the server')
+    } finally {
+      setLoading(false)
     }
-
-    setForms([...forms, clonedForm])
-    setShowCloneDialog(false)
-    setSelectedForm(null)
   }
 
   return (
@@ -345,6 +284,14 @@ const GlobalHiringForms = () => {
           Create Template
         </Button>
       </div>
+
+      {error && (
+        <Alert variant="destructive">
+          <AlertTriangle className="h-4 w-4" />
+          <AlertTitle>Error</AlertTitle>
+          <AlertDescription>{error}</AlertDescription>
+        </Alert>
+      )}
 
       {/* Filters and Search */}
       <Card>
@@ -488,8 +435,21 @@ const GlobalHiringForms = () => {
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {filteredForms.map((form) => (
-                  <TableRow key={form.id}>
+                {loading && forms.length === 0 ? (
+                  <TableRow>
+                    <TableCell colSpan={7} className="h-24 text-center">
+                      <Loader2 className="h-8 w-8 animate-spin mx-auto text-muted-foreground" />
+                      <p className="mt-2 text-muted-foreground">Loading templates...</p>
+                    </TableCell>
+                  </TableRow>
+                ) : filteredForms.length === 0 ? (
+                  <TableRow>
+                    <TableCell colSpan={7} className="h-24 text-center text-muted-foreground">
+                      No templates found matching your filters.
+                    </TableCell>
+                  </TableRow>
+                ) : filteredForms.map((form) => (
+                  <TableRow key={form._id}>
                     <TableCell>
                       <div>
                         <div className="font-semibold">{form.name}</div>
@@ -547,14 +507,10 @@ const GlobalHiringForms = () => {
                         <Button
                           variant="ghost"
                           size="sm"
-                          onClick={() => handleToggleFormStatus(form.id)}
+                          onClick={() => handleToggleFormStatus(form)}
                           className={form.isActive ? 'text-red-600 hover:text-red-700' : 'text-green-600 hover:text-green-700'}
                         >
-                          {form.isActive ? (
-                            <Tag className="h-4 w-4" />
-                          ) : (
-                            <Tag className="h-4 w-4" />
-                          )}
+                          <Tag className="h-4 w-4" />
                         </Button>
                       </div>
                     </TableCell>
@@ -670,11 +626,8 @@ const GlobalHiringForms = () => {
                     type="number"
                     value={newForm.evaluationWeights.education}
                     onChange={(e) => setNewForm({
-                      ...newForm,
-                      evaluationWeights: {
-                        ...newForm.evaluationWeights,
-                        education: parseInt(e.target.value)
-                      }
+                      ...newForm.evaluationWeights,
+                      education: parseInt(e.target.value)
                     })}
                     min="0"
                     max="100"
@@ -704,11 +657,8 @@ const GlobalHiringForms = () => {
                     type="number"
                     value={newForm.evaluationWeights.culturalFit}
                     onChange={(e) => setNewForm({
-                      ...newForm,
-                      evaluationWeights: {
-                        ...newForm.evaluationWeights,
-                        culturalFit: parseInt(e.target.value)
-                      }
+                      ...newForm.evaluationWeights,
+                      culturalFit: parseInt(e.target.value)
                     })}
                     min="0"
                     max="100"
@@ -728,11 +678,8 @@ const GlobalHiringForms = () => {
                     type="number"
                     value={newForm.cutOffThresholds.minimumScore}
                     onChange={(e) => setNewForm({
-                      ...newForm,
-                      cutOffThresholds: {
-                        ...newForm.cutOffThresholds,
-                        minimumScore: parseInt(e.target.value)
-                      }
+                      ...newForm.cutOffThresholds,
+                      minimumScore: parseInt(e.target.value)
                     })}
                     min="0"
                     max="100"
@@ -745,11 +692,8 @@ const GlobalHiringForms = () => {
                     type="number"
                     value={newForm.cutOffThresholds.technicalSkills}
                     onChange={(e) => setNewForm({
-                      ...newForm,
-                      cutOffThresholds: {
-                        ...newForm.cutOffThresholds,
-                        technicalSkills: parseInt(e.target.value)
-                      }
+                      ...newForm.cutOffThresholds,
+                      technicalSkills: parseInt(e.target.value)
                     })}
                     min="0"
                     max="100"

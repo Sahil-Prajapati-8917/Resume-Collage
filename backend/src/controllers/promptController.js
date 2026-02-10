@@ -4,10 +4,28 @@ const Industry = require('../models/Industry');
 exports.getPromptsByIndustry = async (req, res) => {
     try {
         const { industryId } = req.params;
-        const prompts = await Prompt.find({ industryId }).sort({ isDefault: -1, createdAt: -1 });
+        const { page = 1, limit = 10, all = false } = req.query;
+
+        const query = { industryId };
+
+        let mongoQuery = Prompt.find(query).sort({ isDefault: -1, createdAt: -1 }).lean();
+
+        if (all !== 'true') {
+            mongoQuery = mongoQuery.limit(limit * 1).skip((page - 1) * limit);
+        }
+
+        const prompts = await mongoQuery;
+        const total = await Prompt.countDocuments(query);
 
         res.status(200).json({
             success: true,
+            count: prompts.length,
+            total,
+            pagination: all === 'true' ? null : {
+                page: parseInt(page),
+                limit: parseInt(limit),
+                pages: Math.ceil(total / limit)
+            },
             data: prompts
         });
     } catch (error) {

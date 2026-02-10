@@ -22,13 +22,17 @@ const HiringForm = () => {
     performanceIndicators: ['']
   })
   const [loading, setLoading] = useState(false)
+  const [fetchingForms, setFetchingForms] = useState(false)
   const [status, setStatus] = useState({ type: '', message: '' })
+  const [savedForms, setSavedForms] = useState([])
+  const [editingId, setEditingId] = useState(null)
 
   const [industries, setIndustries] = useState([])
   const [availablePrompts, setAvailablePrompts] = useState([])
 
   useEffect(() => {
     fetchIndustries()
+    fetchSavedForms()
   }, [])
 
   useEffect(() => {
@@ -66,7 +70,73 @@ const HiringForm = () => {
       }
     } catch (error) {
       console.error('Failed to fetch industries:', error)
-      // No fallback list here, let's keep it empty or same as original if preferred
+    }
+  }
+
+  const fetchSavedForms = async () => {
+    setFetchingForms(true)
+    try {
+      const response = await apiService.get('/hiring-forms')
+      if (response.ok) {
+        const data = await response.json()
+        setSavedForms(data.data)
+      }
+    } catch (error) {
+      console.error('Failed to fetch saved forms:', error)
+    } finally {
+      setFetchingForms(false)
+    }
+  }
+
+  const handleEdit = (form) => {
+    setEditingId(form._id)
+    setFormData({
+      formName: form.formName,
+      title: form.title,
+      industry: form.industry,
+      promptId: form.promptId,
+      experienceLevel: form.experienceLevel,
+      jobType: form.jobType || 'full-time',
+      responsibilities: form.responsibilities?.length > 0 ? form.responsibilities : [''],
+      requirements: form.requirements?.length > 0 ? form.requirements : [''],
+      roleExpectations: form.roleExpectations?.length > 0 ? form.roleExpectations : [''],
+      performanceIndicators: form.performanceIndicators?.length > 0 ? form.performanceIndicators : ['']
+    })
+    // Scroll to top
+    window.scrollTo({ top: 0, behavior: 'smooth' })
+  }
+
+  const handleCancelEdit = () => {
+    setEditingId(null)
+    setFormData({
+      formName: '',
+      title: '',
+      industry: '',
+      promptId: '',
+      experienceLevel: '',
+      jobType: 'full-time',
+      responsibilities: [''],
+      requirements: [''],
+      roleExpectations: [''],
+      performanceIndicators: ['']
+    })
+  }
+
+  const handleDelete = async (id) => {
+    if (!window.confirm('Are you sure you want to delete this hiring form?')) return
+
+    try {
+      const response = await apiService.delete(`/hiring-forms/${id}`)
+      if (response.ok) {
+        setSavedForms(prev => prev.filter(f => f._id !== id))
+        if (editingId === id) handleCancelEdit()
+        setStatus({ type: 'success', message: 'Hiring form deleted successfully!' })
+      } else {
+        const data = await response.json()
+        throw new Error(data.message || 'Failed to delete form')
+      }
+    } catch (error) {
+      setStatus({ type: 'error', message: error.message })
     }
   }
 
@@ -115,14 +185,36 @@ const HiringForm = () => {
     setStatus({ type: '', message: '' })
 
     try {
-      const response = await apiService.post('/hiring-forms', formData)
+      let response;
+      if (editingId) {
+        response = await apiService.put(`/hiring-forms/${editingId}`, formData)
+      } else {
+        response = await apiService.post('/hiring-forms', formData)
+      }
+
       const data = await response.json()
 
       if (!response.ok) {
         throw new Error(data.message || 'Failed to save hiring form')
       }
 
-      setStatus({ type: 'success', message: 'Hiring form saved successfully!' })
+      setStatus({ type: 'success', message: editingId ? 'Hiring form updated successfully!' : 'Hiring form saved successfully!' })
+      fetchSavedForms()
+      if (!editingId) {
+        // Reset form after successful create
+        setFormData({
+          formName: '',
+          title: '',
+          industry: '',
+          promptId: '',
+          experienceLevel: '',
+          jobType: 'full-time',
+          responsibilities: [''],
+          requirements: [''],
+          roleExpectations: [''],
+          performanceIndicators: ['']
+        })
+      }
     } catch (error) {
       setStatus({ type: 'error', message: error.message })
     } finally {
@@ -134,10 +226,12 @@ const HiringForm = () => {
     <div className="space-y-6">
       <Card>
         <CardHeader>
-          <CardTitle className="text-2xl">Create Hiring Form</CardTitle>
+          <CardTitle className="text-2xl">{editingId ? 'Edit Hiring Form' : 'Create Hiring Form'}</CardTitle>
         </CardHeader>
         <CardContent>
-          Define role requirements and evaluation criteria for AI-powered candidate assessment.
+          {editingId
+            ? `Updating evaluation criteria for ${formData.formName}.`
+            : 'Define role requirements and evaluation criteria for AI-powered candidate assessment.'}
         </CardContent>
       </Card>
 
@@ -181,7 +275,11 @@ const HiringForm = () => {
                 </div>
                 <div>
                   <Label htmlFor="industry">Industry *</Label>
-                  <Select value={formData.industry} onValueChange={(value) => setFormData(prev => ({ ...prev, industry: value }))}>
+                  <Select
+                    value={formData.industry}
+                    onValueChange={(value) => setFormData(prev => ({ ...prev, industry: value }))}
+                    disabled={!!editingId}
+                  >
                     <SelectTrigger>
                       <SelectValue placeholder="Select industry..." />
                     </SelectTrigger>
@@ -193,6 +291,7 @@ const HiringForm = () => {
                       ))}
                     </SelectContent>
                   </Select>
+                  {editingId && <p className="text-xs text-muted-foreground mt-1">Industry cannot be changed after creation.</p>}
                 </div>
                 <div>
                   <Label htmlFor="promptId">Evaluation Prompt *</Label>
@@ -379,12 +478,21 @@ const HiringForm = () => {
               {loading ? (
                 <>
                   <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                  Saving...
+                  {editingId ? 'Updating...' : 'Saving...'}
                 </>
               ) : (
-                'Save Hiring Form'
+                editingId ? 'Update Hiring Form' : 'Save Hiring Form'
               )}
             </Button>
+            {editingId && (
+              <Button
+                variant="outline"
+                onClick={handleCancelEdit}
+                className="w-full mt-3"
+              >
+                Cancel Edit
+              </Button>
+            )}
           </div>
 
           <Card className="border-blue-200 bg-blue-50">
@@ -402,6 +510,59 @@ const HiringForm = () => {
           </Card>
         </div>
       </div>
+
+      {/* Previous Hiring Forms List */}
+      <Card>
+        <CardHeader>
+          <CardTitle>Previous Hiring Forms</CardTitle>
+          <CardDescription>View and manage previously created evaluation configurations.</CardDescription>
+        </CardHeader>
+        <CardContent>
+          {fetchingForms ? (
+            <div className="flex justify-center py-8">
+              <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
+            </div>
+          ) : savedForms.length > 0 ? (
+            <div className="overflow-x-auto">
+              <table className="w-full text-sm">
+                <thead>
+                  <tr className="border-b">
+                    <th className="text-left py-3 px-2 font-medium">Form Name</th>
+                    <th className="text-left py-3 px-2 font-medium">Job Title</th>
+                    <th className="text-left py-3 px-2 font-medium">Industry</th>
+                    <th className="text-left py-3 px-2 font-medium">Exp. Level</th>
+                    <th className="text-right py-3 px-2 font-medium">Actions</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y">
+                  {savedForms.map((form) => (
+                    <tr key={form._id} className={`hover:bg-muted/50 ${editingId === form._id ? 'bg-blue-50' : ''}`}>
+                      <td className="py-3 px-2 font-medium">{form.formName}</td>
+                      <td className="py-3 px-2">{form.title}</td>
+                      <td className="py-3 px-2">{form.industry}</td>
+                      <td className="py-3 px-2">{form.experienceLevel}</td>
+                      <td className="py-3 px-2 text-right">
+                        <div className="flex justify-end space-x-1">
+                          <Button variant="ghost" size="sm" onClick={() => handleEdit(form)}>
+                            Edit
+                          </Button>
+                          <Button variant="ghost" size="sm" onClick={() => handleDelete(form._id)} className="text-red-600 hover:text-red-700">
+                            <Trash2 className="h-4 w-4" />
+                          </Button>
+                        </div>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          ) : (
+            <div className="text-center py-8 text-muted-foreground">
+              No previous hiring forms found.
+            </div>
+          )}
+        </CardContent>
+      </Card>
     </div>
   )
 }

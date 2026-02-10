@@ -93,9 +93,6 @@ const EvaluationResults = () => {
   }
 
   const filteredEvaluations = evaluations.filter(evaluation => {
-    if (singleViewId) {
-      return evaluation._id === singleViewId;
-    }
     if (filterStatus === 'all') return true
     return evaluation.status.toLowerCase() === filterStatus.toLowerCase()
   })
@@ -187,7 +184,13 @@ const EvaluationResults = () => {
       {/* Results Grid */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         {filteredEvaluations.map(evaluation => (
-          <Card key={evaluation.id} className="hover:shadow-lg transition-shadow">
+          <Card
+            key={evaluation._id}
+            className={`hover:shadow-lg transition-all duration-300 ${evaluation._id === singleViewId
+                ? 'ring-2 ring-primary shadow-xl shadow-primary/20 border-primary bg-primary/5'
+                : 'bg-card'
+              }`}
+          >
             <CardContent className="p-6">
               {/* Header */}
               <div className="flex items-start justify-between mb-4">

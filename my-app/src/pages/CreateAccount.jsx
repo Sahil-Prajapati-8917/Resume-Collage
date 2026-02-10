@@ -197,17 +197,17 @@ const CreateAccount = () => {
                 value={formData.organizationName}
                 onChange={(e) => handleInputChange('organizationName', e.target.value)}
                 placeholder="e.g., TechCorp Inc."
-                className={errors.organizationName ? 'border-red-500' : ''}
+                className={errors.organizationName ? 'border-destructive' : ''}
               />
               {errors.organizationName && (
-                <p className="text-sm text-red-500 mt-1">{errors.organizationName}</p>
+                <p className="text-sm text-destructive mt-1">{errors.organizationName}</p>
               )}
             </div>
 
             <div>
               <Label htmlFor="industry">Industry *</Label>
               <Select value={formData.industry} onValueChange={(value) => handleInputChange('industry', value)}>
-                <SelectTrigger className={errors.industry ? 'border-red-500' : ''}>
+                <SelectTrigger className={errors.industry ? 'border-destructive' : ''}>
                   <SelectValue placeholder="Select your industry" />
                 </SelectTrigger>
                 <SelectContent>
@@ -217,7 +217,7 @@ const CreateAccount = () => {
                 </SelectContent>
               </Select>
               {errors.industry && (
-                <p className="text-sm text-red-500 mt-1">{errors.industry}</p>
+                <p className="text-sm text-destructive mt-1">{errors.industry}</p>
               )}
             </div>
 
@@ -225,7 +225,7 @@ const CreateAccount = () => {
               <div>
                 <Label htmlFor="companySize">Company Size *</Label>
                 <Select value={formData.companySize} onValueChange={(value) => handleInputChange('companySize', value)}>
-                  <SelectTrigger className={errors.companySize ? 'border-red-500' : ''}>
+                  <SelectTrigger className={errors.companySize ? 'border-destructive' : ''}>
                     <SelectValue placeholder="Select size" />
                   </SelectTrigger>
                   <SelectContent>
@@ -235,7 +235,7 @@ const CreateAccount = () => {
                   </SelectContent>
                 </Select>
                 {errors.companySize && (
-                  <p className="text-sm text-red-500 mt-1">{errors.companySize}</p>
+                  <p className="text-sm text-destructive mt-1">{errors.companySize}</p>
                 )}
               </div>
 
@@ -246,10 +246,10 @@ const CreateAccount = () => {
                   value={formData.country}
                   onChange={(e) => handleInputChange('country', e.target.value)}
                   placeholder="e.g., United States"
-                  className={errors.country ? 'border-red-500' : ''}
+                  className={errors.country ? 'border-destructive' : ''}
                 />
                 {errors.country && (
-                  <p className="text-sm text-red-500 mt-1">{errors.country}</p>
+                  <p className="text-sm text-destructive mt-1">{errors.country}</p>
                 )}
               </div>
             </div>
@@ -257,7 +257,7 @@ const CreateAccount = () => {
             <div>
               <Label htmlFor="organizationType">Organization Type *</Label>
               <Select value={formData.organizationType} onValueChange={(value) => handleInputChange('organizationType', value)}>
-                <SelectTrigger className={errors.organizationType ? 'border-red-500' : ''}>
+                <SelectTrigger className={errors.organizationType ? 'border-destructive' : ''}>
                   <SelectValue placeholder="Select type" />
                 </SelectTrigger>
                 <SelectContent>
@@ -267,7 +267,7 @@ const CreateAccount = () => {
                 </SelectContent>
               </Select>
               {errors.organizationType && (
-                <p className="text-sm text-red-500 mt-1">{errors.organizationType}</p>
+                <p className="text-sm text-destructive mt-1">{errors.organizationType}</p>
               )}
             </div>
           </div>
@@ -283,10 +283,10 @@ const CreateAccount = () => {
                 value={formData.fullName}
                 onChange={(e) => handleInputChange('fullName', e.target.value)}
                 placeholder="e.g., John Smith"
-                className={errors.fullName ? 'border-red-500' : ''}
+                className={errors.fullName ? 'border-destructive' : ''}
               />
               {errors.fullName && (
-                <p className="text-sm text-red-500 mt-1">{errors.fullName}</p>
+                <p className="text-sm text-destructive mt-1">{errors.fullName}</p>
               )}
             </div>
 
@@ -298,17 +298,17 @@ const CreateAccount = () => {
                 value={formData.workEmail}
                 onChange={(e) => handleInputChange('workEmail', e.target.value)}
                 placeholder="john.smith@company.com"
-                className={errors.workEmail ? 'border-red-500' : ''}
+                className={errors.workEmail ? 'border-destructive' : ''}
               />
               {errors.workEmail && (
-                <p className="text-sm text-red-500 mt-1">{errors.workEmail}</p>
+                <p className="text-sm text-destructive mt-1">{errors.workEmail}</p>
               )}
             </div>
 
             <div>
               <Label htmlFor="jobTitle">Job Title *</Label>
               <Select value={formData.jobTitle} onValueChange={(value) => handleInputChange('jobTitle', value)}>
-                <SelectTrigger className={errors.jobTitle ? 'border-red-500' : ''}>
+                <SelectTrigger className={errors.jobTitle ? 'border-destructive' : ''}>
                   <SelectValue placeholder="Select your role" />
                 </SelectTrigger>
                 <SelectContent>
@@ -318,7 +318,7 @@ const CreateAccount = () => {
                 </SelectContent>
               </Select>
               {errors.jobTitle && (
-                <p className="text-sm text-red-500 mt-1">{errors.jobTitle}</p>
+                <p className="text-sm text-destructive mt-1">{errors.jobTitle}</p>
               )}
             </div>
 
@@ -354,10 +354,10 @@ const CreateAccount = () => {
                 value={formData.username}
                 onChange={(e) => handleInputChange('username', e.target.value)}
                 placeholder="Choose a username"
-                className={errors.username ? 'border-red-500' : ''}
+                className={errors.username ? 'border-destructive' : ''}
               />
               {errors.username && (
-                <p className="text-sm text-red-500 mt-1">{errors.username}</p>
+                <p className="text-sm text-destructive mt-1">{errors.username}</p>
               )}
             </div>
 
@@ -370,7 +370,7 @@ const CreateAccount = () => {
                   value={formData.password}
                   onChange={(e) => handleInputChange('password', e.target.value)}
                   placeholder="Create a strong password"
-                  className={errors.password ? 'border-red-500' : ''}
+                  className={errors.password ? 'border-destructive' : ''}
                 />
                 <Button
                   type="button"
@@ -383,7 +383,7 @@ const CreateAccount = () => {
                 </Button>
               </div>
               {errors.password && (
-                <p className="text-sm text-red-500 mt-1">{errors.password}</p>
+                <p className="text-sm text-destructive mt-1">{errors.password}</p>
               )}
             </div>
 
@@ -396,7 +396,7 @@ const CreateAccount = () => {
                   value={formData.confirmPassword}
                   onChange={(e) => handleInputChange('confirmPassword', e.target.value)}
                   placeholder="Confirm your password"
-                  className={errors.confirmPassword ? 'border-red-500' : ''}
+                  className={errors.confirmPassword ? 'border-destructive' : ''}
                 />
                 <Button
                   type="button"
@@ -409,14 +409,14 @@ const CreateAccount = () => {
                 </Button>
               </div>
               {errors.confirmPassword && (
-                <p className="text-sm text-red-500 mt-1">{errors.confirmPassword}</p>
+                <p className="text-sm text-destructive mt-1">{errors.confirmPassword}</p>
               )}
             </div>
 
             <div>
               <Label htmlFor="role">Role *</Label>
               <Select value={formData.role} onValueChange={(value) => handleInputChange('role', value)}>
-                <SelectTrigger className={errors.role ? 'border-red-500' : ''}>
+                <SelectTrigger className={errors.role ? 'border-destructive' : ''}>
                   <SelectValue placeholder="Select your role" />
                 </SelectTrigger>
                 <SelectContent>
@@ -426,7 +426,7 @@ const CreateAccount = () => {
                 </SelectContent>
               </Select>
               {errors.role && (
-                <p className="text-sm text-red-500 mt-1">{errors.role}</p>
+                <p className="text-sm text-destructive mt-1">{errors.role}</p>
               )}
             </div>
           </div>
@@ -609,11 +609,11 @@ const CreateAccount = () => {
       case 6:
         return (
           <div className="text-center space-y-6">
-            <div className="mx-auto w-16 h-16 bg-green-100 rounded-full flex items-center justify-center">
-              <CheckCircle className="w-8 h-8 text-green-600" />
+            <div className="mx-auto w-16 h-16 bg-primary/10 rounded-full flex items-center justify-center">
+              <CheckCircle className="w-8 h-8 text-primary" />
             </div>
             <div>
-              <h3 className="text-2xl font-bold text-green-600">Account Created Successfully!</h3>
+              <h3 className="text-2xl font-bold text-primary">Account Created Successfully!</h3>
               <p className="text-muted-foreground mt-2">
                 Welcome to the AI Resume Evaluator platform. Your account has been set up and you can now start evaluating candidates.
               </p>

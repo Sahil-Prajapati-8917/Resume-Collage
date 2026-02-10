@@ -21,7 +21,7 @@ const app = express();
 // Security middleware
 app.use(helmet());
 app.use(cors({
-  origin: ['http://localhost:3000', 'http://localhost:5173'],
+  origin: ['http://localhost:3000', 'http://localhost:5173', 'http://localhost:5174'],
   credentials: true
 }));
 
@@ -39,7 +39,7 @@ app.use(express.json({ limit: '10mb' }));
 app.use(express.urlencoded({ extended: true, limit: '10mb' }));
 
 // Logging
-// app.use(morgan('combined'));
+// app.use(morgan('dev'));
 
 // Health check endpoint (Public)
 app.get('/api/health', async (req, res) => {

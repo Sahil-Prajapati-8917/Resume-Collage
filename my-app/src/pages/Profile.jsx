@@ -112,7 +112,7 @@ const Profile = () => {
         <CardContent className="p-6">
           <div className="flex flex-col sm:flex-row items-center sm:items-start text-center sm:text-left space-y-4 sm:space-y-0 sm:space-x-6">
             <div className="relative">
-              <div className="w-24 h-24 bg-gradient-to-br from-blue-500 to-purple-600 rounded-full flex items-center justify-center text-white text-2xl font-bold">
+              <div className="w-24 h-24 bg-gradient-to-br from-primary to-primary/80 rounded-full flex items-center justify-center text-white text-2xl font-bold">
                 {profileData.personalInfo.firstName[0]}{profileData.personalInfo.lastName[0]}
               </div>
               <Button
@@ -148,8 +148,8 @@ const Profile = () => {
         <Card>
           <CardContent className="p-6">
             <div className="flex items-center">
-              <div className="p-2 bg-blue-100 rounded-lg">
-                <Target className="h-6 w-6 text-blue-600" />
+              <div className="p-2 bg-primary/10 rounded-lg">
+                <Target className="h-6 w-6 text-primary" />
               </div>
               <div className="ml-4">
                 <p className="text-sm font-medium text-gray-600">Total Evaluations</p>
@@ -162,8 +162,8 @@ const Profile = () => {
         <Card>
           <CardContent className="p-6">
             <div className="flex items-center">
-              <div className="p-2 bg-green-100 rounded-lg">
-                <Award className="h-6 w-6 text-green-600" />
+              <div className="p-2 bg-accent/10 rounded-lg">
+                <Award className="h-6 w-6 text-accent-foreground" />
               </div>
               <div className="ml-4">
                 <p className="text-sm font-medium text-gray-600">Successful Placements</p>
@@ -176,8 +176,8 @@ const Profile = () => {
         <Card>
           <CardContent className="p-6">
             <div className="flex items-center">
-              <div className="p-2 bg-yellow-100 rounded-lg">
-                <Calendar className="h-6 w-6 text-yellow-600" />
+              <div className="p-2 bg-muted rounded-lg">
+                <Calendar className="h-6 w-6 text-muted-foreground" />
               </div>
               <div className="ml-4">
                 <p className="text-sm font-medium text-gray-600">Avg. Time to Hire</p>
@@ -190,8 +190,8 @@ const Profile = () => {
         <Card>
           <CardContent className="p-6">
             <div className="flex items-center">
-              <div className="p-2 bg-purple-100 rounded-lg">
-                <TrendingUp className="h-6 w-6 text-purple-600" />
+              <div className="p-2 bg-primary/10 rounded-lg">
+                <TrendingUp className="h-6 w-6 text-primary" />
               </div>
               <div className="ml-4">
                 <p className="text-sm font-medium text-gray-600">Performance Score</p>
@@ -379,7 +379,7 @@ const Profile = () => {
         <CardContent>
           <div className="flex flex-wrap gap-2">
             {profileData.professionalInfo.certifications.map((cert, index) => (
-              <Badge key={index} className="bg-green-100 text-green-800">{cert}</Badge>
+              <Badge key={index} variant="secondary">{cert}</Badge>
             ))}
           </div>
         </CardContent>
@@ -392,7 +392,7 @@ const Profile = () => {
         <CardContent>
           <div className="flex flex-wrap gap-2">
             {profileData.professionalInfo.languages.map((lang, index) => (
-              <Badge key={index} className="bg-blue-100 text-blue-800">{lang}</Badge>
+              <Badge key={index} variant="secondary">{lang}</Badge>
             ))}
           </div>
         </CardContent>
@@ -506,8 +506,8 @@ const Profile = () => {
       <Card>
         <CardContent className="p-4">
           <div className="flex items-center">
-            <div className={`w-3 h-3 rounded-full mr-2 ${apiStatus === 'connected' ? 'bg-green-500' :
-              apiStatus === 'checking' ? 'bg-yellow-500' : 'bg-red-500'
+            <div className={`w-3 h-3 rounded-full mr-2 ${apiStatus === 'connected' ? 'bg-accent' :
+              apiStatus === 'checking' ? 'bg-muted' : 'bg-destructive'
               }`}></div>
             <span className="text-sm font-medium">
               API Status: {apiStatus === 'connected' ? 'Connected' :
@@ -541,7 +541,7 @@ const Profile = () => {
                 key={tab.id}
                 onClick={() => setActiveTab(tab.id)}
                 className={`flex items-center px-4 py-3 border-b-2 font-medium text-sm transition-colors ${activeTab === tab.id
-                  ? 'border-blue-500 text-blue-600'
+                  ? 'border-primary text-primary'
                   : 'border-transparent text-gray-600 hover:text-gray-900'
                   }`}
               >
