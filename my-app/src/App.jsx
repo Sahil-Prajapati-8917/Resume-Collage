@@ -21,6 +21,7 @@ import GlobalHiringForms from './pages/GlobalHiringForms'
 import EvaluationOversight from './pages/EvaluationOversight'
 import SystemAnalytics from './pages/SystemAnalytics'
 import SystemSettings from './pages/SystemSettings'
+import FairnessDashboard from './pages/FairnessDashboard'
 
 function App() {
   return (
@@ -96,6 +97,13 @@ function App() {
           <ProtectedRoute requiredRole="admin">
             <MasterAdminLayout>
               <MasterAdminDashboard />
+            </MasterAdminLayout>
+          </ProtectedRoute>
+        } />
+        <Route path="/master-admin/fairness" element={
+          <ProtectedRoute requiredRole="admin">
+            <MasterAdminLayout>
+              <FairnessDashboard />
             </MasterAdminLayout>
           </ProtectedRoute>
         } />
