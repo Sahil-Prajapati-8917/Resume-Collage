@@ -40,6 +40,22 @@ exports.parseResume = async (req, res) => {
         isResume = validationResult.isResume;
         anomalies = validationResult.anomalies;
 
+        // Mock Integrity Check (Simulate AI analysis)
+        const integritySignals = [];
+        let qualityScore = 85; // Default start
+
+        // Simple heuristic for "Buzzword Density" (just for demo)
+        if (extractedText.toLowerCase().split('synergy').length > 2) {
+            integritySignals.push({ type: 'Buzzword Overload', severity: 'Medium', description: 'Excessive use of generic buzzwords like "synergy".' });
+            qualityScore -= 10;
+        }
+
+        // Randomly assign a "Timeline Gap" signal for demo purposes on some uploads
+        if (Math.random() > 0.7) {
+            integritySignals.push({ type: 'Timeline Gap', severity: 'High', description: 'Unexplained gap of 6+ months in employment history.' });
+            qualityScore -= 15;
+        }
+
         // Clean up text (optional but recommended)
         extractedText = extractedText.replace(/\s+/g, ' ').trim();
 
@@ -51,7 +67,9 @@ exports.parseResume = async (req, res) => {
             parsedText: extractedText,
             isResume: isResume,
             anomalies: anomalies,
-            status: 'Under Process'
+            status: 'Under Process',
+            qualityScore: qualityScore,
+            integritySignals: integritySignals
         });
 
         await resume.save();
@@ -134,6 +152,28 @@ exports.updateResumeStatus = async (req, res) => {
             reason: reason
         });
 
+        // Disagreement Detection Logic
+        // High Disagreement:
+        // 1. AI Confidence > 80 (High) AND Status = Disqualified
+        // 2. AI Confidence < 40 (Low) AND Status = Shortlisted
+
+        /* 
+           Note: aiEvaluation.confidence is 'Number' (Raw Score) or we use 'confidenceLevel'.
+           Let's use `confidenceLevel` which is 'High', 'Medium', 'Low'.
+           Or `aiEvaluation.confidence` if it's 0-100.
+           The schema says: confidence: { type: Number }, confidenceLevel: { type: String, enum: ['High', 'Medium', 'Low'] }
+        */
+
+        let isDisagreement = false;
+        const confidenceLevel = resume.aiEvaluation?.confidenceLevel || 'Medium';
+
+        if (status === 'Disqualified' && confidenceLevel === 'High') {
+            isDisagreement = true;
+        } else if (status === 'Shortlisted' && confidenceLevel === 'Low') {
+            isDisagreement = true;
+        }
+
+        resume.disagreementSignal = isDisagreement;
         resume.status = status;
         await resume.save();
 

@@ -56,6 +56,27 @@ const resumeSchema = new mongoose.Schema({
             timestamp: { type: Date }
         }
     },
+    // Trust & Integrity Layer
+    qualityScore: {
+        type: Number,
+        min: 0,
+        max: 100,
+        default: 0
+    },
+    integritySignals: [{
+        type: { type: String }, // e.g., 'Buzzwords', 'Timeline Gap'
+        severity: { type: String, enum: ['Low', 'Medium', 'High'] },
+        description: { type: String }
+    }],
+    disagreementSignal: {
+        type: Boolean,
+        default: false
+    },
+    hiringOutcome: {
+        type: String,
+        enum: ['Pending', 'Hired', 'Rejected'],
+        default: 'Pending'
+    },
     // Evaluation Status
     status: {
         type: String,
