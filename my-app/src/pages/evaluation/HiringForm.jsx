@@ -201,7 +201,25 @@ const HiringForm = () => {
         : await apiService.post('/hiring-forms', formData)
 
       if (response.ok) {
-        setStatus({ type: 'success', message: editingId ? 'Criteria updated successfully' : 'Criteria saved successfully' })
+        const data = await response.json()
+        setStatus({ 
+          type: 'success', 
+          message: editingId 
+            ? 'Criteria updated successfully' 
+            : 'Job posting created successfully!' 
+        })
+        
+        // Show shareable link for new forms
+        if (!editingId && data.data) {
+          setTimeout(() => {
+            const link = `${window.location.origin}/apply/${data.data._id}`
+            if (window.confirm(`Job created! Share this link with candidates:\n\n${link}\n\nClick OK to copy to clipboard`)) {
+              navigator.clipboard.writeText(link)
+              setStatus({ type: 'success', message: 'Link copied to clipboard!' })
+            }
+          }, 1000)
+        }
+        
         fetchSavedForms()
         if (!editingId) handleCancelEdit()
       } else {

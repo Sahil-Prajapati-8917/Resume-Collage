@@ -216,6 +216,34 @@ function performHeuristicEvaluation(resumeText, hiringForm) {
     };
 }
 
+exports.downloadResume = async (req, res) => {
+    try {
+        const { id } = req.params;
+        const resume = await Resume.findById(id);
+        
+        if (!resume) {
+            return res.status(404).json({ success: false, message: 'Resume not found' });
+        }
+
+        // If we have the actual file stored, serve it
+        if (resume.resumeUrl) {
+            return res.redirect(resume.resumeUrl);
+        }
+
+        // If we only have the parsed text, create a text file
+        if (resume.parsedText) {
+            res.setHeader('Content-Type', 'text/plain');
+            res.setHeader('Content-Disposition', `attachment; filename="${resume.fileName.replace(/\.[^/.]+$/, '')}_parsed.txt"`);
+            return res.send(resume.parsedText);
+        }
+
+        return res.status(404).json({ success: false, message: 'Resume file not available' });
+    } catch (error) {
+        console.error('Error downloading resume:', error);
+        return res.status(500).json({ success: false, message: 'Failed to download resume', error: error.message });
+    }
+};
+
 exports.evaluateResume = async (req, res) => {
     console.log('Starting evaluateResume...');
     try {
@@ -278,9 +306,9 @@ Output Format: Return valid JSON ONLY.
   "summary": string,
   "strengths": [string],
   "weaknesses": [string],
-  "matchedSkills": [string], // Skills from requirements that the candidate has
-  "missingSkills": [string], // Skills from requirements that the candidate lacks
-  "candidateSkills": [string], // All technical and soft skills found in the resume
+  "matchedSkills": [string], // Skills from requirements that candidate has
+  "missingSkills": [string], // Skills from requirements that candidate lacks
+  "candidateSkills": [string], // All technical and soft skills found in resume
   "details": { "skillsMatch": number, "experienceMatch": number, "requirementsMatch": number },
   "confidence": number,
   "confidenceLevel": string,

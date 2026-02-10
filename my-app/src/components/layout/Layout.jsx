@@ -13,6 +13,7 @@ import {
   Command,
   LogOut,
   ChevronDown,
+  Users,
 } from 'lucide-react'
 import {
   Sidebar,
@@ -51,6 +52,7 @@ const Layout = ({ children }) => {
     { name: 'Resumes', href: '/upload', icon: FileText },
     { name: 'Evaluations', href: '/results', icon: BarChart3 },
     { name: 'Hiring Forms', href: '/hiring-form', icon: ClipboardList },
+    { name: 'Application Queue', href: '/queue', icon: Users },
     { name: 'Job History', href: '/job-history', icon: History },
     { name: 'Prompts', href: '/prompts', icon: Settings },
     { name: 'Audit Trail', href: '/audit', icon: ShieldCheck },

@@ -25,6 +25,7 @@ import FairnessDashboard from './pages/admin/FairnessDashboard'
 import JobView from './pages/public/JobView'
 import JobApplications from './pages/dashboard/JobApplications'
 import JobHistory from './pages/evaluation/JobHistory'
+import Queue from './pages/evaluation/Queue'
 
 function App() {
   return (
@@ -59,6 +60,13 @@ function App() {
           <ProtectedRoute>
             <Layout>
               <HiringForm />
+            </Layout>
+          </ProtectedRoute>
+        } />
+        <Route path="/queue" element={
+          <ProtectedRoute>
+            <Layout>
+              <Queue />
             </Layout>
           </ProtectedRoute>
         } />

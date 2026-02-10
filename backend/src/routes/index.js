@@ -15,6 +15,7 @@ const evaluationOversightRoutes = require('./evaluationOversight');
 const auditTrailRoutes = require('./auditTrail');
 const systemAnalyticsRoutes = require('./systemAnalytics');
 const systemSettingsRoutes = require('./systemSettings');
+const queueRoutes = require('./queue');
 
 // Mount routes with their respective paths
 router.use('/auth', authRoutes);
@@ -30,6 +31,7 @@ router.use('/evaluation-oversight', evaluationOversightRoutes);
 router.use('/audit-trail', auditTrailRoutes);
 router.use('/system-analytics', systemAnalyticsRoutes);
 router.use('/system-settings', systemSettingsRoutes);
+router.use('/queue', queueRoutes);
 
 // Health check endpoint
 router.get('/health', (req, res) => {
@@ -59,7 +61,8 @@ router.get('/docs', (req, res) => {
             'evaluation-oversight': '/api/evaluation-oversight - Evaluation oversight endpoints',
             'audit-trail': '/api/audit-trail - Audit trail endpoints',
             'system-analytics': '/api/system-analytics - System analytics endpoints',
-            'system-settings': '/api/system-settings - System configuration endpoints'
+            'system-settings': '/api/system-settings - System configuration endpoints',
+            queue: '/api/queue - Application queue management endpoints'
         },
         documentation: 'See API_DOCUMENTATION.md for detailed API documentation'
     });

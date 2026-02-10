@@ -43,6 +43,9 @@ router.put('/bulk-status', auth, resumeController.bulkUpdateResumeStatus);
 // PUT /api/resume/:id/status - Update single resume status
 router.put('/:id/status', auth, resumeController.updateResumeStatus);
 
+// GET /api/resume/:id/download - Download resume file
+router.get('/:id/download', auth, resumeController.downloadResume);
+
 // GET /api/resume/analytics/fairness
 router.get('/analytics/fairness', auth, require('../controllers/analyticsController').getFairnessStats);
 
