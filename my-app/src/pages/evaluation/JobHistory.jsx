@@ -14,7 +14,8 @@ import {
     Users,
     CheckCircle2,
     XCircle,
-    Clock
+    Clock,
+    Copy
 } from 'lucide-react'
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
@@ -58,6 +59,24 @@ const JobHistory = () => {
             console.error('Failed to fetch jobs:', error)
         } finally {
             setLoading(false)
+        }
+    }
+
+    const copyJobLink = async (jobId) => {
+        try {
+            const jobUrl = `${window.location.origin}/apply/${jobId}`
+            await navigator.clipboard.writeText(jobUrl)
+            // You could add a toast notification here if you have one
+            console.log('Job link copied to clipboard:', jobUrl)
+        } catch (error) {
+            console.error('Failed to copy job link:', error)
+            // Fallback for older browsers
+            const textArea = document.createElement('textarea')
+            textArea.value = `${window.location.origin}/apply/${jobId}`
+            document.body.appendChild(textArea)
+            textArea.select()
+            document.execCommand('copy')
+            document.body.removeChild(textArea)
         }
     }
 
@@ -226,6 +245,9 @@ const JobHistory = () => {
                                                             </Button>
                                                         </DropdownMenuTrigger>
                                                         <DropdownMenuContent align="end">
+                                                            <DropdownMenuItem onClick={() => copyJobLink(job._id)}>
+                                                                <Copy className="mr-2 size-4" /> Copy Link
+                                                            </DropdownMenuItem>
                                                             <DropdownMenuItem>
                                                                 <Eye className="mr-2 size-4" /> View Details
                                                             </DropdownMenuItem>

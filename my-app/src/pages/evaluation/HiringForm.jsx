@@ -12,7 +12,8 @@ import {
   ListChecks,
   History,
   CheckCircle2,
-  Trash
+  Trash,
+  Copy
 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from '@/components/ui/card'
@@ -439,7 +440,7 @@ const HiringForm = () => {
                       <ChevronRight className="size-4" />
                     </Button>
                     <Button variant="ghost" size="icon" className="size-6 text-muted-foreground hover:text-blue-500" onClick={() => copyPublicLink(form._id)} title="Copy Public Link">
-                      <AlertCircle className="size-4" />
+                      <Copy className="size-4" />
                     </Button>
                   </div>
                 </div>

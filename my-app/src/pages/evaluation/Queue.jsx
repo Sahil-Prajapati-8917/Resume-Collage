@@ -379,6 +379,15 @@ const Queue = () => {
                         </Button>
                       )}
                       <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => copyJobLink(application.jobId)}
+                        className="flex items-center gap-2"
+                        title="Copy job link"
+                      >
+                        <Copy className="h-4 w-4" />
+                      </Button>
+                      <Button
                         variant="ghost"
                         size="sm"
                         onClick={() => window.location.href = `/job-applications/${application.jobId}`}
