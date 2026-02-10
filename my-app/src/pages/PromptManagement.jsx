@@ -1,23 +1,52 @@
 import React, { useState, useEffect, useMemo } from 'react'
 import apiService from '@/services/api'
 import {
-  PencilIcon,
-  TrashIcon,
-  PlusIcon,
-  CheckIcon,
-  XMarkIcon,
-  DocumentDuplicateIcon,
-  EyeIcon
-} from '@heroicons/react/24/outline'
+  Pencil,
+  Trash2,
+  Plus,
+  Check,
+  X,
+  Copy,
+  Eye,
+  Settings2,
+  Database,
+  BarChart3,
+  ChevronRight,
+  PlusCircle,
+  MoreVertical,
+  Terminal,
+  Clock,
+  Zap
+} from 'lucide-react'
+import { Button } from '@/components/ui/button'
+import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from '@/components/ui/card'
+import { Input } from '@/components/ui/input'
+import { Label } from '@/components/ui/label'
+import { Badge } from '@/components/ui/badge'
+import { Separator } from '@/components/ui/separator'
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+  DialogFooter
+} from '@/components/ui/dialog'
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu'
+import { ScrollArea } from '@/components/ui/scroll-area'
 
 const PromptManagement = () => {
-  // Removed getAuthHeaders as apiService handles it
-
   const [selectedIndustry, setSelectedIndustry] = useState('Information Technology')
   const [editingPrompt, setEditingPrompt] = useState(null)
   const [viewingPrompt, setViewingPrompt] = useState(null)
   const [newPromptName, setNewPromptName] = useState('')
   const [showCreateForm, setShowCreateForm] = useState(false)
+  const [editingContent, setEditingContent] = useState('')
 
   const [industries, setIndustries] = useState(() => {
     const cached = localStorage.getItem('cached_industries')
@@ -26,6 +55,10 @@ const PromptManagement = () => {
   const [loadingIndustries, setLoadingIndustries] = useState(false)
   const [isAddingIndustry, setIsAddingIndustry] = useState(false)
   const [newIndustryName, setNewIndustryName] = useState('')
+
+  const [prompts, setPrompts] = useState([])
+  const [loadingPrompts, setLoadingPrompts] = useState(false)
+  const [promptsCache, setPromptsCache] = useState({})
 
   useEffect(() => {
     fetchIndustries()
@@ -37,12 +70,11 @@ const PromptManagement = () => {
       const response = await apiService.get('/industries')
       if (response.ok) {
         const data = await response.json()
-        setIndustries(data.data) // Store full objects
+        setIndustries(data.data)
         localStorage.setItem('cached_industries', JSON.stringify(data.data))
       }
     } catch (error) {
       console.error('Failed to fetch industries:', error)
-      if (industries.length === 0) setIndustries([])
     } finally {
       setLoadingIndustries(false)
     }
@@ -50,49 +82,35 @@ const PromptManagement = () => {
 
   const handleAddIndustry = async () => {
     if (!newIndustryName.trim()) return
-
     try {
       const response = await apiService.post('/industries', { name: newIndustryName })
       if (response.ok) {
-        const data = await response.json()
         const newName = newIndustryName
         setNewIndustryName('')
         setIsAddingIndustry(false)
         await fetchIndustries()
         setSelectedIndustry(newName)
-      } else {
-        const data = await response.json()
-        alert(data.message || 'Failed to add industry')
       }
     } catch (error) {
-      alert('Error adding industry')
+      console.error('Error adding industry')
     }
   }
 
   const handleDeleteIndustry = async (id, e) => {
-    e.stopPropagation() // Prevent selection when deleting
+    e.stopPropagation()
     if (!window.confirm('Are you sure you want to delete this industry?')) return
-
     try {
       const response = await apiService.delete(`/industries/${id}`)
       if (response.ok) {
-        // If deleted industry was selected, select first available or default
         if (selectedIndustry === industries.find(i => i._id === id)?.name) {
           setSelectedIndustry(industries.length > 1 ? industries.find(i => i._id !== id).name : 'Information Technology')
         }
         fetchIndustries()
-      } else {
-        const data = await response.json()
-        alert(data.message || 'Failed to delete industry')
       }
     } catch (error) {
-      alert('Error deleting industry')
+      console.error('Error deleting industry')
     }
   }
-
-  const [prompts, setPrompts] = useState([]) // Prompts for the selected industry
-  const [loadingPrompts, setLoadingPrompts] = useState(false)
-  const [promptsCache, setPromptsCache] = useState({}) // Cache for prompts by industryId
 
   const selectedIndustryId = useMemo(() => {
     const industry = industries.find(i => (i.name || i) === selectedIndustry)
@@ -108,13 +126,11 @@ const PromptManagement = () => {
   const fetchPrompts = async (industryId) => {
     setLoadingPrompts(true)
     try {
-      // Use all=true to keep current behavior but indexed and lean on backend
       const response = await apiService.get(`/prompts/industry/${industryId}?all=true`)
       if (response.ok) {
         const data = await response.json()
-        const fetchedPrompts = data.data
-        setPrompts(fetchedPrompts)
-        setPromptsCache(prev => ({ ...prev, [industryId]: fetchedPrompts }))
+        setPrompts(data.data)
+        setPromptsCache(prev => ({ ...prev, [industryId]: data.data }))
       }
     } catch (error) {
       console.error('Failed to fetch prompts:', error)
@@ -137,39 +153,26 @@ const PromptManagement = () => {
     }
   }, [selectedIndustry, industries, selectedIndustryId])
 
-  // Sync cache when prompts change
-  useEffect(() => {
-    if (selectedIndustryId) {
-      setPromptsCache(prev => ({ ...prev, [selectedIndustryId]: prompts }))
-    }
-  }, [prompts, selectedIndustryId])
-
-  const [editingContent, setEditingContent] = useState('')
-
-
   const handleEdit = (prompt) => {
     setEditingPrompt(prompt)
     setEditingContent(prompt.prompt)
   }
 
   const handleSave = async () => {
-    if (editingPrompt) {
-      try {
-        const response = await apiService.put(`/prompts/${editingPrompt._id}`, {
-          prompt: editingContent,
-          name: editingPrompt.name // Ensure name is passed if needed or just patch
-        })
-        if (response.ok) {
-          const data = await response.json()
-          setPrompts(prev => prev.map(p => p._id === editingPrompt._id ? data.data : p))
-          setEditingPrompt(null)
-          setEditingContent('')
-        } else {
-          alert('Failed to save prompt')
-        }
-      } catch (error) {
-        alert('Failed to save prompt')
+    if (!editingPrompt) return
+    try {
+      const response = await apiService.put(`/prompts/${editingPrompt._id}`, {
+        prompt: editingContent,
+        name: editingPrompt.name
+      })
+      if (response.ok) {
+        const data = await response.json()
+        setPrompts(prev => prev.map(p => p._id === editingPrompt._id ? data.data : p))
+        setEditingPrompt(null)
+        setEditingContent('')
       }
+    } catch (error) {
+      console.error('Failed to save prompt')
     }
   }
 
@@ -181,13 +184,12 @@ const PromptManagement = () => {
         setPrompts(prev => prev.filter(p => p._id !== promptId))
       }
     } catch (error) {
-      alert('Failed to delete prompt')
+      console.error('Failed to delete prompt')
     }
   }
 
   const handleDuplicate = async (prompt) => {
     if (!selectedIndustryId) return
-
     try {
       const response = await apiService.post('/prompts', {
         name: `${prompt.name} (Copy)`,
@@ -201,7 +203,7 @@ const PromptManagement = () => {
         setPrompts(prev => [data.data, ...prev])
       }
     } catch (error) {
-      alert('Failed to duplicate prompt')
+      console.error('Failed to duplicate prompt')
     }
   }
 
@@ -209,11 +211,10 @@ const PromptManagement = () => {
     try {
       const response = await apiService.put(`/prompts/${promptId}`, { isDefault: true })
       if (response.ok) {
-        // Refresh all to update the previous default
         if (selectedIndustryId) fetchPrompts(selectedIndustryId)
       }
     } catch (error) {
-      alert('Failed to set default')
+      console.error('Failed to set default')
     }
   }
 
@@ -236,328 +237,253 @@ const PromptManagement = () => {
           setEditingContent(data.data.prompt)
         }
       } catch (error) {
-        alert('Failed to create prompt')
+        console.error('Failed to create prompt')
       }
     }
   }
 
-  const currentPrompts = prompts
-
   return (
-    <div className="space-y-6">
-      {/* Header */}
-      <div className="bg-white rounded-lg shadow p-6">
-        <h1 className="text-2xl font-bold text-gray-900 mb-2">Prompt Management</h1>
-        <p className="text-gray-600">
-          Configure industry-specific evaluation prompts that guide AI assessment for different roles and sectors.
-        </p>
+    <div className="flex flex-col gap-10">
+      <div className="flex flex-col gap-1">
+        <h1 className="text-3xl font-semibold tracking-tight">AI Prompts</h1>
+        <p className="text-muted-foreground font-medium">Engineer and version control industry-specific evaluation protocols.</p>
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
-        {/* Industry Selection */}
-        <div className="lg:col-span-1">
-          <div className="bg-white rounded-lg shadow p-6">
-            <div className="flex items-center justify-between mb-4">
-              <h2 className="text-lg font-semibold text-gray-900">Industries</h2>
-              <button
-                onClick={() => setIsAddingIndustry(!isAddingIndustry)}
-                className="text-primary hover:text-primary/80 focus:outline-none"
-                title="Add New Industry"
-              >
-                <PlusIcon className="h-5 w-5" />
-              </button>
-            </div>
-
-            {isAddingIndustry && (
-              <div className="mb-4 flex space-x-2">
-                <input
-                  type="text"
-                  value={newIndustryName}
-                  onChange={(e) => setNewIndustryName(e.target.value)}
-                  placeholder="New Industry"
-                  className="flex-1 px-2 py-1 border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-1 focus:ring-blue-500"
-                />
-                <button
-                  onClick={handleAddIndustry}
-                  className="p-1 bg-accent text-accent-foreground rounded-md hover:bg-accent/90"
-                  disabled={!newIndustryName.trim()}
-                >
-                  <CheckIcon className="h-4 w-4" />
-                </button>
+      <div className="grid grid-cols-1 lg:grid-cols-4 gap-8 items-start">
+        {/* Industry Sidebar */}
+        <aside className="lg:col-span-1 flex flex-col gap-6">
+          <Card className="border-border/40 bg-card/50 overflow-hidden">
+            <CardHeader className="pb-3 bg-muted/30">
+              <div className="flex items-center justify-between">
+                <CardTitle className="text-sm font-bold uppercase tracking-widest text-muted-foreground flex items-center gap-2">
+                  <Database className="size-3.5" /> Sectors
+                </CardTitle>
+                <Button variant="ghost" size="icon" className="size-8 rounded-full" onClick={() => setIsAddingIndustry(!isAddingIndustry)}>
+                  <PlusCircle className="size-4" />
+                </Button>
               </div>
-            )}
-
-            <div className="space-y-2">
-              {loadingIndustries && industries.length === 0 ? (
-                // Skeleton loading for industries
-                [...Array(6)].map((_, i) => (
-                  <div key={i} className="h-10 bg-gray-50 animate-pulse rounded-md" />
-                ))
-              ) : industries.length === 0 ? (
-                <p className="text-sm text-gray-500 text-center py-4">No industries found</p>
-              ) : (
-                industries.map(industry => (
-                  <div key={industry._id || (industry.name || industry)} className="flex items-center gap-2 group">
-                    <button
-                      onClick={() => setSelectedIndustry(industry.name || industry)}
-                      className={`flex-1 text-left px-3 py-2 rounded-md transition-colors ${selectedIndustry === (industry.name || industry)
-                        ? 'bg-primary/10 text-primary border-r-2 border-primary'
-                        : 'text-muted-foreground hover:bg-muted/50'
-                        }`}
-                    >
-                      {industry.name || industry}
-                    </button>
-                    {industry._id && (
+            </CardHeader>
+            <CardContent className="p-0">
+              {isAddingIndustry && (
+                <div className="p-4 border-b border-border/20 bg-muted/20 flex gap-2">
+                  <Input
+                    value={newIndustryName}
+                    onChange={(e) => setNewIndustryName(e.target.value)}
+                    placeholder="New Sector..."
+                    className="h-9 bg-background focus-visible:ring-primary/20"
+                  />
+                  <Button size="icon" variant="default" className="size-9 shrink-0" onClick={handleAddIndustry}>
+                    <Check className="size-4" />
+                  </Button>
+                </div>
+              )}
+              <ScrollArea className="h-[400px]">
+                <div className="p-2 space-y-1">
+                  {industries.map(industry => (
+                    <div key={industry._id || industry.name} className="group relative flex items-center">
+                      <button
+                        onClick={() => setSelectedIndustry(industry.name || industry)}
+                        className={`flex-1 flex items-center justify-between px-3 py-2.5 rounded-lg text-sm font-medium transition-all ${selectedIndustry === (industry.name || industry)
+                            ? 'bg-primary/10 text-primary shadow-sm'
+                            : 'text-muted-foreground hover:bg-muted/50'
+                          }`}
+                      >
+                        {industry.name || industry}
+                        <ChevronRight className={`size-3.5 opacity-0 group-hover:opacity-40 transition-opacity ${selectedIndustry === (industry.name || industry) ? 'opacity-40' : ''}`} />
+                      </button>
                       <button
                         onClick={(e) => handleDeleteIndustry(industry._id, e)}
-                        className="p-2 text-muted-foreground hover:text-destructive opacity-0 group-hover:opacity-100 transition-opacity"
-                        title="Delete Industry"
+                        className="absolute right-2 opacity-0 group-hover:opacity-100 hover:text-destructive transition-all size-6 flex items-center justify-center rounded-md"
                       >
-                        <TrashIcon className="h-4 w-4" />
+                        <Trash2 className="size-3.5" />
                       </button>
-                    )}
-                  </div>
-                ))
-              )}
-            </div>
-          </div>
-
-          {/* Quick Stats */}
-          <div className="bg-white rounded-lg shadow p-6 mt-6">
-            <h3 className="text-lg font-semibold text-gray-900 mb-4">Statistics</h3>
-            <div className="space-y-3">
-              <div>
-                <p className="text-sm text-gray-500">Total Prompts</p>
-                <p className="text-xl font-bold text-gray-900">
-                  {stats.totalPrompts}
-                </p>
-              </div>
-              <div>
-                <p className="text-sm text-gray-500">Active Industries</p>
-                <p className="text-xl font-bold text-gray-900">
-                  {stats.activeIndustries}
-                </p>
-              </div>
-              <div>
-                <p className="text-sm text-gray-500">Total Usage</p>
-                <p className="text-xl font-bold text-gray-900">
-                  {stats.totalUsage}
-                </p>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        {/* Prompts List */}
-        <div className="lg:col-span-3">
-          <div className="bg-white rounded-lg shadow">
-            <div className="p-6 border-b border-gray-200">
-              <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
-                <h2 className="text-lg font-semibold text-gray-900">
-                  {selectedIndustry} Prompts
-                </h2>
-                <button
-                  onClick={() => setShowCreateForm(true)}
-                  className="flex items-center px-4 py-2 bg-primary text-primary-foreground rounded-md hover:bg-primary/90 transition-colors"
-                >
-                  <PlusIcon className="h-4 w-4 mr-2" />
-                  New Prompt
-                </button>
-              </div>
-            </div>
-
-            {/* Create New Form */}
-            {showCreateForm && (
-              <div className="p-6 border-b bg-muted/30">
-                <div className="flex items-center space-x-3">
-                  <input
-                    type="text"
-                    value={newPromptName}
-                    onChange={(e) => setNewPromptName(e.target.value)}
-                    placeholder="Enter prompt name..."
-                    className="flex-1 px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                  />
-                  <button
-                    onClick={handleCreateNew}
-                    disabled={!newPromptName.trim()}
-                    className="px-4 py-2 bg-accent text-accent-foreground rounded-md hover:bg-accent/90 disabled:bg-muted disabled:cursor-not-allowed transition-colors"
-                  >
-                    <CheckIcon className="h-5 w-5" />
-                  </button>
-                  <button
-                    onClick={() => {
-                      setShowCreateForm(false)
-                      setNewPromptName('')
-                    }}
-                    className="px-4 py-2 bg-secondary text-secondary-foreground rounded-md hover:bg-secondary/90 transition-colors"
-                  >
-                    <XMarkIcon className="h-5 w-5" />
-                  </button>
+                    </div>
+                  ))}
                 </div>
-              </div>
-            )}
+              </ScrollArea>
+            </CardContent>
+          </Card>
 
-            {loadingPrompts ? (
-              <div className="p-12 text-center">
-                <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto mb-4"></div>
-                <p className="text-gray-500">Loading prompts...</p>
+          <Card className="border-border/40 bg-card/50">
+            <CardHeader>
+              <CardTitle className="text-xs font-bold uppercase tracking-widest text-muted-foreground flex items-center gap-2">
+                <BarChart3 className="size-3.5" /> Intelligence
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <div className="flex justify-between items-end">
+                <span className="text-sm text-muted-foreground font-medium">Local Pool</span>
+                <span className="text-xl font-black tracking-tighter">{stats.totalPrompts}</span>
               </div>
-            ) : currentPrompts.length === 0 ? (
-              <div className="p-12 text-center">
-                <p className="text-gray-500">No prompts found for {selectedIndustry}</p>
-                <button
-                  onClick={() => setShowCreateForm(true)}
-                  className="mt-4 text-primary hover:text-primary/80 font-medium"
-                >
-                  Create the first prompt
-                </button>
+              <Separator className="bg-border/20" />
+              <div className="flex justify-between items-end">
+                <span className="text-sm text-muted-foreground font-medium">Global Usage</span>
+                <span className="text-xl font-black tracking-tighter">{stats.totalUsage}</span>
               </div>
-            ) : (
-              <div className="divide-y divide-gray-200">
-                {currentPrompts.map(prompt => (
-                  <div key={prompt._id} className="p-6">
-                    {editingPrompt?._id === prompt._id ? (
-                      /* Edit Mode */
-                      <div className="space-y-4">
-                        <div className="flex items-center justify-between">
-                          <input
-                            type="text"
-                            value={editingPrompt.name}
-                            onChange={(e) => setEditingPrompt(prev => ({ ...prev, name: e.target.value }))}
-                            className="text-lg font-semibold text-gray-900 bg-transparent border-b border-gray-300 focus:border-blue-500 focus:outline-none"
-                          />
-                          <div className="flex items-center space-x-2">
-                            <button
-                              onClick={handleSave}
-                              className="px-3 py-1 bg-accent text-accent-foreground rounded-md hover:bg-accent/90 transition-colors"
-                            >
-                              <CheckIcon className="h-4 w-4" />
-                            </button>
-                            <button
-                              onClick={() => {
-                                setEditingPrompt(null)
-                                setEditingContent('')
-                              }}
-                              className="px-3 py-1 bg-secondary text-secondary-foreground rounded-md hover:bg-secondary/90 transition-colors"
-                            >
-                              <XMarkIcon className="h-4 w-4" />
-                            </button>
-                          </div>
-                        </div>
-                        <textarea
-                          value={editingContent}
-                          onChange={(e) => setEditingContent(e.target.value)}
-                          rows={12}
-                          className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 font-mono text-sm"
-                        />
-                      </div>
-                    ) : (
-                      /* View Mode */
-                      <div>
-                        <div className="flex flex-col sm:flex-row items-start justify-between gap-4">
-                          <div className="flex-1">
-                            <div className="flex items-center space-x-3">
-                              <h3 className="text-lg font-semibold text-gray-900">
-                                {prompt.name}
-                              </h3>
-                              {prompt.isDefault && (
-                                <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-accent/10 text-accent-foreground">
-                                  Default
-                                </span>
-                              )}
-                              <span className="text-sm text-gray-500">v{prompt.version}</span>
-                            </div>
-                            <div className="mt-2 flex items-center space-x-4 text-sm text-gray-500">
-                              <span>Created: {prompt.createdAt}</span>
-                              <span>Modified: {prompt.lastModified}</span>
-                              <span>Used: {prompt.usageCount} times</span>
-                            </div>
-                            <div className="mt-3">
-                              <p className="text-gray-700 line-clamp-3">
-                                {prompt.prompt.substring(0, 200)}...
-                              </p>
-                            </div>
-                          </div>
-                          <div className="flex items-center space-x-2 w-full sm:w-auto justify-end mt-2 sm:mt-0">
-                            <button
-                              onClick={() => setViewingPrompt(prompt)}
-                              className="p-2 text-muted-foreground hover:text-primary"
-                              title="View"
-                            >
-                              <EyeIcon className="h-5 w-5" />
-                            </button>
-                            <button
-                              onClick={() => handleEdit(prompt)}
-                              className="p-2 text-muted-foreground hover:text-primary"
-                              title="Edit"
-                            >
-                              <PencilIcon className="h-5 w-5" />
-                            </button>
-                            <button
-                              onClick={() => handleDuplicate(prompt)}
-                              className="p-2 text-muted-foreground hover:text-accent"
-                              title="Duplicate"
-                            >
-                              <DocumentDuplicateIcon className="h-5 w-5" />
-                            </button>
-                            {!prompt.isDefault && (
-                              <button
-                                onClick={() => handleSetDefault(prompt._id)}
-                                className="p-2 text-muted-foreground hover:text-muted"
-                                title="Set as Default"
-                              >
-                                <CheckIcon className="h-5 w-5" />
-                              </button>
-                            )}
-                            <button
-                              onClick={() => handleDelete(prompt._id)}
-                              className="p-2 text-muted-foreground hover:text-destructive"
-                              title="Delete"
-                            >
-                              <TrashIcon className="h-5 w-5" />
-                            </button>
-                          </div>
-                        </div>
-                      </div>
-                    )}
-                  </div>
-                ))}
-              </div>
-            )}
+            </CardContent>
+          </Card>
+        </aside>
+
+        {/* Prompts Main Content */}
+        <main className="lg:col-span-3 flex flex-col gap-6">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+            <div className="flex items-center gap-3">
+              <Badge variant="outline" className="h-6 font-bold uppercase tracking-widest text-[10px] bg-primary/5 border-primary/20 text-primary">
+                {selectedIndustry}
+              </Badge>
+              <h2 className="text-xl font-bold tracking-tight">Deployment Pool</h2>
+            </div>
+            <Button onClick={() => setShowCreateForm(true)} className="gap-2 shadow-lg shadow-primary/10 transition-all hover:scale-[1.02]">
+              <Plus className="size-4" /> New AI protocol
+            </Button>
           </div>
-        </div>
+
+          {showCreateForm && (
+            <Card className="border-dashed border-primary/30 bg-primary/5">
+              <CardContent className="p-4 flex gap-3">
+                <Input
+                  value={newPromptName}
+                  onChange={(e) => setNewPromptName(e.target.value)}
+                  placeholder="Enter protocol name (e.g., Senior Technical Filter v1)..."
+                  className="h-10 bg-background"
+                />
+                <Button variant="default" className="h-10 px-6 font-bold" onClick={handleCreateNew}>Deploy</Button>
+                <Button variant="ghost" size="icon" className="h-10 w-10 shrink-0" onClick={() => setShowCreateForm(false)}>
+                  <X className="size-4" />
+                </Button>
+              </CardContent>
+            </Card>
+          )}
+
+          {loadingPrompts ? (
+            <div className="flex flex-col items-center justify-center py-20 gap-4 text-muted-foreground">
+              <Zap className="size-10 animate-pulse text-primary/40" />
+              <p className="text-xs uppercase font-bold tracking-[0.2em] animate-pulse">Initializing Data Stream...</p>
+            </div>
+          ) : prompts.length === 0 ? (
+            <div className="flex flex-col items-center justify-center py-24 border-2 border-dashed border-border/40 rounded-3xl bg-muted/10">
+              <div className="size-16 rounded-full bg-muted flex items-center justify-center mb-6">
+                <Terminal className="size-8 text-muted-foreground/40" />
+              </div>
+              <p className="font-medium text-muted-foreground">No evaluation protocols configured for this sector.</p>
+              <Button variant="link" className="text-primary mt-2" onClick={() => setShowCreateForm(true)}>Deploy your first protocol</Button>
+            </div>
+          ) : (
+            <div className="grid gap-4">
+              {prompts.map(prompt => (
+                <Card key={prompt._id} className={`group border-border/40 transition-all hover:border-primary/30 hover:bg-card/80 ${prompt.isDefault ? 'ring-1 ring-primary/20 bg-primary/[0.02]' : 'bg-card/40'}`}>
+                  <CardHeader className="p-5 pb-0">
+                    <div className="flex items-start justify-between">
+                      <div className="flex flex-col gap-1.5">
+                        <div className="flex items-center gap-2">
+                          <h3 className="font-bold text-base tracking-tight">{prompt.name}</h3>
+                          {prompt.isDefault && <Badge className="bg-primary/10 text-primary border-primary/20 text-[9px] uppercase font-black tracking-widest h-4">Default</Badge>}
+                          <Badge variant="outline" className="text-[9px] font-bold h-4">v{prompt.version}</Badge>
+                        </div>
+                        <div className="flex items-center gap-4 text-[11px] text-muted-foreground font-medium">
+                          <span className="flex items-center gap-1"><Clock className="size-3" /> {new Date(prompt.lastModified || prompt.createdAt).toLocaleDateString()}</span>
+                          <span className="flex items-center gap-1 font-bold text-primary/60"><Zap className="size-3" /> {prompt.usageCount || 0} Deployments</span>
+                        </div>
+                      </div>
+                      <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                        <Button variant="ghost" size="icon" className="size-8" onClick={() => setViewingPrompt(prompt)}><Eye className="size-4" /></Button>
+                        <Button variant="ghost" size="icon" className="size-8" onClick={() => handleEdit(prompt)}><Pencil className="size-4" /></Button>
+                        <DropdownMenu>
+                          <DropdownMenuTrigger asChild>
+                            <Button variant="ghost" size="icon" className="size-8"><MoreVertical className="size-4" /></Button>
+                          </DropdownMenuTrigger>
+                          <DropdownMenuContent align="end" className="w-48">
+                            <DropdownMenuItem className="gap-2" onClick={() => handleDuplicate(prompt)}><Copy className="size-4" /> Duplicate</DropdownMenuItem>
+                            {!prompt.isDefault && <DropdownMenuItem className="gap-2" onClick={() => handleSetDefault(prompt._id)}><Check className="size-4" /> Set Default</DropdownMenuItem>}
+                            <Separator className="my-1" />
+                            <DropdownMenuItem className="gap-2 text-destructive focus:text-destructive" onClick={() => handleDelete(prompt._id)}><Trash2 className="size-4" /> Delete</DropdownMenuItem>
+                          </DropdownMenuContent>
+                        </DropdownMenu>
+                      </div>
+                    </div>
+                  </CardHeader>
+                  <CardContent className="p-5 pt-3">
+                    <p className="text-sm text-muted-foreground line-clamp-2 leading-relaxed italic border-l-2 border-border/30 pl-3">
+                      "{prompt.prompt}"
+                    </p>
+                  </CardContent>
+                </Card>
+              ))}
+            </div>
+          )}
+        </main>
       </div>
 
-      {/* Prompt View Modal */}
-      {viewingPrompt && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-          <div className="bg-white rounded-lg shadow-xl max-w-4xl w-full mx-4 max-h-[80vh] overflow-hidden">
-            <div className="p-6 border-b border-gray-200">
-              <div className="flex items-center justify-between">
-                <h3 className="text-xl font-semibold text-gray-900">{viewingPrompt.name}</h3>
-                <button
-                  onClick={() => setViewingPrompt(null)}
-                  className="text-gray-400 hover:text-gray-600"
-                >
-                  <XMarkIcon className="h-6 w-6" />
-                </button>
+      {/* Editor Dialog */}
+      <Dialog open={!!editingPrompt} onOpenChange={(open) => !open && setEditingPrompt(null)}>
+        <DialogContent className="max-w-4xl max-h-[90vh] flex flex-col p-0 overflow-hidden border-border/40 bg-card">
+          <DialogHeader className="p-6 pb-4 border-b border-border/20 bg-muted/10">
+            <div className="flex items-center gap-4">
+              <div className="size-10 rounded-xl bg-primary/10 flex items-center justify-center text-primary">
+                <Settings2 className="size-5" />
               </div>
-              <div className="mt-2 flex items-center space-x-4 text-sm text-gray-500">
-                <span>Version: {viewingPrompt.version}</span>
-                <span>Industry: {selectedIndustry}</span>
-                <span>Usage: {viewingPrompt.usageCount} times</span>
+              <div>
+                <DialogTitle className="text-xl">Engineering Protocol</DialogTitle>
+                <DialogDescription>Refine evaluation logic and system constraints.</DialogDescription>
               </div>
             </div>
-            <div className="p-6 overflow-y-auto max-h-[60vh]">
-              <pre className="whitespace-pre-wrap text-sm text-foreground font-mono bg-muted/30 p-4 rounded-lg">
-                {viewingPrompt.prompt}
-              </pre>
+          </DialogHeader>
+          <div className="flex-1 overflow-auto p-6 space-y-4">
+            <div className="space-y-2">
+              <Label className="text-[10px] uppercase font-black text-muted-foreground tracking-widest pl-1">Protocol Identity</Label>
+              <Input
+                value={editingPrompt?.name || ''}
+                onChange={(e) => setEditingPrompt(p => ({ ...p, name: e.target.value }))}
+                className="font-bold h-12 bg-background/50 border-border/40 text-lg"
+              />
+            </div>
+            <div className="space-y-2">
+              <Label className="text-[10px] uppercase font-black text-muted-foreground tracking-widest pl-1">System Prompt Payload</Label>
+              <div className="relative group">
+                <div className="absolute top-3 left-3 flex items-center gap-2 pointer-events-none opacity-40">
+                  <Terminal className="size-4" />
+                  <span className="text-[10px] uppercase font-bold tracking-tighter">System Console</span>
+                </div>
+                <textarea
+                  value={editingContent}
+                  onChange={(e) => setEditingContent(e.target.value)}
+                  className="w-full min-h-[400px] bg-background border border-border/40 rounded-xl p-5 pt-10 font-mono text-sm leading-relaxed focus:outline-none focus:ring-2 focus:ring-primary/20 resize-none transition-all shadow-inner"
+                  placeholder="System instructions go here..."
+                />
+              </div>
             </div>
           </div>
-        </div>
-      )}
+          <DialogFooter className="p-4 border-t border-border/20 bg-muted/5">
+            <Button variant="ghost" onClick={() => setEditingPrompt(null)}>Abandon Configuration</Button>
+            <Button className="px-8 h-10 font-bold" onClick={handleSave}>Sync Changes</Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* View Dialog */}
+      <Dialog open={!!viewingPrompt} onOpenChange={(open) => !open && setViewingPrompt(null)}>
+        <DialogContent className="max-w-3xl border-border/40 bg-card">
+          <DialogHeader>
+            <div className="flex items-center gap-2 mb-2">
+              <Badge variant="outline" className="text-[10px] uppercase font-black">v{viewingPrompt?.version}</Badge>
+              <Badge className="bg-primary/10 text-primary border-primary/20 text-[10px] uppercase font-black">{selectedIndustry}</Badge>
+            </div>
+            <DialogTitle className="text-2xl font-black tracking-tight">{viewingPrompt?.name}</DialogTitle>
+            <DialogDescription>Read-only deployment protocol snapshot.</DialogDescription>
+          </DialogHeader>
+          <div className="mt-4 p-6 rounded-2xl bg-muted/30 border border-border/20 relative">
+            <pre className="text-sm font-mono leading-relaxed whitespace-pre-wrap text-muted-foreground max-h-[500px] overflow-auto scrollbar-hide">
+              {viewingPrompt?.prompt}
+            </pre>
+          </div>
+          <DialogFooter>
+            <Button className="w-full" variant="outline" onClick={() => setViewingPrompt(null)}>Close Inspection</Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   )
 }
 
 export default PromptManagement
+

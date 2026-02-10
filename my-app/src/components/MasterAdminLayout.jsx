@@ -1,4 +1,4 @@
-import React, { useState } from 'react'
+import React, { useState, useEffect } from 'react'
 import { Link, useLocation } from 'react-router-dom'
 import {
   Home,
@@ -132,8 +132,8 @@ const MasterAdminLayout = ({ children }) => {
                       asChild
                       isActive={isActive}
                       className={`group flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium transition-colors ${isActive
-                          ? 'bg-primary/10 text-primary hover:bg-primary/20'
-                          : 'text-muted-foreground hover:bg-muted/50 hover:text-foreground'
+                        ? 'bg-primary/10 text-primary hover:bg-primary/20'
+                        : 'text-muted-foreground hover:bg-muted/50 hover:text-foreground'
                         }`}
                     >
                       <item.icon className={`h-4 w-4 transition-colors ${isActive ? 'text-primary' : 'text-muted-foreground'
@@ -209,7 +209,7 @@ const MasterAdminLayout = ({ children }) => {
                 {alerts.slice(0, 2).map((alert, index) => (
                   <div key={index} className="flex items-center space-x-2 text-sm">
                     <div className={`h-2 w-2 rounded-full ${alert.type === 'error' ? 'bg-red-500' :
-                        alert.type === 'warning' ? 'bg-yellow-500' : 'bg-blue-500'
+                      alert.type === 'warning' ? 'bg-yellow-500' : 'bg-blue-500'
                       }`} />
                     <span className="text-muted-foreground">{alert.message}</span>
                   </div>

@@ -14,11 +14,13 @@ This is a monorepo containing both frontend and backend applications:
 ## � Recent Bug Fixes & Updates
 
 ### ✅ Critical Bug Fixes & Updates (Latest)
+- **Vercel-Inspired UI Overhaul**: Complete frontend redesign with a modern, premium aesthetic including glassmorphism, advanced animations, and a sleek dark theme.
+- **Enhanced Evaluation Display**: Overhauled the evaluation results page to display a comprehensive list of all previous evaluations, highlighting the current result for better context.
+- **Optimized Prompt Loading**: Backend performance improvements for faster prompt retrieval and management.
 - **Universal Search**: Implemented a global keyword search across the application for files, folders, and candidates.
-- **Responsive Design**: Complete UI overhaul ensuring seamless experience across mobile, tablet, and desktop devices.
-- **Navigation Issues**: Fixed improper `window.location.href` usage in Alerts component - replaced with React Router's `navigate()` hook.
-- **React Hooks Violations**: Resolved synchronous `setState` calls within `useEffect` hooks.
-- **Backend Routing**: Fixed critical crash in `auth` routes caused by incorrect middleware import.
+- **Responsive Design**: Mobile-first UI ensuring a seamless experience across all devices.
+- **Navigation & Hook Fixes**: Resolved React Router navigation issues and fixed hook violations in several components.
+- **Backend Routing**: Fixed critical crash in auth routes and standardized pluralized API endpoints.
 
 ### 🚀 Current Status
 - **Mobile-Ready**: Fully responsive interface with adaptive layouts.
