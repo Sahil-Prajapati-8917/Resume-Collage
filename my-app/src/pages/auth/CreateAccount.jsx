@@ -8,7 +8,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Checkbox } from '@/components/ui/checkbox'
 import { Alert, AlertDescription } from '@/components/ui/alert'
 import { CheckCircle, ArrowLeft, ArrowRight, UserPlus, Building, User, Settings, Shield, Eye, EyeOff } from 'lucide-react'
-import apiService from '../services/api'
+import apiService from '../../services/api'
 
 const CreateAccount = () => {
   const [currentStep, setCurrentStep] = useState(1)

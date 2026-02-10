@@ -60,6 +60,20 @@ const HiringFormSchema = new mongoose.Schema({
         editedAt: { type: Date, default: Date.now },
         changes: { type: mongoose.Schema.Types.Mixed }
     }],
+    description: {
+        type: String,
+        required: [true, 'Job description is required'],
+        trim: true
+    },
+    deadline: {
+        type: Date,
+        required: [true, 'Application deadline is required']
+    },
+    status: {
+        type: String,
+        enum: ['Open', 'Closed', 'Draft'],
+        default: 'Open'
+    },
     createdAt: {
         type: Date,
         default: Date.now

@@ -83,3 +83,26 @@ exports.updateHiringForm = async (req, res, next) => {
         next(err);
     }
 };
+
+exports.getJobApplications = async (req, res, next) => {
+    try {
+        const { id } = req.params;
+        const Resume = require('../models/Resume');
+
+        // Ensure job exists
+        const job = await HiringForm.findById(id);
+        if (!job) {
+            return res.status(404).json({ success: false, message: 'Job not found' });
+        }
+
+        const applications = await Resume.find({ jobId: id }).sort({ uploadedAt: -1 });
+
+        res.status(200).json({
+            success: true,
+            count: applications.length,
+            data: applications
+        });
+    } catch (err) {
+        next(err);
+    }
+};

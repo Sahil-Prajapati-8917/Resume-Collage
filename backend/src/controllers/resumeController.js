@@ -101,7 +101,9 @@ exports.updateResumeStatus = async (req, res) => {
     try {
         const { status, reason } = req.body;
         const { id } = req.params;
-        const resume = await Resume.findById(id);
+        const { sendShortlistEmail, sendRejectionEmail } = require('../services/emailService');
+
+        const resume = await Resume.findById(id).populate('jobId');
         if (!resume) {
             return res.status(404).json({
                 success: false,
@@ -126,6 +128,17 @@ exports.updateResumeStatus = async (req, res) => {
 
         resume.status = status;
         await resume.save();
+
+        // Send Email Notification
+        if (resume.jobId && resume.candidateEmail) {
+            const jobTitle = resume.jobId.title || 'Job Application';
+            if (status === 'Shortlisted') {
+                await sendShortlistEmail(resume.candidateName, resume.candidateEmail, jobTitle);
+            } else if (status === 'Disqualified') {
+                await sendRejectionEmail(resume.candidateName, resume.candidateEmail, jobTitle);
+            }
+        }
+
         return res.status(200).json({ success: true, data: resume });
     } catch (error) {
         return res.status(500).json({ success: false, message: 'Failed to update status', error: error.message });
@@ -232,6 +245,7 @@ exports.evaluateResume = async (req, res) => {
         const roleExpectations = hiringForm.roleExpectations || [];
         const performanceIndicators = hiringForm.performanceIndicators || [];
 
+
         const promptText = `
 ${basePromptInstructions}
 
@@ -264,6 +278,9 @@ Output Format: Return valid JSON ONLY.
   "summary": string,
   "strengths": [string],
   "weaknesses": [string],
+  "matchedSkills": [string], // Skills from requirements that the candidate has
+  "missingSkills": [string], // Skills from requirements that the candidate lacks
+  "candidateSkills": [string], // All technical and soft skills found in the resume
   "details": { "skillsMatch": number, "experienceMatch": number, "requirementsMatch": number },
   "confidence": number,
   "confidenceLevel": string,
@@ -331,6 +348,9 @@ Output Format: Return valid JSON ONLY.
             summary: evaluationResult.summary || 'No summary',
             strengths: evaluationResult.strengths || [],
             weaknesses: evaluationResult.weaknesses || [],
+            matchedSkills: evaluationResult.matchedSkills || [],
+            missingSkills: evaluationResult.missingSkills || [],
+            candidateSkills: evaluationResult.candidateSkills || [],
             details: evaluationResult.details || { skillsMatch: 0, experienceMatch: 0, requirementsMatch: 0 },
             confidence: evaluationResult.confidence || 0,
             confidenceLevel: evaluationResult.confidenceLevel || 'Low',

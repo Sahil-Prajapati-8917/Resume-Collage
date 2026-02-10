@@ -1,6 +1,6 @@
 import React, { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
-import PasswordPrompt from '@/components/PasswordPrompt'
+import PasswordPrompt from '@/components/common/PasswordPrompt'
 import CreateAccount from './CreateAccount'
 
 const ProtectedCreateAccount = () => {

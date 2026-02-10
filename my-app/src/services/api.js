@@ -203,6 +203,28 @@ class ApiService {
     }
   }
 
+  // Public Job APIs
+  async getPublicJob(id) {
+    return this.get(`/public/jobs/${id}`);
+  }
+
+  async applyForJob(id, formData) {
+    return this.postFormData(`/public/jobs/${id}/apply`, formData);
+  }
+
+  // Hiring Form APIs
+  async getHiringForms() {
+    return this.get('/hiring-forms');
+  }
+
+  async getJobApplications(id) {
+    return this.get(`/hiring-forms/${id}/applications`);
+  }
+
+  async updateResumeStatus(id, status, reason) {
+    return this.put(`/resume/${id}/status`, { status, reason });
+  }
+
   // Verification method to check API connectivity
   async verifyApiConnection() {
     try {
@@ -237,7 +259,5 @@ class ApiService {
   }
 }
 
-// Create singleton instance
 const apiService = new ApiService();
-
 export default apiService;

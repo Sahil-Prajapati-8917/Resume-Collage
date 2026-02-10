@@ -39,7 +39,7 @@ app.use(express.json({ limit: '10mb' }));
 app.use(express.urlencoded({ extended: true, limit: '10mb' }));
 
 // Logging
-// app.use(morgan('dev'));
+app.use(morgan('dev'));
 
 // Health check endpoint (Public)
 app.get('/api/health', async (req, res) => {
@@ -67,6 +67,7 @@ app.get('/api/health', async (req, res) => {
 
 // Public Routes
 app.use('/api/auth', authRoutes);
+app.use('/api/public/jobs', require('./src/routes/publicJob'));
 
 // Protected Routes Middleware
 app.use(authenticateToken);

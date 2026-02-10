@@ -20,8 +20,8 @@ import { Sidebar, SidebarContent, SidebarFooter, SidebarHeader, SidebarMenu, Sid
 import { Separator } from '@/components/ui/separator'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
-import Notifications from './Notifications'
-import Alerts from './Alerts'
+import Notifications from '../common/Notifications'
+import Alerts from '../common/Alerts'
 
 const MasterAdminLayout = ({ children }) => {
   const location = useLocation()

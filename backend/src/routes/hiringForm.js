@@ -1,5 +1,5 @@
 const express = require('express');
-const { createHiringForm, getAllHiringForms, getHiringForm, updateHiringForm } = require('../controllers/hiringFormController');
+const { createHiringForm, getAllHiringForms, getHiringForm, updateHiringForm, getJobApplications } = require('../controllers/hiringFormController');
 const { authenticateToken: auth } = require('../middleware/auth');
 
 const router = express.Router();
@@ -13,5 +13,7 @@ router.route('/')
 router.route('/:id')
     .get(getHiringForm)
     .put(updateHiringForm);
+
+router.get('/:id/applications', getJobApplications);
 
 module.exports = router;

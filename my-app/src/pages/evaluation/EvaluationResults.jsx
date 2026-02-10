@@ -30,7 +30,7 @@ import { Badge } from '@/components/ui/badge'
 import { Progress } from '@/components/ui/progress'
 import { Separator } from '@/components/ui/separator'
 
-import CandidateComparison from '../components/CandidateComparison'
+import CandidateComparison from '../../components/features/evaluation/CandidateComparison'
 
 const EvaluationResults = () => {
   const location = useLocation()
@@ -309,7 +309,7 @@ const EvaluationResults = () => {
 
       {/* Detailed Analysis Dialog */}
       <Dialog open={!!selectedCandidate} onOpenChange={() => setSelectedCandidate(null)}>
-        <DialogContent className="max-w-4xl p-0 border-border/40 bg-background/95 backdrop-blur-xl gap-0 overflow-hidden">
+        <DialogContent className="max-w-[95vw] w-full md:max-w-7xl h-[90vh] p-0 border-border/40 bg-background/95 backdrop-blur-xl gap-0 overflow-hidden flex flex-col">
           <div className="p-8 pb-0">
             <div className="flex flex-col md:flex-row gap-8 items-start mb-8">
               <div className="flex-1 space-y-2">
@@ -340,7 +340,7 @@ const EvaluationResults = () => {
             </div>
           </div>
 
-          <div className="p-8 pt-0 grid md:grid-cols-2 gap-8 overflow-y-auto max-h-[60vh]">
+          <div className="p-8 pt-0 grid md:grid-cols-2 gap-8 overflow-y-auto flex-1">
             <div className="space-y-8">
               <div className="space-y-4">
                 <h4 className="text-xs font-black uppercase tracking-[0.2em] text-muted-foreground flex items-center gap-2">
@@ -359,6 +359,43 @@ const EvaluationResults = () => {
                 </div>
               </div>
 
+              {/* Matched Skills */}
+              <div className="space-y-4">
+                <h4 className="text-xs font-black uppercase tracking-[0.2em] text-muted-foreground flex items-center gap-2">
+                  <CheckCircle2 className="size-3 text-green-500" /> Matched Skills
+                </h4>
+                <div className="flex flex-wrap gap-2">
+                  {selectedCandidate?.aiEvaluation?.matchedSkills?.length > 0 ? (
+                    selectedCandidate.aiEvaluation.matchedSkills.map((s, i) => (
+                      <Badge key={i} variant="outline" className="bg-green-500/5 text-green-600 border-green-200 hover:bg-green-500/10">
+                        {s}
+                      </Badge>
+                    ))
+                  ) : (
+                    <span className="text-xs text-muted-foreground italic">No specific matches found or data unavailable.</span>
+                  )}
+                </div>
+              </div>
+
+              {/* Missing Skills */}
+              <div className="space-y-4">
+                <h4 className="text-xs font-black uppercase tracking-[0.2em] text-muted-foreground flex items-center gap-2">
+                  <AlertCircle className="size-3 text-red-500" /> Missing Skills
+                </h4>
+                <div className="flex flex-wrap gap-2">
+                  {selectedCandidate?.aiEvaluation?.missingSkills?.length > 0 ? (
+                    selectedCandidate.aiEvaluation.missingSkills.map((s, i) => (
+                      <Badge key={i} variant="outline" className="bg-red-500/5 text-red-600 border-red-200 hover:bg-red-500/10">
+                        {s}
+                      </Badge>
+                    ))
+                  ) : (
+                    <span className="text-xs text-muted-foreground italic">No missing skills identified or data unavailable.</span>
+                  )}
+                </div>
+              </div>
+
+
               <div className="space-y-4">
                 <h4 className="text-xs font-black uppercase tracking-[0.2em] text-muted-foreground flex items-center gap-2">
                   <CheckCircle2 className="size-3 text-green-500" /> Latent Strengths
@@ -370,6 +407,24 @@ const EvaluationResults = () => {
                       {s}
                     </div>
                   ))}
+                </div>
+              </div>
+
+              {/* Current Skills (Candidate's Skills) */}
+              <div className="space-y-4">
+                <h4 className="text-xs font-black uppercase tracking-[0.2em] text-muted-foreground flex items-center gap-2">
+                  <User className="size-3 text-blue-500" /> Candidate Skills
+                </h4>
+                <div className="flex flex-wrap gap-2">
+                  {selectedCandidate?.aiEvaluation?.candidateSkills?.length > 0 ? (
+                    selectedCandidate.aiEvaluation.candidateSkills.map((s, i) => (
+                      <Badge key={i} variant="secondary" className="text-xs">
+                        {s}
+                      </Badge>
+                    ))
+                  ) : (
+                    <span className="text-xs text-muted-foreground italic">No extracted skills found or data unavailable.</span>
+                  )}
                 </div>
               </div>
             </div>
@@ -422,7 +477,7 @@ const EvaluationResults = () => {
 
       {/* Override Dialog */}
       <Dialog open={showOverrideModal} onOpenChange={() => setShowOverrideModal(false)}>
-        <DialogContent className="max-w-md">
+        <DialogContent className="max-w-[90vw] md:max-w-6xl h-[85vh] flex flex-col">
           <DialogHeader>
             <DialogTitle className="text-2xl">{selectedCandidate?.fileName}</DialogTitle>
             <DialogDescription>
@@ -430,7 +485,7 @@ const EvaluationResults = () => {
             </DialogDescription>
           </DialogHeader>
 
-          <div className="overflow-y-auto max-h-[70vh] pr-2">
+          <div className="overflow-y-auto flex-1 pr-2">
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
               {/* Left Column - Score Breakdown */}
               <div className="space-y-6">

@@ -25,6 +25,8 @@ import { Badge } from '@/components/ui/badge'
 
 const HiringForm = () => {
   const [formData, setFormData] = useState({
+    description: '',
+    deadline: '',
     formName: '',
     title: '',
     industry: '',
@@ -105,6 +107,8 @@ const HiringForm = () => {
   const handleEdit = (form) => {
     setEditingId(form._id)
     setFormData({
+      description: form.description || '',
+      deadline: form.deadline ? new Date(form.deadline).toISOString().split('T')[0] : '',
       formName: form.formName,
       title: form.title,
       industry: form.industry,
@@ -122,6 +126,8 @@ const HiringForm = () => {
   const handleCancelEdit = () => {
     setEditingId(null)
     setFormData({
+      description: '',
+      deadline: '',
       formName: '',
       title: '',
       industry: '',
@@ -209,11 +215,18 @@ const HiringForm = () => {
     }
   }
 
+  const copyPublicLink = (id) => {
+    const link = `${window.location.origin}/apply/${id}`;
+    navigator.clipboard.writeText(link);
+    setStatus({ type: 'success', message: 'Public link copied to clipboard!' });
+    setTimeout(() => setStatus({ type: '', message: '' }), 3000);
+  }
+
   return (
     <div className="flex flex-col gap-10 pb-20">
       <div className="flex flex-col gap-1">
-        <h1 className="text-3xl font-semibold tracking-tight">Hiring Criteria</h1>
-        <p className="text-muted-foreground">Define deep evaluation constraints for AI candidate analysis.</p>
+        <h1 className="text-3xl font-semibold tracking-tight">Hiring Criteria / Jobs</h1>
+        <p className="text-muted-foreground">Create job openings and define evaluation constraints.</p>
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
@@ -232,15 +245,34 @@ const HiringForm = () => {
                 <Briefcase className="size-5" />
               </div>
               <div>
-                <CardTitle className="text-xl">Core Configuration</CardTitle>
+                <CardTitle className="text-xl">Job Details</CardTitle>
                 <CardDescription>Primary job identity and industry sector.</CardDescription>
               </div>
             </CardHeader>
             <CardContent className="space-y-6 pt-2">
-              <div className="space-y-2">
-                <Label htmlFor="formName" className="text-xs uppercase tracking-widest text-muted-foreground font-bold">Criteria Name</Label>
-                <Input id="formName" name="formName" value={formData.formName} onChange={handleInputChange} placeholder="e.g., Q3 Senior React Engineer" className="bg-background/50 h-11" />
+              <div className="grid md:grid-cols-2 gap-6">
+                <div className="space-y-2">
+                  <Label htmlFor="formName" className="text-xs uppercase tracking-widest text-muted-foreground font-bold">Internal Reference Name</Label>
+                  <Input id="formName" name="formName" value={formData.formName} onChange={handleInputChange} placeholder="e.g., Q3 Senior React Engineer" className="bg-background/50 h-11" />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="deadline" className="text-xs uppercase tracking-widest text-muted-foreground font-bold">Application Deadline</Label>
+                  <Input id="deadline" name="deadline" type="date" value={formData.deadline} onChange={handleInputChange} className="bg-background/50 h-11" />
+                </div>
               </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="description" className="text-xs uppercase tracking-widest text-muted-foreground font-bold">Job Description</Label>
+                <textarea
+                  id="description"
+                  name="description"
+                  value={formData.description}
+                  onChange={handleInputChange}
+                  placeholder="Enter detailed job description..."
+                  className="flex min-h-[120px] w-full rounded-md border border-input bg-background/50 px-3 py-2 text-sm shadow-sm placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-50"
+                />
+              </div>
+
               <div className="grid md:grid-cols-2 gap-6">
                 <div className="space-y-2">
                   <Label htmlFor="title" className="text-xs uppercase tracking-widest text-muted-foreground font-bold">Job Title</Label>
@@ -357,27 +389,20 @@ const HiringForm = () => {
             </CardContent>
             <CardFooter className="flex flex-col gap-3 pt-0">
               <Button className="w-full h-11" disabled={loading || !formData.formName || !formData.title} onClick={handleSave}>
-                {loading ? <Loader2 className="size-4 animate-spin mr-2" /> : editingId ? 'Update Criteria' : 'Save Criteria'}
+                {loading ? <Loader2 className="size-4 animate-spin mr-2" /> : editingId ? 'Update Criteria' : 'Save Job Opening'}
               </Button>
               {editingId && (
                 <Button variant="ghost" className="w-full" onClick={handleCancelEdit}>Cancel Modification</Button>
               )}
             </CardFooter>
           </Card>
-
-          <div className="p-4 rounded-xl border border-primary/10 bg-primary/5 flex gap-3">
-            <Settings2 className="size-5 text-primary shrink-0 mt-0.5" />
-            <p className="text-[11px] text-muted-foreground leading-relaxed">
-              <span className="text-primary font-bold">Notice:</span> Detailed criteria directly influences the AI's scoring weighting. Be specific about non-negotiable requirements.
-            </p>
-          </div>
         </div>
       </div>
 
       <div className="flex flex-col gap-6">
         <div className="flex items-center gap-3">
           <History className="size-5 text-muted-foreground" />
-          <h2 className="text-xl font-semibold tracking-tight">Active Configurations</h2>
+          <h2 className="text-xl font-semibold tracking-tight">Active Jobs / Configurations</h2>
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
@@ -391,20 +416,29 @@ const HiringForm = () => {
               <CardHeader className="p-5 pb-2">
                 <div className="flex justify-between items-start mb-2">
                   <Badge variant="secondary" className="text-[10px] px-1.5 h-4 bg-primary/5 text-primary border-primary/10">{form.industry}</Badge>
-                  <div className="flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
-                    <Button variant="ghost" size="icon" className="size-6 text-muted-foreground hover:text-primary" onClick={() => handleEdit(form)}>
+                  <div className="flex gap-1">
+                    <Button variant="ghost" size="icon" className="size-6 text-muted-foreground hover:text-primary" onClick={() => handleEdit(form)} title="Edit">
                       <ChevronRight className="size-4" />
+                    </Button>
+                    <Button variant="ghost" size="icon" className="size-6 text-muted-foreground hover:text-blue-500" onClick={() => copyPublicLink(form._id)} title="Copy Public Link">
+                      <AlertCircle className="size-4" />
                     </Button>
                   </div>
                 </div>
                 <CardTitle className="text-sm font-bold line-clamp-1">{form.formName}</CardTitle>
                 <CardDescription className="text-xs line-clamp-1">{form.title}</CardDescription>
               </CardHeader>
-              <CardFooter className="p-5 pt-4 flex items-center justify-between border-t border-border/20 mt-4">
+              <CardFooter className="p-5 pt-4 flex items-center justify-between border-t border-border/20 mt-4 flex-wrap gap-2">
                 <span className="text-[10px] text-muted-foreground font-medium">{form.experienceLevel.split('(')[0]}</span>
-                <Button variant="ghost" size="icon" className="size-7 text-muted-foreground hover:text-destructive" onClick={() => handleDelete(form._id)}>
-                  <Trash2 className="size-3.5" />
-                </Button>
+
+                <div className="flex gap-2">
+                  <Button variant="outline" size="sm" className="h-6 text-[10px] px-2" onClick={() => window.location.href = `/job-applications/${form._id}`}>
+                    Applications
+                  </Button>
+                  <Button variant="ghost" size="icon" className="size-7 text-muted-foreground hover:text-destructive" onClick={() => handleDelete(form._id)}>
+                    <Trash2 className="size-3.5" />
+                  </Button>
+                </div>
               </CardFooter>
             </Card>
           ))}
@@ -418,6 +452,7 @@ const HiringForm = () => {
       </div>
     </div>
   )
+
 }
 
 export default HiringForm

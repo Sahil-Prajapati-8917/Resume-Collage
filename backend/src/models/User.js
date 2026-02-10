@@ -74,7 +74,7 @@ const UserSchema = new mongoose.Schema({
     // Role and permissions
     role: {
         type: String,
-        enum: ['Admin', 'HR Manager', 'Recruiter', 'Viewer'],
+        enum: ['Admin', 'HR Manager', 'Recruiter', 'Viewer', 'admin', 'hr_manager', 'recruiter', 'viewer'],
         default: 'Recruiter'
     },
 

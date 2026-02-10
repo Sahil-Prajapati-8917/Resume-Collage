@@ -36,6 +36,9 @@ const resumeSchema = new mongoose.Schema({
         summary: { type: String },
         strengths: [{ type: String }],
         weaknesses: [{ type: String }],
+        matchedSkills: [{ type: String }],
+        missingSkills: [{ type: String }],
+        candidateSkills: [{ type: String }],
         details: { type: mongoose.Schema.Types.Mixed },
         confidence: { type: Number }, // Raw score
         confidenceLevel: {
@@ -80,8 +83,8 @@ const resumeSchema = new mongoose.Schema({
     // Evaluation Status
     status: {
         type: String,
-        enum: ['Under Process', 'Shortlisted', 'Disqualified', 'Manual Review Required'],
-        default: 'Under Process'
+        enum: ['Pending', 'Under Process', 'Shortlisted', 'Disqualified', 'Manual Review Required', 'Hired', 'Rejected'],
+        default: 'Pending'
     },
     statusHistory: [{
         status: { type: String, required: true },
@@ -107,7 +110,18 @@ const resumeSchema = new mongoose.Schema({
     industry: { type: String },
     roleType: { type: String },
     company: { type: mongoose.Schema.Types.ObjectId, ref: 'Company' },
-    uploadedBy: { type: mongoose.Schema.Types.ObjectId, ref: 'User' }
+    uploadedBy: { type: mongoose.Schema.Types.ObjectId, ref: 'User' }, // Kept for backward compatibility or HR uploads
+
+    // Link to Job Opening
+    jobId: {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'HiringForm'
+    },
+    // Candidate Details
+    candidateName: { type: String, trim: true },
+    candidateEmail: { type: String, trim: true, lowercase: true },
+    candidatePhone: { type: String, trim: true },
+    resumeUrl: { type: String } // URL to file storage if moved to cloud later
 });
 
 const Resume = mongoose.model('Resume', resumeSchema);

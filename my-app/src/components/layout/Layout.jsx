@@ -29,7 +29,7 @@ import {
 } from '@/components/ui/sidebar'
 import { Separator } from '@/components/ui/separator'
 import { Button } from '@/components/ui/button'
-import { GlobalSearch } from './GlobalSearch'
+import { GlobalSearch } from '../common/GlobalSearch'
 import { AppBreadcrumbs } from './Breadcrumbs'
 import {
   DropdownMenu,
@@ -40,7 +40,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
-import authService from '../services/auth'
+import authService from '../../services/auth'
 
 const Layout = ({ children }) => {
   const location = useLocation()
@@ -51,9 +51,10 @@ const Layout = ({ children }) => {
     { name: 'Resumes', href: '/upload', icon: FileText },
     { name: 'Evaluations', href: '/results', icon: BarChart3 },
     { name: 'Hiring Forms', href: '/hiring-form', icon: ClipboardList },
+    { name: 'Job History', href: '/job-history', icon: History },
     { name: 'Prompts', href: '/prompts', icon: Settings },
     { name: 'Audit Trail', href: '/audit', icon: ShieldCheck },
-    { name: 'Analytics', href: '/history', icon: History },
+    { name: 'Analytics', href: '/history', icon: BarChart3 },
   ]
 
   const bottomNav = [

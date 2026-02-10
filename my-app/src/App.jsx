@@ -1,27 +1,30 @@
 import React from 'react'
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom'
-import Layout from './components/Layout'
-import MasterAdminLayout from './components/MasterAdminLayout'
-import ProtectedRoute from './components/ProtectedRoute'
-import Login from './pages/Login'
-import ProtectedCreateAccount from './pages/ProtectedCreateAccount'
-import NotFound from './pages/NotFound'
-import Dashboard from './pages/Dashboard'
-import ResumeUpload from './pages/ResumeUpload'
-import HiringForm from './pages/HiringForm'
-import EvaluationResults from './pages/EvaluationResults'
-import PromptManagement from './pages/PromptManagement'
-import AuditTrail from './pages/AuditTrail'
-import History from './pages/History'
-import Profile from './pages/Profile'
-import MasterAdminDashboard from './pages/MasterAdminDashboard'
-import CompanyManagement from './pages/CompanyManagement'
-import HRUserManagement from './pages/HRUserManagement'
-import GlobalHiringForms from './pages/GlobalHiringForms'
-import EvaluationOversight from './pages/EvaluationOversight'
-import SystemAnalytics from './pages/SystemAnalytics'
-import SystemSettings from './pages/SystemSettings'
-import FairnessDashboard from './pages/FairnessDashboard'
+import Layout from './components/layout/Layout'
+import MasterAdminLayout from './components/layout/MasterAdminLayout'
+import ProtectedRoute from './components/common/ProtectedRoute'
+import Login from './pages/auth/Login'
+import ProtectedCreateAccount from './pages/auth/ProtectedCreateAccount'
+import NotFound from './pages/misc/NotFound'
+import Dashboard from './pages/dashboard/Dashboard'
+import ResumeUpload from './pages/evaluation/ResumeUpload'
+import HiringForm from './pages/evaluation/HiringForm'
+import EvaluationResults from './pages/evaluation/EvaluationResults'
+import PromptManagement from './pages/admin/PromptManagement'
+import AuditTrail from './pages/dashboard/AuditTrail'
+import History from './pages/evaluation/History'
+import Profile from './pages/user/Profile'
+import MasterAdminDashboard from './pages/dashboard/MasterAdminDashboard'
+import CompanyManagement from './pages/admin/CompanyManagement'
+import HRUserManagement from './pages/admin/HRUserManagement'
+import GlobalHiringForms from './pages/evaluation/GlobalHiringForms'
+import EvaluationOversight from './pages/evaluation/EvaluationOversight'
+import SystemAnalytics from './pages/dashboard/SystemAnalytics'
+import SystemSettings from './pages/admin/SystemSettings'
+import FairnessDashboard from './pages/admin/FairnessDashboard'
+import JobView from './pages/public/JobView'
+import JobApplications from './pages/dashboard/JobApplications'
+import JobHistory from './pages/evaluation/JobHistory'
 
 function App() {
   return (
@@ -33,6 +36,9 @@ function App() {
         {/* Auth routes without layout */}
         <Route path="/login" element={<Login />} />
         <Route path="/create-account" element={<ProtectedCreateAccount />} />
+
+        {/* Public Routes */}
+        <Route path="/apply/:id" element={<JobView />} />
 
         {/* Protected main app routes with layout */}
         <Route path="/dashboard" element={
@@ -53,6 +59,20 @@ function App() {
           <ProtectedRoute>
             <Layout>
               <HiringForm />
+            </Layout>
+          </ProtectedRoute>
+        } />
+        <Route path="/job-history" element={
+          <ProtectedRoute>
+            <Layout>
+              <JobHistory />
+            </Layout>
+          </ProtectedRoute>
+        } />
+        <Route path="/job-applications/:id" element={
+          <ProtectedRoute>
+            <Layout>
+              <JobApplications />
             </Layout>
           </ProtectedRoute>
         } />
