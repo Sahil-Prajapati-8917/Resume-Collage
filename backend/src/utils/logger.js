@@ -8,14 +8,18 @@ const levels = {
   http: 3,
   debug: 4
 };
-
 // Create logger instance
 const logger = winston.createLogger({
   level: process.env.LOG_LEVEL || 'info',
   format: winston.format.combine(
     winston.format.timestamp({ format: 'YYYY-MM-DD HH:mm:ss' }),
-    winston.format.errors({ stack: true }),
-    winston.format.json()
+    // Custom format for logs
+    winston.format.printf(({ level, message, timestamp, stack }) => {
+      if (stack) {
+        return `${timestamp} [${level.toUpperCase()}]: ${message}\n${stack}`;
+      }
+      return `${timestamp} [${level.toUpperCase()}]: ${message}`;
+    })
   ),
   defaultMeta: {
     service: 'ai-resume-evaluation-api'
@@ -28,7 +32,7 @@ const logger = winston.createLogger({
         winston.format.simple()
       )
     }),
-    
+
     // File transport for production
     ...(process.env.NODE_ENV === 'production' ? [
       new winston.transports.File({
@@ -99,26 +103,26 @@ logger.logProfileUpdate = (userId, changes) => {
 // Development helper functions
 if (process.env.NODE_ENV !== 'production') {
   logger.debug('🚀 Debug mode enabled');
-  
+
   // Add console methods for development
   // logger.logRequest = (req, res, statusCode) => {
   //   console.log(`📡 ${req.method} ${req.url} - ${statusCode}`);
   //   console.log('🔍 User-Agent:', req.get('User-Agent'));
   //   console.log('🌐 IP:', req.ip || req.connection.remoteAddress);
   // };
-  
+
   logger.logAuth = (action, userId, details = {}) => {
     console.log(`🔐 Auth: ${action}`, { userId, ...details });
   };
-  
+
   logger.logDatabase = (operation, collection, details = {}) => {
     console.log(`💾 DB: ${operation} on ${collection}`, details);
   };
-  
+
   logger.logApiError = (endpoint, error, userId = null) => {
     console.error(`❌ API Error: ${endpoint}`, error.message);
   };
-  
+
   logger.logProfileUpdate = (userId, changes) => {
     console.log(`👤 Profile Update:`, { userId, changes });
   };

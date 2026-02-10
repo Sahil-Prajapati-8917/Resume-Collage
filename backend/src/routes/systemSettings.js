@@ -72,7 +72,7 @@ router.put('/config', authenticateToken, authorizeRoles(['master_admin']), async
         systemConfig[section] = { ...systemConfig[section], ...updates };
 
         logger.info(`System config updated: ${section} by ${req.user.email}`);
-        
+
         res.json({
             success: true,
             data: systemConfig[section],
@@ -113,7 +113,7 @@ router.put('/maintenance', authenticateToken, authorizeRoles(['master_admin']), 
         if (scheduled) systemConfig.maintenance.scheduled = scheduled;
 
         logger.info(`Maintenance mode updated: ${mode ? 'ON' : 'OFF'} by ${req.user.email}`);
-        
+
         res.json({
             success: true,
             data: systemConfig.maintenance,
@@ -133,9 +133,9 @@ router.post('/pause-processing', authenticateToken, authorizeRoles(['master_admi
     try {
         // This would integrate with your queue system (Bull, etc.)
         // For now, we'll just log the action
-        
+
         logger.info(`Resume processing paused by ${req.user.email}`);
-        
+
         res.json({
             success: true,
             message: 'Resume processing paused successfully'
@@ -154,9 +154,9 @@ router.post('/resume-processing', authenticateToken, authorizeRoles(['master_adm
     try {
         // This would integrate with your queue system (Bull, etc.)
         // For now, we'll just log the action
-        
+
         logger.info(`Resume processing resumed by ${req.user.email}`);
-        
+
         res.json({
             success: true,
             message: 'Resume processing resumed successfully'
@@ -175,9 +175,9 @@ router.post('/reset-queue', authenticateToken, authorizeRoles(['master_admin']),
     try {
         // This would integrate with your queue system (Bull, etc.)
         // For now, we'll just log the action
-        
+
         logger.info(`Processing queue reset by ${req.user.email}`);
-        
+
         res.json({
             success: true,
             message: 'Processing queue reset successfully'
@@ -198,9 +198,9 @@ router.put('/ai-evaluations', authenticateToken, authorizeRoles(['master_admin']
 
         // This would integrate with your AI service configuration
         // For now, we'll just log the action
-        
+
         logger.info(`AI evaluations ${enabled ? 'enabled' : 'disabled'} by ${req.user.email}`);
-        
+
         res.json({
             success: true,
             message: `AI evaluations ${enabled ? 'enabled' : 'disabled'} successfully`
@@ -242,7 +242,7 @@ router.put('/feature-flags', authenticateToken, authorizeRoles(['master_admin'])
             });
         }
 
-        if (!systemConfig.features.hasOwnProperty(feature)) {
+        if (!Object.prototype.hasOwnProperty.call(systemConfig.features, feature)) {
             return res.status(400).json({
                 success: false,
                 error: { message: 'Invalid feature name' }
@@ -252,7 +252,7 @@ router.put('/feature-flags', authenticateToken, authorizeRoles(['master_admin'])
         systemConfig.features[feature] = enabled;
 
         logger.info(`Feature flag updated: ${feature} = ${enabled} by ${req.user.email}`);
-        
+
         res.json({
             success: true,
             data: systemConfig.features,
@@ -305,7 +305,7 @@ router.put('/rate-limits', authenticateToken, authorizeRoles(['master_admin']), 
         systemConfig.rateLimits[endpoint] = { windowMs, max };
 
         logger.info(`Rate limit updated: ${endpoint} by ${req.user.email}`);
-        
+
         res.json({
             success: true,
             data: systemConfig.rateLimits[endpoint],
@@ -359,7 +359,7 @@ router.put('/ai-providers', authenticateToken, authorizeRoles(['master_admin']),
         if (rateLimit) systemConfig.aiProviders[provider].rateLimit = rateLimit;
 
         logger.info(`AI provider updated: ${provider} = ${enabled} by ${req.user.email}`);
-        
+
         res.json({
             success: true,
             data: systemConfig.aiProviders[provider],

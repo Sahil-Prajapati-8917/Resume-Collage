@@ -45,8 +45,8 @@ exports.parseResume = async (req, res) => {
             isResume: isResume,
             anomalies: anomalies,
             status: 'Under Process',
-            qualityScore: qualityScore,
-            integritySignals: integritySignals
+            qualityScore: 0,
+            integritySignals: []
         });
 
         await resume.save();

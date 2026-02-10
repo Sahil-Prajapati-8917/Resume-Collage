@@ -1,8 +1,8 @@
-const logger = require('../utils/logger');
 
 // Global error handling middleware
 const errorHandler = (err, req, res, next) => {
   let error = { ...err };
+  console.error(err.stack);
   error.statusCode = err.statusCode || 500;
 
   // Log the error
