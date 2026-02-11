@@ -27,6 +27,7 @@ const MasterAdminDashboard = () => {
     failedEvaluations: 0
   })
 
+  // eslint-disable-next-line no-unused-vars
   const [timeRange, setTimeRange] = useState('30d')
   const [loading, setLoading] = useState(true)
 

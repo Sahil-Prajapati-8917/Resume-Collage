@@ -11,7 +11,7 @@ import {
     BreadcrumbSeparator,
 } from "@/components/ui/breadcrumb"
 
-export function dynamicBreadcrumbs(pathname) {
+function dynamicBreadcrumbs(pathname) {
     const paths = pathname.split("/").filter(Boolean)
     const breadcrumbs = paths.map((path, index) => {
         const href = `/${paths.slice(0, index + 1).join("/")}`

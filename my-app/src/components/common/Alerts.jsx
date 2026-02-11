@@ -78,7 +78,7 @@ const Alerts = () => {
     }
   ]
 
-  const [alerts, setAlerts] = useState(mockAlerts)
+  const [alerts] = useState(mockAlerts)
   const [dismissedAlerts, setDismissedAlerts] = useState(new Set())
 
   const getAlertIcon = (type) => {
@@ -131,15 +131,15 @@ const Alerts = () => {
       {visibleAlerts.map((alert) => {
         const Icon = getAlertIcon(alert.type)
         return (
-          <Card 
-            key={alert.id} 
+          <Card
+            key={alert.id}
             className={`border-l-4 ${getAlertColor(alert.type, alert.severity)} animate-in slide-in-from-right-2 duration-300`}
           >
             <CardContent className="p-4">
               <div className="flex items-start space-x-3">
-                <div className={`mt-1 ${alert.type === 'error' ? 'text-red-600' : 
-                  alert.type === 'warning' ? 'text-orange-600' : 
-                  alert.type === 'success' ? 'text-green-600' : 'text-blue-600'}`}>
+                <div className={`mt-1 ${alert.type === 'error' ? 'text-red-600' :
+                  alert.type === 'warning' ? 'text-orange-600' :
+                    alert.type === 'success' ? 'text-green-600' : 'text-blue-600'}`}>
                   <Icon className="h-5 w-5" />
                 </div>
                 <div className="flex-1 space-y-2">

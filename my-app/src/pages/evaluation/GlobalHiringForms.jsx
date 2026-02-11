@@ -38,7 +38,7 @@ const GlobalHiringForms = () => {
   const [roleTypeFilter, setRoleTypeFilter] = useState('all')
   const [statusFilter, setStatusFilter] = useState('all')
   const [sortBy, setSortBy] = useState('name')
-  const [sortOrder, setSortOrder] = useState('asc')
+  const [sortOrder] = useState('asc')
 
   // Dialog states
   const [showCreateDialog, setShowCreateDialog] = useState(false)
@@ -203,7 +203,7 @@ const GlobalHiringForms = () => {
         const data = await response.json()
         setError(data.error?.message || 'Failed to create template')
       }
-    } catch (err) {
+    } catch {
       setError('Failed to connect to the server')
     } finally {
       setLoading(false)
@@ -222,7 +222,7 @@ const GlobalHiringForms = () => {
         const data = await response.json()
         setError(data.error?.message || 'Failed to update template')
       }
-    } catch (err) {
+    } catch {
       setError('Failed to connect to the server')
     } finally {
       setLoading(false)
@@ -241,7 +241,7 @@ const GlobalHiringForms = () => {
         const data = await response.json()
         setError(data.error?.message || 'Failed to update status')
       }
-    } catch (err) {
+    } catch {
       setError('Failed to connect to the server')
     }
   }
@@ -264,7 +264,7 @@ const GlobalHiringForms = () => {
         const data = await response.json()
         setError(data.error?.message || 'Failed to clone template')
       }
-    } catch (err) {
+    } catch {
       setError('Failed to connect to the server')
     } finally {
       setLoading(false)

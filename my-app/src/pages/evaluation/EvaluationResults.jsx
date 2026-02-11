@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react'
-import { useLocation, useNavigate } from 'react-router-dom'
+import { useLocation } from 'react-router-dom'
 import apiService from '@/services/api'
 import {
   BarChart3,
@@ -42,7 +42,6 @@ const EvaluationResults = () => {
   const [overrideReason, setOverrideReason] = useState('')
   const [overrideAction, setOverrideAction] = useState('')
   const [evaluations, setEvaluations] = useState([])
-  const [loading, setLoading] = useState(true)
 
   // Feature states
   const [explainMode, setExplainMode] = useState(false)
@@ -51,7 +50,6 @@ const EvaluationResults = () => {
   const [selectedForComparison, setSelectedForComparison] = useState([])
 
   const fetchResumes = async () => {
-    setLoading(true)
     try {
       const response = await apiService.get('/resume');
       if (response.ok) {
@@ -61,7 +59,7 @@ const EvaluationResults = () => {
     } catch (error) {
       console.error("Failed to fetch resumes", error);
     } finally {
-      setLoading(false);
+      // setLoading(false);
     }
   }
 

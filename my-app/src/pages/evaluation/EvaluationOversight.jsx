@@ -38,14 +38,13 @@ import { Textarea } from '@/components/ui/textarea'
 
 const EvaluationOversight = () => {
   const [evaluations, setEvaluations] = useState([])
-  const [loading, setLoading] = useState(true)
   const [searchTerm, setSearchTerm] = useState('')
   const [industryFilter, setIndustryFilter] = useState('all')
   const [roleTypeFilter, setRoleTypeFilter] = useState('all')
   const [overrideFilter, setOverrideFilter] = useState('all')
   const [dateRange, setDateRange] = useState('30d')
   const [sortBy, setSortBy] = useState('createdAt')
-  const [sortOrder, setSortOrder] = useState('desc')
+  const [sortOrder] = useState('desc')
 
   // Dialog states
   const [showDetailsDialog, setShowDetailsDialog] = useState(false)
@@ -155,7 +154,6 @@ const EvaluationOversight = () => {
 
     setTimeout(() => {
       setEvaluations(mockEvaluations)
-      setLoading(false)
     }, 1000)
   }, [])
 
@@ -249,18 +247,7 @@ const EvaluationOversight = () => {
     setFlagData({ reason: '', severity: 'medium' })
   }
 
-  const removeFlag = (evaluationId, flagIndex) => {
-    const updatedEvaluations = evaluations.map(evaluation =>
-      evaluation.id === evaluationId
-        ? {
-          ...evaluation,
-          flags: evaluation.flags.filter((_, index) => index !== flagIndex)
-        }
-        : evaluation
-    )
 
-    setEvaluations(updatedEvaluations)
-  }
 
   // Calculate summary statistics
   const summaryStats = {

@@ -28,13 +28,13 @@ import { Switch } from '@/components/ui/switch'
 const HRUserManagement = () => {
   const [users, setUsers] = useState([])
   const [companies, setCompanies] = useState([])
-  const [loading, setLoading] = useState(true)
+
   const [searchTerm, setSearchTerm] = useState('')
   const [roleFilter, setRoleFilter] = useState('all')
   const [statusFilter, setStatusFilter] = useState('all')
   const [companyFilter, setCompanyFilter] = useState('all')
   const [sortBy, setSortBy] = useState('name')
-  const [sortOrder, setSortOrder] = useState('asc')
+  const [sortOrder] = useState('asc')
 
   // Dialog states
   const [showCreateDialog, setShowCreateDialog] = useState(false)
@@ -157,7 +157,7 @@ const HRUserManagement = () => {
     setTimeout(() => {
       setCompanies(mockCompanies)
       setUsers(mockUsers)
-      setLoading(false)
+
     }, 1000)
   }, [])
 

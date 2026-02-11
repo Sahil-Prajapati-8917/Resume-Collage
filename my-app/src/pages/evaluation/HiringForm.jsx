@@ -73,7 +73,7 @@ const HiringForm = () => {
         const data = await response.json()
         setAvailablePrompts(data.data)
       }
-    } catch (error) {
+    } catch {
       setAvailablePrompts([])
     }
   }
@@ -164,11 +164,7 @@ const HiringForm = () => {
     'Lead/Principal (12+ years)'
   ]
 
-  const jobTypes = [
-    { value: 'full-time', label: 'Full-time Position' },
-    { value: 'internship', label: 'Internship' },
-    { value: 'placement', label: 'Placement' }
-  ]
+
 
   const handleInputChange = (e) => {
     const { name, value } = e.target

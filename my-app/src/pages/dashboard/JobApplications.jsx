@@ -31,28 +31,28 @@ const JobApplications = () => {
     const [isRejectDialogOpen, setIsRejectDialogOpen] = useState(false);
 
     useEffect(() => {
+        const fetchData = async () => {
+            try {
+                const jobResponse = await apiService.get(`/hiring-forms/${id}`);
+                if (jobResponse.ok) {
+                    const jobData = await jobResponse.json();
+                    setJob(jobData.data);
+                }
+
+                const appsResponse = await apiService.getJobApplications(id);
+                if (appsResponse.ok) {
+                    const appsData = await appsResponse.json();
+                    setApplications(appsData.data);
+                }
+            } catch (error) {
+                console.error('Error fetching data:', error);
+            } finally {
+                setLoading(false);
+            }
+        };
+
         fetchData();
     }, [id]);
-
-    const fetchData = async () => {
-        try {
-            const jobResponse = await apiService.get(`/hiring-forms/${id}`);
-            if (jobResponse.ok) {
-                const jobData = await jobResponse.json();
-                setJob(jobData.data);
-            }
-
-            const appsResponse = await apiService.getJobApplications(id);
-            if (appsResponse.ok) {
-                const appsData = await appsResponse.json();
-                setApplications(appsData.data);
-            }
-        } catch (error) {
-            console.error('Error fetching data:', error);
-        } finally {
-            setLoading(false);
-        }
-    };
 
     const handleStatusUpdate = async (appId, status, reason = '') => {
         setActionLoading(true);

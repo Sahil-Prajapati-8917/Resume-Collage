@@ -1,0 +1,73 @@
+
+> my-app@0.0.0 lint
+> eslint .
+
+
+/Users/sahil/Desktop/resume/my-app/src/components/common/Alerts.jsx
+  81:18  error  'setAlerts' is assigned a value but never used. Allowed unused vars must match /^[A-Z_]/u  no-unused-vars
+
+/Users/sahil/Desktop/resume/my-app/src/components/layout/Breadcrumbs.jsx
+  14:17  error  Fast refresh only works when a file only exports components. Use a new file to share constants or functions between components  react-refresh/only-export-components
+
+/Users/sahil/Desktop/resume/my-app/src/components/layout/MasterAdminLayout.jsx
+  1:27  error  'useEffect' is defined but never used. Allowed unused vars must match /^[A-Z_]/u  no-unused-vars
+
+/Users/sahil/Desktop/resume/my-app/src/pages/admin/HRUserManagement.jsx
+  31:10  error  'loading' is assigned a value but never used. Allowed unused vars must match /^[A-Z_]/u       no-unused-vars
+  37:21  error  'setSortOrder' is assigned a value but never used. Allowed unused vars must match /^[A-Z_]/u  no-unused-vars
+
+/Users/sahil/Desktop/resume/my-app/src/pages/admin/PromptManagement.jsx
+   55:10  error    'loadingIndustries' is assigned a value but never used. Allowed unused vars must match /^[A-Z_]/u                                                                                                                                            no-unused-vars
+   94:14  error    'error' is defined but never used                                                                                                                                                                                                            no-unused-vars
+  110:14  error    'error' is defined but never used                                                                                                                                                                                                            no-unused-vars
+  154:6   warning  React Hook useEffect has a missing dependency: 'promptsCache'. Either include it or remove the dependency array. You can also replace multiple useState variables with useReducer if 'setPrompts' needs the current value of 'promptsCache'  react-hooks/exhaustive-deps
+  174:14  error    'error' is defined but never used                                                                                                                                                                                                            no-unused-vars
+  186:14  error    'error' is defined but never used                                                                                                                                                                                                            no-unused-vars
+  205:14  error    'error' is defined but never used                                                                                                                                                                                                            no-unused-vars
+  216:14  error    'error' is defined but never used                                                                                                                                                                                                            no-unused-vars
+  239:16  error    'error' is defined but never used                                                                                                                                                                                                            no-unused-vars
+
+/Users/sahil/Desktop/resume/my-app/src/pages/auth/Login.jsx
+  1:27  error  'useEffect' is defined but never used. Allowed unused vars must match /^[A-Z_]/u  no-unused-vars
+
+/Users/sahil/Desktop/resume/my-app/src/pages/dashboard/JobApplications.jsx
+  35:8  warning  React Hook useEffect has a missing dependency: 'fetchData'. Either include it or remove the dependency array  react-hooks/exhaustive-deps
+
+/Users/sahil/Desktop/resume/my-app/src/pages/dashboard/MasterAdminDashboard.jsx
+  30:10  error  'timeRange' is assigned a value but never used. Allowed unused vars must match /^[A-Z_]/u     no-unused-vars
+  30:21  error  'setTimeRange' is assigned a value but never used. Allowed unused vars must match /^[A-Z_]/u  no-unused-vars
+
+/Users/sahil/Desktop/resume/my-app/src/pages/dashboard/SystemAnalytics.jsx
+  391:41  error  'value' is defined but never used  no-unused-vars
+
+/Users/sahil/Desktop/resume/my-app/src/pages/evaluation/EvaluationOversight.jsx
+   41:10  error  'loading' is assigned a value but never used. Allowed unused vars must match /^[A-Z_]/u       no-unused-vars
+   48:21  error  'setSortOrder' is assigned a value but never used. Allowed unused vars must match /^[A-Z_]/u  no-unused-vars
+  252:9   error  'removeFlag' is assigned a value but never used. Allowed unused vars must match /^[A-Z_]/u    no-unused-vars
+
+/Users/sahil/Desktop/resume/my-app/src/pages/evaluation/EvaluationResults.jsx
+   2:23  error  'useNavigate' is defined but never used. Allowed unused vars must match /^[A-Z_]/u       no-unused-vars
+  45:10  error  'loading' is assigned a value but never used. Allowed unused vars must match /^[A-Z_]/u  no-unused-vars
+
+/Users/sahil/Desktop/resume/my-app/src/pages/evaluation/GlobalHiringForms.jsx
+   41:21  error  'setSortOrder' is assigned a value but never used. Allowed unused vars must match /^[A-Z_]/u  no-unused-vars
+  206:14  error  'err' is defined but never used                                                               no-unused-vars
+  225:14  error  'err' is defined but never used                                                               no-unused-vars
+  244:14  error  'err' is defined but never used                                                               no-unused-vars
+  267:14  error  'err' is defined but never used                                                               no-unused-vars
+
+/Users/sahil/Desktop/resume/my-app/src/pages/evaluation/HiringForm.jsx
+   76:14  error  'error' is defined but never used                                                         no-unused-vars
+  167:9   error  'jobTypes' is assigned a value but never used. Allowed unused vars must match /^[A-Z_]/u  no-unused-vars
+
+/Users/sahil/Desktop/resume/my-app/src/pages/evaluation/ResumeUpload.jsx
+  33:10  error  'explainableAI' is assigned a value but never used. Allowed unused vars must match /^[A-Z_]/u     no-unused-vars
+  33:25  error  'setExplainableAI' is assigned a value but never used. Allowed unused vars must match /^[A-Z_]/u  no-unused-vars
+
+/Users/sahil/Desktop/resume/my-app/src/pages/public/JobView.jsx
+   45:8   warning  React Hook useEffect has a missing dependency: 'fetchJobDetails'. Either include it or remove the dependency array  react-hooks/exhaustive-deps
+   56:18  error    'err' is defined but never used                                                                                     no-unused-vars
+  143:18  error    'err' is defined but never used                                                                                     no-unused-vars
+
+✖ 36 problems (33 errors, 3 warnings)
+

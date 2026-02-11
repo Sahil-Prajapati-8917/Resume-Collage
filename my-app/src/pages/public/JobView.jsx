@@ -1,16 +1,16 @@
 import React, { useState, useEffect } from 'react';
 import { useParams } from 'react-router-dom';
 import apiService from '../../services/api';
-import { 
-    AlertCircle, 
-    CheckCircle, 
-    Upload, 
-    Briefcase, 
-    MapPin, 
-    Clock, 
-    Calendar, 
-    User, 
-    Mail, 
+import {
+    AlertCircle,
+    CheckCircle,
+    Upload,
+    Briefcase,
+    MapPin,
+    Clock,
+    Calendar,
+    User,
+    Mail,
     Phone,
     FileText,
     Loader2
@@ -41,24 +41,24 @@ const JobView = () => {
     const [dragActive, setDragActive] = useState(false);
 
     useEffect(() => {
+        const fetchJobDetails = async () => {
+            try {
+                const response = await apiService.getPublicJob(id);
+                if (response.ok) {
+                    const data = await response.json();
+                    setJob(data.data);
+                } else {
+                    setError('Job not found or closed.');
+                }
+            } catch {
+                setError('Failed to load job details.');
+            } finally {
+                setLoading(false);
+            }
+        };
+
         fetchJobDetails();
     }, [id]);
-
-    const fetchJobDetails = async () => {
-        try {
-            const response = await apiService.getPublicJob(id);
-            if (response.ok) {
-                const data = await response.json();
-                setJob(data.data);
-            } else {
-                setError('Job not found or closed.');
-            }
-        } catch (err) {
-            setError('Failed to load job details.');
-        } finally {
-            setLoading(false);
-        }
-    };
 
     const handleInputChange = (e) => {
         const { name, value } = e.target;
@@ -91,7 +91,7 @@ const JobView = () => {
         e.preventDefault();
         e.stopPropagation();
         setDragActive(false);
-        
+
         if (e.dataTransfer.files && e.dataTransfer.files[0]) {
             const file = e.dataTransfer.files[0];
             if (file.size > 5 * 1024 * 1024) {
@@ -105,7 +105,7 @@ const JobView = () => {
 
     const handleSubmit = async (e) => {
         e.preventDefault();
-        
+
         // Validation
         if (!formData.name.trim()) {
             setSubmitError('Please enter your full name.');
@@ -140,7 +140,7 @@ const JobView = () => {
             } else {
                 setSubmitError(result.message || 'Application failed.');
             }
-        } catch (err) {
+        } catch {
             setSubmitError('An error occurred. Please try again.');
         } finally {
             setSubmitting(false);
@@ -354,11 +354,10 @@ const JobView = () => {
                                             Resume/CV *
                                         </Label>
                                         <div
-                                            className={`relative border-2 border-dashed rounded-lg p-6 text-center transition-colors ${
-                                                dragActive 
-                                                    ? 'border-primary bg-primary/5' 
-                                                    : 'border-gray-300 hover:border-gray-400 bg-background/50'
-                                            }`}
+                                            className={`relative border-2 border-dashed rounded-lg p-6 text-center transition-colors ${dragActive
+                                                ? 'border-primary bg-primary/5'
+                                                : 'border-gray-300 hover:border-gray-400 bg-background/50'
+                                                }`}
                                             onDragEnter={handleDrag}
                                             onDragLeave={handleDrag}
                                             onDragOver={handleDrag}
@@ -372,7 +371,7 @@ const JobView = () => {
                                                 onChange={handleFileChange}
                                                 className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
                                             />
-                                            
+
                                             <div className="space-y-2">
                                                 <Upload className="mx-auto h-12 w-12 text-gray-400" />
                                                 <div>

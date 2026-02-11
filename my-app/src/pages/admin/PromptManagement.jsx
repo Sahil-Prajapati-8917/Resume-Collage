@@ -47,14 +47,14 @@ const PromptManagement = () => {
   const [newPromptName, setNewPromptName] = useState('')
   const [showCreateForm, setShowCreateForm] = useState(false)
   const [editingContent, setEditingContent] = useState('')
+  const [isAddingIndustry, setIsAddingIndustry] = useState(false)
+  const [newIndustryName, setNewIndustryName] = useState('')
 
   const [industries, setIndustries] = useState(() => {
     const cached = localStorage.getItem('cached_industries')
     return cached ? JSON.parse(cached) : []
   })
-  const [loadingIndustries, setLoadingIndustries] = useState(false)
-  const [isAddingIndustry, setIsAddingIndustry] = useState(false)
-  const [newIndustryName, setNewIndustryName] = useState('')
+
 
   const [prompts, setPrompts] = useState([])
   const [loadingPrompts, setLoadingPrompts] = useState(false)
@@ -65,7 +65,7 @@ const PromptManagement = () => {
   }, [])
 
   const fetchIndustries = async () => {
-    setLoadingIndustries(true)
+
     try {
       const response = await apiService.get('/industries')
       if (response.ok) {
@@ -76,7 +76,7 @@ const PromptManagement = () => {
     } catch (error) {
       console.error('Failed to fetch industries:', error)
     } finally {
-      setLoadingIndustries(false)
+      // setLoadingIndustries(false)
     }
   }
 
@@ -284,8 +284,8 @@ const PromptManagement = () => {
                       <button
                         onClick={() => setSelectedIndustry(industry.name || industry)}
                         className={`flex-1 flex items-center justify-between px-3 py-2.5 rounded-lg text-sm font-medium transition-all ${selectedIndustry === (industry.name || industry)
-                            ? 'bg-primary/10 text-primary shadow-sm'
-                            : 'text-muted-foreground hover:bg-muted/50'
+                          ? 'bg-primary/10 text-primary shadow-sm'
+                          : 'text-muted-foreground hover:bg-muted/50'
                           }`}
                       >
                         {industry.name || industry}

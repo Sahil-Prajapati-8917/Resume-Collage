@@ -30,7 +30,6 @@ const ResumeUpload = () => {
   const [selectedHiringForm, setSelectedHiringForm] = useState('')
   const [holisticEvaluation, setHolisticEvaluation] = useState(true)
   const [evidenceHighlighting, setEvidenceHighlighting] = useState(true)
-  const [explainableAI, setExplainableAI] = useState(true)
   const [strictMode, setStrictMode] = useState(false)
   const fileInputRef = useRef(null)
   const navigate = useNavigate()
