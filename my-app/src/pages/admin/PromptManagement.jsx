@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useMemo } from 'react'
+import React, { useState, useEffect, useMemo, useCallback } from 'react'
 import apiService from '@/services/api'
 import {
   Pencil,
@@ -91,7 +91,7 @@ const PromptManagement = () => {
         await fetchIndustries()
         setSelectedIndustry(newName)
       }
-    } catch (error) {
+    } catch {
       console.error('Error adding industry')
     }
   }
@@ -107,7 +107,7 @@ const PromptManagement = () => {
         }
         fetchIndustries()
       }
-    } catch (error) {
+    } catch {
       console.error('Error deleting industry')
     }
   }
@@ -123,7 +123,7 @@ const PromptManagement = () => {
     totalUsage: prompts.reduce((sum, p) => sum + (p.usageCount || 0), 0)
   }), [prompts, industries])
 
-  const fetchPrompts = async (industryId) => {
+  const fetchPrompts = useCallback(async (industryId) => {
     setLoadingPrompts(true)
     try {
       const response = await apiService.get(`/prompts/industry/${industryId}?all=true`)
@@ -137,7 +137,7 @@ const PromptManagement = () => {
     } finally {
       setLoadingPrompts(false)
     }
-  }
+  }, [])
 
   useEffect(() => {
     if (selectedIndustry && industries.length > 0) {
@@ -151,7 +151,7 @@ const PromptManagement = () => {
         setPrompts([])
       }
     }
-  }, [selectedIndustry, industries, selectedIndustryId])
+  }, [selectedIndustry, industries, selectedIndustryId, promptsCache, fetchPrompts])
 
   const handleEdit = (prompt) => {
     setEditingPrompt(prompt)
@@ -171,7 +171,7 @@ const PromptManagement = () => {
         setEditingPrompt(null)
         setEditingContent('')
       }
-    } catch (error) {
+    } catch {
       console.error('Failed to save prompt')
     }
   }
@@ -183,7 +183,7 @@ const PromptManagement = () => {
       if (response.ok) {
         setPrompts(prev => prev.filter(p => p._id !== promptId))
       }
-    } catch (error) {
+    } catch {
       console.error('Failed to delete prompt')
     }
   }
@@ -202,7 +202,7 @@ const PromptManagement = () => {
         const data = await response.json()
         setPrompts(prev => [data.data, ...prev])
       }
-    } catch (error) {
+    } catch {
       console.error('Failed to duplicate prompt')
     }
   }
@@ -213,7 +213,7 @@ const PromptManagement = () => {
       if (response.ok) {
         if (selectedIndustryId) fetchPrompts(selectedIndustryId)
       }
-    } catch (error) {
+    } catch {
       console.error('Failed to set default')
     }
   }
@@ -236,7 +236,7 @@ const PromptManagement = () => {
           setEditingPrompt(data.data)
           setEditingContent(data.data.prompt)
         }
-      } catch (error) {
+      } catch {
         console.error('Failed to create prompt')
       }
     }
