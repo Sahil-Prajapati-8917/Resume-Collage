@@ -225,6 +225,14 @@ class ApiService {
     return this.put(`/resume/${id}/status`, { status, reason });
   }
 
+  async bulkEvaluateResumes(jobId, promptId, candidateIds) {
+    return this.post('/resume/bulk-evaluate', { jobId, promptId, candidateIds });
+  }
+
+  async getPromptsByIndustry(industryId) {
+    return this.get(`/prompts/industry/${industryId}?all=true`);
+  }
+
   // Verification method to check API connectivity
   async verifyApiConnection() {
     try {

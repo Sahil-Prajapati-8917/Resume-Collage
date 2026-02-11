@@ -17,6 +17,14 @@ import {
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Textarea } from "@/components/ui/textarea"
+import {
+    Select,
+    SelectContent,
+    SelectItem,
+    SelectTrigger,
+    SelectValue,
+} from "@/components/ui/select"
+import { Wand2 } from 'lucide-react';
 
 const JobApplications = () => {
     const { id } = useParams();
@@ -30,13 +38,20 @@ const JobApplications = () => {
     const [rejectReason, setRejectReason] = useState('');
     const [isRejectDialogOpen, setIsRejectDialogOpen] = useState(false);
 
+    // AI Evaluation State
+    const [prompts, setPrompts] = useState([]);
+    const [selectedPromptId, setSelectedPromptId] = useState('');
+    const [isEvaluating, setIsEvaluating] = useState(false);
+
     useEffect(() => {
         const fetchData = async () => {
             try {
                 const jobResponse = await apiService.get(`/hiring-forms/${id}`);
+                let currentJob = null;
                 if (jobResponse.ok) {
                     const jobData = await jobResponse.json();
-                    setJob(jobData.data);
+                    currentJob = jobData.data;
+                    setJob(currentJob);
                 }
 
                 const appsResponse = await apiService.getJobApplications(id);
@@ -44,6 +59,22 @@ const JobApplications = () => {
                     const appsData = await appsResponse.json();
                     setApplications(appsData.data);
                 }
+
+                // Fetch Prompts if job has industry
+                if (currentJob && currentJob.industry) {
+                    const promptsResponse = await apiService.getPromptsByIndustry(currentJob.industry);
+                    if (promptsResponse.ok) {
+                        const promptsData = await promptsResponse.json();
+                        setPrompts(promptsData.data);
+                        // Default to job's prompt or first available
+                        if (currentJob.promptId) {
+                            setSelectedPromptId(currentJob.promptId);
+                        } else if (promptsData.data.length > 0) {
+                            setSelectedPromptId(promptsData.data[0]._id);
+                        }
+                    }
+                }
+
             } catch (error) {
                 console.error('Error fetching data:', error);
             } finally {
@@ -53,6 +84,31 @@ const JobApplications = () => {
 
         fetchData();
     }, [id]);
+
+    const handleRunEvaluation = async () => {
+        if (!selectedPromptId) return;
+        setIsEvaluating(true);
+        try {
+            const response = await apiService.bulkEvaluateResumes(id, selectedPromptId);
+            if (response.ok) {
+                // Refresh applications
+                const appsResponse = await apiService.getJobApplications(id);
+                if (appsResponse.ok) {
+                    const appsData = await appsResponse.json();
+                    setApplications(appsData.data);
+                }
+                // Show success message (could be a toast)
+                alert("AI Evaluation completed successfully!");
+            } else {
+                alert("Failed to run evaluation");
+            }
+        } catch (error) {
+            console.error(error);
+            alert("Error running evaluation");
+        } finally {
+            setIsEvaluating(false);
+        }
+    };
 
     const handleStatusUpdate = async (appId, status, reason = '') => {
         setActionLoading(true);
@@ -91,6 +147,47 @@ const JobApplications = () => {
                 </div>
             </div>
 
+            {/* AI Toolbar */}
+            <Card className="mb-6 bg-muted/30">
+                <CardContent className="p-4 flex flex-col md:flex-row items-center justify-between gap-4">
+                    <div className="flex items-center gap-3">
+                        <div className="p-2 bg-primary/10 rounded-full">
+                            <Wand2 className="size-5 text-primary" />
+                        </div>
+                        <div>
+                            <h3 className="font-semibold">AI Resume Screening</h3>
+                            <p className="text-sm text-muted-foreground">Evaluate all candidates against job requirements</p>
+                        </div>
+                    </div>
+                    <div className="flex items-center gap-3 w-full md:w-auto">
+                        <Select value={selectedPromptId} onValueChange={setSelectedPromptId}>
+                            <SelectTrigger className="w-[200px] bg-background">
+                                <SelectValue placeholder="Select Prompt" />
+                            </SelectTrigger>
+                            <SelectContent>
+                                {prompts.map(prompt => (
+                                    <SelectItem key={prompt._id} value={prompt._id}>
+                                        {prompt.name} (v{prompt.version})
+                                    </SelectItem>
+                                ))}
+                            </SelectContent>
+                        </Select>
+                        <Button
+                            onClick={handleRunEvaluation}
+                            disabled={!selectedPromptId || isEvaluating || applications.length === 0}
+                        >
+                            {isEvaluating ? (
+                                <>
+                                    <Loader2 className="mr-2 size-4 animate-spin" /> Evaluating...
+                                </>
+                            ) : (
+                                "Run Analysis"
+                            )}
+                        </Button>
+                    </div>
+                </CardContent>
+            </Card>
+
             <div className="grid gap-6">
                 {applications.length === 0 ? (
                     <Card>
@@ -113,6 +210,15 @@ const JobApplications = () => {
                                         }>
                                             {app.status}
                                         </Badge>
+                                        {app.aiEvaluation?.totalScore > 0 && (
+                                            <Badge variant="outline" className={
+                                                app.aiEvaluation.totalScore >= 80 ? "border-green-500 text-green-600" :
+                                                    app.aiEvaluation.totalScore >= 50 ? "border-yellow-500 text-yellow-600" :
+                                                        "border-red-500 text-red-600"
+                                            }>
+                                                AI Score: {app.aiEvaluation.totalScore}/100
+                                            </Badge>
+                                        )}
                                     </div>
                                     <div className="text-sm text-muted-foreground space-y-1">
                                         <p>Email: {app.candidateEmail}</p>

@@ -28,6 +28,9 @@ const upload = multer({
 // POST /api/resume/parse
 router.post('/parse', auth, upload.single('resume'), resumeController.parseResume);
 
+// POST /api/resume/bulk-evaluate
+router.post('/bulk-evaluate', auth, resumeController.bulkEvaluateResumes);
+
 // POST /api/resume/evaluate
 router.post('/evaluate', auth, resumeController.evaluateResume);
 

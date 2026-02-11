@@ -220,7 +220,7 @@ exports.downloadResume = async (req, res) => {
     try {
         const { id } = req.params;
         const resume = await Resume.findById(id);
-        
+
         if (!resume) {
             return res.status(404).json({ success: false, message: 'Resume not found' });
         }
@@ -255,26 +255,111 @@ exports.evaluateResume = async (req, res) => {
         const hiringForm = await HiringForm.findById(hiringFormId);
         if (!hiringForm) return res.status(404).json({ success: false, message: 'Hiring Form not found' });
 
-        let basePromptInstructions = "You are an expert HR AI assistant.";
-        if (hiringForm.promptId) {
-            try {
-                const promptDoc = await Prompt.findById(hiringForm.promptId);
-                if (promptDoc && promptDoc.prompt) basePromptInstructions = promptDoc.prompt;
-            } catch (pError) { console.error("Error fetching prompt:", pError); }
+        const result = await evaluateSingleResume(resume, hiringForm);
+
+        return res.status(200).json({ success: true, message: 'Evaluated successfully', data: result.resume, evalModel: result.model });
+
+    } catch (error) {
+        console.error('Error evaluating resume:', error);
+        return res.status(500).json({ success: false, message: 'Evaluation failed', error: error.message });
+    }
+};
+
+exports.bulkEvaluateResumes = async (req, res) => {
+    try {
+        const { jobId, promptId, candidateIds } = req.body;
+
+        if (!jobId) {
+            return res.status(400).json({ success: false, message: 'Job ID is required' });
         }
 
-        const apiKey = process.env.GOOGLE_API_KEY;
-        let evaluationResult = null;
-        let usedModel = 'None';
+        const hiringForm = await HiringForm.findById(jobId);
+        if (!hiringForm) {
+            return res.status(404).json({ success: false, message: 'Job not found' });
+        }
 
-        // Prepare Prompt
-        const responsibilities = hiringForm.responsibilities || [];
-        const requirements = hiringForm.requirements || [];
-        const roleExpectations = hiringForm.roleExpectations || [];
-        const performanceIndicators = hiringForm.performanceIndicators || [];
+        // If promptId is provided, override the job's promptId
+        if (promptId) {
+            hiringForm.promptId = promptId;
+        }
+
+        let query = { jobId: jobId };
+
+        // If specific candidates selected, filter by them
+        if (candidateIds && Array.isArray(candidateIds) && candidateIds.length > 0) {
+            query._id = { $in: candidateIds };
+        } else {
+            // Otherwise, target resumes that are Pending or Under Process, or maybe just all?
+            // Let's target all for now to allow re-evaluation, or maybe just filter by those not Disqualified?
+            // For bulk, usually we want to process everything that isn't Final.
+            // But to be safe and simple, let's just process everything for this Job.
+        }
+
+        const resumes = await Resume.find(query);
+
+        if (resumes.length === 0) {
+            return res.status(404).json({ success: false, message: 'No resumes found to evaluate' });
+        }
+
+        console.log(`Starting bulk evaluation for ${resumes.length} resumes...`);
+
+        const results = {
+            successful: 0,
+            failed: 0,
+            details: []
+        };
+
+        // Process in parallel with a limit might be better, but for now sequential or Promise.all
+        // standard Promise.all might hit rate limits.
+        // Let's do a simple loop for MVP.
+
+        for (const resume of resumes) {
+            try {
+                await evaluateSingleResume(resume, hiringForm);
+                results.successful++;
+                results.details.push({ id: resume._id, status: 'evaluated' });
+            } catch (err) {
+                console.error(`Failed to evaluate resume ${resume._id}:`, err);
+                results.failed++;
+                results.details.push({ id: resume._id, status: 'failed', error: err.message });
+            }
+        }
+
+        return res.status(200).json({
+            success: true,
+            message: `Bulk evaluation completed. Success: ${results.successful}, Failed: ${results.failed}`,
+            data: results
+        });
+
+    } catch (error) {
+        console.error('Error in bulk evaluation:', error);
+        return res.status(500).json({ success: false, message: 'Bulk evaluation failed', error: error.message });
+    }
+};
+
+async function evaluateSingleResume(resume, hiringForm) {
+    let basePromptInstructions = "You are an expert HR AI assistant.";
+
+    // Fetch prompt if promptId exists on the form (which might have been updated temporarily in memory for bulk op)
+    if (hiringForm.promptId) {
+        try {
+            const promptDoc = await Prompt.findById(hiringForm.promptId);
+            if (promptDoc && promptDoc.prompt) basePromptInstructions = promptDoc.prompt;
+        } catch (pError) { console.error("Error fetching prompt:", pError); }
+    }
+
+    const apiKey = process.env.GOOGLE_API_KEY;
+    let evaluationResult = null;
+    let usedModel = 'None';
+
+    // Prepare Prompt
+    const responsibilities = hiringForm.responsibilities || [];
+    const requirements = hiringForm.requirements || [];
+    const roleExpectations = hiringForm.roleExpectations || [];
+    const performanceIndicators = hiringForm.performanceIndicators || [];
 
 
-        const promptText = `
+    const promptText = `
 ${basePromptInstructions}
 
 Job Details:
@@ -316,14 +401,35 @@ Output Format: Return valid JSON ONLY.
 }
 `;
 
-        if (apiKey) {
-            const genAI = new GoogleGenerativeAI(apiKey);
+    if (apiKey) {
+        const genAI = new GoogleGenerativeAI(apiKey);
 
-            // Try Gemini 1.5 Flash
+        // Try Gemini 1.5 Flash
+        try {
+            // console.log('Sending request to Gemini 1.5 Flash...');
+            const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
+            const result = await model.generateContent(promptText);
+            const response = await result.response;
+            let text = response.text();
+
+            text = text.replace(/```json/g, '').replace(/```/g, '').trim();
+            const jsonStartIndex = text.indexOf('{');
+            const jsonEndIndex = text.lastIndexOf('}');
+            if (jsonStartIndex !== -1 && jsonEndIndex !== -1) {
+                text = text.substring(jsonStartIndex, jsonEndIndex + 1);
+            }
+
+            evaluationResult = JSON.parse(text);
+            usedModel = 'Gemini-1.5-Flash';
+            // console.log('Gemini 1.5 Flash success');
+        } catch (flashError) {
+            console.error('Gemini 1.5 Flash failed:', flashError.message);
+
+            // Try Gemini Pro
             try {
-                console.log('Sending request to Gemini 1.5 Flash...');
-                const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
-                const result = await model.generateContent(promptText);
+                console.log('Retrying with Gemini Pro...');
+                const modelPro = genAI.getGenerativeModel({ model: "gemini-pro" });
+                const result = await modelPro.generateContent(promptText);
                 const response = await result.response;
                 let text = response.text();
 
@@ -335,72 +441,46 @@ Output Format: Return valid JSON ONLY.
                 }
 
                 evaluationResult = JSON.parse(text);
-                usedModel = 'Gemini-1.5-Flash';
-                console.log('Gemini 1.5 Flash success');
-            } catch (flashError) {
-                console.error('Gemini 1.5 Flash failed:', flashError.message);
-
-                // Try Gemini Pro
-                try {
-                    console.log('Retrying with Gemini Pro...');
-                    const modelPro = genAI.getGenerativeModel({ model: "gemini-pro" });
-                    const result = await modelPro.generateContent(promptText);
-                    const response = await result.response;
-                    let text = response.text();
-
-                    text = text.replace(/```json/g, '').replace(/```/g, '').trim();
-                    const jsonStartIndex = text.indexOf('{');
-                    const jsonEndIndex = text.lastIndexOf('}');
-                    if (jsonStartIndex !== -1 && jsonEndIndex !== -1) {
-                        text = text.substring(jsonStartIndex, jsonEndIndex + 1);
-                    }
-
-                    evaluationResult = JSON.parse(text);
-                    usedModel = 'Gemini-Pro';
-                    console.log('Gemini Pro success');
-                } catch (proError) {
-                    console.error('Gemini Pro failed:', proError.message);
-                }
+                usedModel = 'Gemini-Pro';
+                console.log('Gemini Pro success');
+            } catch (proError) {
+                console.error('Gemini Pro failed:', proError.message);
             }
         }
-
-        // Fallback
-        if (!evaluationResult) {
-            console.log('Falling back to Heuristic Evaluation');
-            evaluationResult = performHeuristicEvaluation(resume.parsedText, hiringForm);
-            usedModel = 'Heuristic-Fallback';
-        }
-
-        resume.aiEvaluation = {
-            totalScore: evaluationResult.totalScore || 0,
-            summary: evaluationResult.summary || 'No summary',
-            strengths: evaluationResult.strengths || [],
-            weaknesses: evaluationResult.weaknesses || [],
-            matchedSkills: evaluationResult.matchedSkills || [],
-            missingSkills: evaluationResult.missingSkills || [],
-            candidateSkills: evaluationResult.candidateSkills || [],
-            details: evaluationResult.details || { skillsMatch: 0, experienceMatch: 0, requirementsMatch: 0 },
-            confidence: evaluationResult.confidence || 0,
-            confidenceLevel: evaluationResult.confidenceLevel || 'Low',
-            riskFlag: evaluationResult.riskFlag || 'Medium',
-            metadata: { model: usedModel, timestamp: new Date() }
-        };
-
-        const score = evaluationResult.totalScore || 0;
-        if (score >= 80) resume.status = 'Shortlisted';
-        else if (score >= 50) resume.status = 'Manual Review Required';
-        else resume.status = 'Disqualified';
-
-        resume.industry = hiringForm.industry;
-        resume.roleType = hiringForm.title;
-
-        await resume.save();
-        console.log('Resume updated successfully with model:', usedModel);
-
-        return res.status(200).json({ success: true, message: 'Evaluated successfully', data: resume, evalModel: usedModel });
-
-    } catch (error) {
-        console.error('Error evaluating resume:', error);
-        return res.status(500).json({ success: false, message: 'Evaluation failed', error: error.message });
     }
-};
+
+    // Fallback
+    if (!evaluationResult) {
+        console.log('Falling back to Heuristic Evaluation');
+        evaluationResult = performHeuristicEvaluation(resume.parsedText, hiringForm);
+        usedModel = 'Heuristic-Fallback';
+    }
+
+    resume.aiEvaluation = {
+        totalScore: evaluationResult.totalScore || 0,
+        summary: evaluationResult.summary || 'No summary',
+        strengths: evaluationResult.strengths || [],
+        weaknesses: evaluationResult.weaknesses || [],
+        matchedSkills: evaluationResult.matchedSkills || [],
+        missingSkills: evaluationResult.missingSkills || [],
+        candidateSkills: evaluationResult.candidateSkills || [],
+        details: evaluationResult.details || { skillsMatch: 0, experienceMatch: 0, requirementsMatch: 0 },
+        confidence: evaluationResult.confidence || 0,
+        confidenceLevel: evaluationResult.confidenceLevel || 'Low',
+        riskFlag: evaluationResult.riskFlag || 'Medium',
+        metadata: { model: usedModel, timestamp: new Date() }
+    };
+
+    const score = evaluationResult.totalScore || 0;
+    if (score >= 80) resume.status = 'Shortlisted';
+    else if (score >= 50) resume.status = 'Manual Review Required';
+    else resume.status = 'Disqualified';
+
+    resume.industry = hiringForm.industry;
+    resume.roleType = hiringForm.title;
+
+    await resume.save();
+    console.log('Resume updated successfully with model:', usedModel);
+
+    return { resume, model: usedModel };
+}
