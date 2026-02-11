@@ -1,10 +1,10 @@
 const express = require('express');
 const router = express.Router();
 const queueController = require('../controllers/queueController');
-const { protect } = require('../middleware/auth');
+const { authenticateToken: auth } = require('../middleware/auth');
 
 // All queue routes are protected
-router.use(protect);
+router.use(auth);
 
 // Get all applications for queue management
 router.get('/applications', queueController.getAllApplications);

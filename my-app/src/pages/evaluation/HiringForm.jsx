@@ -203,13 +203,13 @@ const HiringForm = () => {
 
       if (response.ok) {
         const data = await response.json()
-        setStatus({ 
-          type: 'success', 
-          message: editingId 
-            ? 'Criteria updated successfully' 
-            : 'Job posting created successfully!' 
+        setStatus({
+          type: 'success',
+          message: editingId
+            ? 'Criteria updated successfully'
+            : 'Job posting created successfully!'
         })
-        
+
         // Show shareable link for new forms
         if (!editingId && data.data) {
           setTimeout(() => {
@@ -220,12 +220,12 @@ const HiringForm = () => {
             }
           }, 1000)
         }
-        
+
         fetchSavedForms()
         if (!editingId) handleCancelEdit()
       } else {
         const data = await response.json()
-        throw new Error(data.message || 'Validation failed.')
+        throw new Error(data.error?.message || data.message || 'Validation failed.')
       }
     } catch (error) {
       setStatus({ type: 'error', message: error.message })
@@ -407,7 +407,20 @@ const HiringForm = () => {
               </div>
             </CardContent>
             <CardFooter className="flex flex-col gap-3 pt-0">
-              <Button className="w-full h-11" disabled={loading || !formData.formName || !formData.title} onClick={handleSave}>
+              <Button
+                className="w-full h-11"
+                disabled={
+                  loading ||
+                  !formData.formName ||
+                  !formData.title ||
+                  !formData.industry ||
+                  !formData.promptId ||
+                  !formData.experienceLevel ||
+                  !formData.description ||
+                  !formData.deadline
+                }
+                onClick={handleSave}
+              >
                 {loading ? <Loader2 className="size-4 animate-spin mr-2" /> : editingId ? 'Update Criteria' : 'Save Job Opening'}
               </Button>
               {editingId && (
