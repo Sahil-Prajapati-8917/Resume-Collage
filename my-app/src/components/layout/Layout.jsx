@@ -41,6 +41,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
+import { ModeToggle } from '../mode-toggle'
 import authService from '../../services/auth'
 
 const Layout = ({ children }) => {
@@ -143,6 +144,7 @@ const Layout = ({ children }) => {
                 <GlobalSearch />
               </div>
             </div>
+            <ModeToggle />
             <Separator orientation="vertical" className="h-4" />
             <DropdownMenu>
               <DropdownMenuTrigger asChild>

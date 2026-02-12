@@ -22,6 +22,7 @@ import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import Notifications from '../common/Notifications'
 import Alerts from '../common/Alerts'
+import { ModeToggle } from '../mode-toggle'
 
 const MasterAdminLayout = ({ children }) => {
   const location = useLocation()
@@ -219,6 +220,7 @@ const MasterAdminLayout = ({ children }) => {
               {/* Right Section */}
               <div className="flex items-center space-x-4">
                 <Notifications />
+                <ModeToggle />
 
                 <div className="hidden md:flex items-center space-x-2">
                   <div className="h-8 w-8 rounded-full bg-primary/20 flex items-center justify-center">
