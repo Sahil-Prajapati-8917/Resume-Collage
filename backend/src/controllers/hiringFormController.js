@@ -9,7 +9,12 @@ exports.createHiringForm = async (req, res, next) => {
             data: hiringForm
         });
     } catch (err) {
-        next(err);
+        console.error('Error creating hiring form:', err);
+        res.status(500).json({
+            success: false,
+            message: 'Server Error: Failed to create hiring form',
+            error: err.message
+        });
     }
 };
 
@@ -23,7 +28,12 @@ exports.getAllHiringForms = async (req, res, next) => {
             data: hiringForms
         });
     } catch (err) {
-        next(err);
+        console.error('Error fetching hiring forms:', err);
+        res.status(500).json({
+            success: false,
+            message: 'Server Error: Failed to fetch hiring forms',
+            error: err.message
+        });
     }
 };
 
@@ -35,7 +45,12 @@ exports.getHiringForm = async (req, res, next) => {
         }
         res.status(200).json({ success: true, data: hiringForm });
     } catch (err) {
-        next(err);
+        console.error('Error fetching hiring form:', err);
+        res.status(500).json({
+            success: false,
+            message: 'Server Error: Failed to fetch hiring form',
+            error: err.message
+        });
     }
 };
 
@@ -80,7 +95,12 @@ exports.updateHiringForm = async (req, res, next) => {
             data: updatedForm
         });
     } catch (err) {
-        next(err);
+        console.error('Error updating hiring form:', err);
+        res.status(500).json({
+            success: false,
+            message: 'Server Error: Failed to update hiring form',
+            error: err.message
+        });
     }
 };
 
@@ -103,6 +123,11 @@ exports.getJobApplications = async (req, res, next) => {
             data: applications
         });
     } catch (err) {
-        next(err);
+        console.error('Error fetching job applications:', err);
+        res.status(500).json({
+            success: false,
+            message: 'Server Error: Failed to fetch applications',
+            error: err.message
+        });
     }
 };

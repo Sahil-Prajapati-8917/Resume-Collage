@@ -34,18 +34,23 @@ const Queue = () => {
   const [sortBy, setSortBy] = useState('uploadedAt')
   const [sortOrder, setSortOrder] = useState('desc')
 
+  const [error, setError] = useState(null)
+
   useEffect(() => {
     fetchQueueData()
   }, [])
 
   const fetchQueueData = async () => {
     setLoading(true)
+    setError(null)
     try {
       // Fetch all hiring forms for filtering
       const formsResponse = await apiService.get('/hiring-forms')
       if (formsResponse.ok) {
         const formsData = await formsResponse.json()
         setHiringForms(formsData.data)
+      } else {
+        throw new Error('Failed to fetch hiring forms')
       }
 
       // Fetch all applications by getting applications for each form
@@ -53,9 +58,12 @@ const Queue = () => {
       if (applicationsResponse.ok) {
         const applicationsData = await applicationsResponse.json()
         setApplications(applicationsData.data)
+      } else {
+        throw new Error('Failed to fetch applications')
       }
     } catch (error) {
       console.error('Failed to fetch queue data:', error)
+      setError('Failed to load application data. Please try refreshing the page.')
     } finally {
       setLoading(false)
     }
@@ -276,6 +284,14 @@ const Queue = () => {
         <h1 className="text-3xl font-semibold tracking-tight">Application Queue</h1>
         <p className="text-muted-foreground">Manage and review candidate applications across all job postings.</p>
       </div>
+
+      {error && (
+        <Alert variant="destructive">
+          <AlertCircle className="h-4 w-4" />
+          <AlertTitle>Error</AlertTitle>
+          <AlertDescription>{error}</AlertDescription>
+        </Alert>
+      )}
 
       {/* Statistics Cards */}
       <div className="grid grid-cols-1 md:grid-cols-4 gap-6">

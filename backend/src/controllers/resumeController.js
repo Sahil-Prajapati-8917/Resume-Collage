@@ -76,7 +76,7 @@ exports.getResumes = async (req, res) => {
         if (confidence) query['aiEvaluation.confidenceLevel'] = confidence;
         if (riskFlag) query['aiEvaluation.riskFlag'] = riskFlag;
 
-        const resumes = await Resume.find(query).sort({ uploadedAt: -1 });
+        const resumes = await Resume.find(query).sort({ uploadedAt: -1 }).lean();
         return res.status(200).json({ success: true, count: resumes.length, data: resumes });
     } catch (error) {
         return res.status(500).json({ success: false, message: 'Failed to fetch resumes', error: error.message });

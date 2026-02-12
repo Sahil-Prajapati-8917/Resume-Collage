@@ -49,10 +49,28 @@ class ApiService {
 
       // Handle 401 Unauthorized - token expired
       if (response.status === 401) {
-        await this.refreshAccessToken();
-        // Retry the request with new token
-        config.headers.Authorization = `Bearer ${this.token}`;
-        return fetch(url, config);
+        // Prevent infinite loop if we are already refreshing
+        if (url.includes('/auth/refresh')) {
+          throw new Error('Refresh token invalid');
+        }
+
+        try {
+          await this.refreshAccessToken();
+          // Retry the original request with new token
+          config.headers.Authorization = `Bearer ${this.token}`;
+          return fetch(url, config);
+        } catch (refreshError) {
+          // Refresh failed, clear tokens and redirect to login
+          this.clearTokens();
+          window.location.href = '/login';
+          throw refreshError;
+        }
+      }
+
+      // Handle 403 Forbidden
+      if (response.status === 403) {
+        console.error('Access Forbidden');
+        // Optionally handle forbidden access (e.g. redirect to dashboard)
       }
 
       return response;
