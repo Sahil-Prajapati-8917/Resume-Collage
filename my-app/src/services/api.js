@@ -233,6 +233,10 @@ class ApiService {
     return this.get(`/prompts/industry/${industryId}?all=true`);
   }
 
+  async getIndustries() {
+    return this.get('/industry');
+  }
+
   // Verification method to check API connectivity
   async verifyApiConnection() {
     try {

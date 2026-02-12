@@ -44,30 +44,17 @@ const sendEmail = async (to, subject, html) => {
     }
 };
 
+const { getShortlistTemplate, getRejectionTemplate } = require('../config/emailTemplates');
+
 const sendShortlistEmail = async (candidateName, candidateEmail, jobTitle) => {
     const subject = `Update on your application for ${jobTitle}`;
-    const html = `
-        <p>Dear ${candidateName},</p>
-        <p>We are pleased to inform you that you have been shortlisted for the position of <strong>${jobTitle}</strong>.</p>
-        <p>Our HR team will contact you shortly regarding the next steps.</p>
-        <br>
-        <p>Best regards,</p>
-        <p>HR Team</p>
-    `;
+    const html = getShortlistTemplate(candidateName, jobTitle);
     return await sendEmail(candidateEmail, subject, html);
 };
 
 const sendRejectionEmail = async (candidateName, candidateEmail, jobTitle) => {
     const subject = `Update on your application for ${jobTitle}`;
-    const html = `
-        <p>Dear ${candidateName},</p>
-        <p>Thank you for your interest in the <strong>${jobTitle}</strong> position.</p>
-        <p>After careful consideration, we have decided to move forward with other candidates who more closely match our current requirements.</p>
-        <p>We wish you the best in your job search.</p>
-        <br>
-        <p>Best regards,</p>
-        <p>HR Team</p>
-    `;
+    const html = getRejectionTemplate(candidateName, jobTitle);
     return await sendEmail(candidateEmail, subject, html);
 };
 

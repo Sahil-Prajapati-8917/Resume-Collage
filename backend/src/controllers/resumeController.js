@@ -313,11 +313,34 @@ exports.bulkEvaluateResumes = async (req, res) => {
         // standard Promise.all might hit rate limits.
         // Let's do a simple loop for MVP.
 
+        const { sendShortlistEmail, sendRejectionEmail } = require('../services/emailService');
+
         for (const resume of resumes) {
             try {
-                await evaluateSingleResume(resume, hiringForm);
+                // 1. Evaluate
+                const evalResult = await evaluateSingleResume(resume, hiringForm);
+                const updatedResume = evalResult.resume;
+
+                // 2. Status is already updated in evaluateSingleResume based on score
+                // But we need to save the specific reason/history if needed
+
+                // 3. Send Email based on status
+                if (updatedResume.candidateEmail) {
+                    const jobTitle = hiringForm.title || 'Job Application';
+                    if (updatedResume.status === 'Shortlisted') {
+                        await sendShortlistEmail(updatedResume.candidateName, updatedResume.candidateEmail, jobTitle);
+                        results.details.push({ id: resume._id, status: 'Shortlisted', emailSent: true });
+                    } else if (updatedResume.status === 'Disqualified') {
+                        await sendRejectionEmail(updatedResume.candidateName, updatedResume.candidateEmail, jobTitle);
+                        results.details.push({ id: resume._id, status: 'Disqualified', emailSent: true });
+                    } else {
+                        results.details.push({ id: resume._id, status: updatedResume.status, emailSent: false });
+                    }
+                } else {
+                    results.details.push({ id: resume._id, status: updatedResume.status, emailSent: false, error: 'No email' });
+                }
+
                 results.successful++;
-                results.details.push({ id: resume._id, status: 'evaluated' });
             } catch (err) {
                 console.error(`Failed to evaluate resume ${resume._id}:`, err);
                 results.failed++;

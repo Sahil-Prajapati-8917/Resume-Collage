@@ -125,11 +125,11 @@ const Queue = () => {
 
   // Filter applications
   const filteredApplications = applications.filter(app => {
-    const matchesSearch = 
+    const matchesSearch =
       app.candidateName?.toLowerCase().includes(searchTerm.toLowerCase()) ||
       app.candidateEmail?.toLowerCase().includes(searchTerm.toLowerCase()) ||
       app.fileName?.toLowerCase().includes(searchTerm.toLowerCase())
-    
+
     const matchesForm = selectedForm === 'all' || app.jobId === selectedForm
     const matchesStatus = statusFilter === 'all' || app.status === statusFilter
 
@@ -161,6 +161,92 @@ const Queue = () => {
   const getFormName = (jobId) => {
     const form = hiringForms.find(f => f._id === jobId)
     return form?.formName || 'Unknown Form'
+  }
+
+  // Bulk Evaluation Logic
+  const [prompts, setPrompts] = useState([])
+  const [selectedPrompt, setSelectedPrompt] = useState('')
+  const [industries, setIndustries] = useState([])
+  const [isBulkEvaluating, setIsBulkEvaluating] = useState(false)
+  const [evaluationStats, setEvaluationStats] = useState(null)
+
+  useEffect(() => {
+    fetchIndustries()
+  }, [])
+
+  const fetchIndustries = async () => {
+    try {
+      const response = await apiService.getIndustries()
+      if (response.ok) {
+        const data = await response.json()
+        setIndustries(data.data)
+      }
+    } catch (error) {
+      console.error('Failed to fetch industries:', error)
+    }
+  }
+
+  useEffect(() => {
+    if (selectedForm !== 'all') {
+      fetchPromptsForJob(selectedForm)
+    } else {
+      setPrompts([])
+      setSelectedPrompt('')
+    }
+  }, [selectedForm, industries])
+
+  const fetchPromptsForJob = async (jobId) => {
+    try {
+      const job = hiringForms.find(f => f._id === jobId)
+      if (!job) return
+
+      // Find industry ID by name
+      const industry = industries.find(ind => ind.name === job.industry)
+      if (industry) {
+        const response = await apiService.getPromptsByIndustry(industry._id)
+        if (response.ok) {
+          const data = await response.json()
+          setPrompts(data.data)
+          // Set default prompt if available
+          if (data.data.length > 0) {
+            const defaultPrompt = data.data.find(p => p.isDefault) || data.data[0]
+            setSelectedPrompt(defaultPrompt._id)
+          }
+        }
+      }
+    } catch (error) {
+      console.error('Failed to fetch prompts:', error)
+    }
+  }
+
+  const handleBulkEvaluation = async () => {
+    if (selectedForm === 'all' || !selectedPrompt) return
+
+    setIsBulkEvaluating(true)
+    setEvaluationStats(null)
+
+    try {
+      // Get all pending resumes for this job or just rely on backend to find all?
+      // Backend bulkEvaluateResumes takes candidateIds (optional) or processes all.
+      // Let's filter visible candidates on current screen or just send the job ID to process all eligible.
+      // Based on my backend implementation, if I don't send candidateIds, it finds all Pending/Under Process.
+      // Or I can send the IDs of the filtered list to be precise.
+
+      const candidateIds = sortedApplications.map(app => app._id)
+
+      const response = await apiService.bulkEvaluateResumes(selectedForm, selectedPrompt, candidateIds)
+
+      if (response.ok) {
+        const result = await response.json()
+        setEvaluationStats(result.data)
+        // Refresh queue
+        fetchQueueData()
+      }
+    } catch (error) {
+      console.error('Bulk evaluation failed:', error)
+    } finally {
+      setIsBulkEvaluating(false)
+    }
   }
 
   if (loading) {
@@ -196,7 +282,7 @@ const Queue = () => {
             <p className="text-xs text-muted-foreground">Across all positions</p>
           </CardContent>
         </Card>
-        
+
         <Card className="border-border/40 bg-card/50">
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium">Pending Review</CardTitle>
@@ -253,7 +339,7 @@ const Queue = () => {
                 />
               </div>
             </div>
-            
+
             <div className="flex gap-2">
               <Select value={selectedForm} onValueChange={setSelectedForm}>
                 <SelectTrigger className="w-48 bg-background/50">
@@ -300,6 +386,55 @@ const Queue = () => {
             </div>
           </div>
         </CardContent>
+        {selectedForm !== 'all' && (
+          <CardContent className="border-t border-border/20 pt-4">
+            <div className="flex flex-col md:flex-row gap-4 items-end">
+              <div className="flex-1 space-y-2">
+                <label className="text-sm font-medium">Select Evaluation Prompt</label>
+                <Select value={selectedPrompt} onValueChange={setSelectedPrompt}>
+                  <SelectTrigger className="bg-background/50">
+                    <SelectValue placeholder="Choose a prompt" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {prompts.map(prompt => (
+                      <SelectItem key={prompt._id} value={prompt._id}>
+                        {prompt.name} {prompt.isDefault && '(Default)'}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+              <Button
+                onClick={handleBulkEvaluation}
+                disabled={isBulkEvaluating || !selectedPrompt || sortedApplications.length === 0}
+                className="min-w-[150px]"
+              >
+                {isBulkEvaluating ? (
+                  <>
+                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                    Processing...
+                  </>
+                ) : (
+                  <>
+                    <FileText className="mr-2 h-4 w-4" />
+                    Run Bulk Evaluation
+                  </>
+                )}
+              </Button>
+            </div>
+            {evaluationStats && (
+              <Alert className="mt-4 bg-green-500/10 border-green-500/20 text-green-700 dark:text-green-300">
+                <CheckCircle className="h-4 w-4" />
+                <AlertTitle>Evaluation Completed</AlertTitle>
+                <AlertDescription>
+                  Processed: {evaluationStats.successful + evaluationStats.failed} |
+                  Success: {evaluationStats.successful} |
+                  Failed: {evaluationStats.failed}
+                </AlertDescription>
+              </Alert>
+            )}
+          </CardContent>
+        )}
       </Card>
 
       {/* Applications List */}
@@ -319,7 +454,7 @@ const Queue = () => {
               <FileText className="mx-auto h-12 w-12 text-muted-foreground opacity-20" />
               <h3 className="mt-2 text-sm font-semibold text-muted-foreground">No applications found</h3>
               <p className="mt-1 text-sm text-muted-foreground">
-                {searchTerm || selectedForm !== 'all' || statusFilter !== 'all' 
+                {searchTerm || selectedForm !== 'all' || statusFilter !== 'all'
                   ? 'Try adjusting your filters or search terms'
                   : 'No applications have been submitted yet'}
               </p>
@@ -336,7 +471,7 @@ const Queue = () => {
                           {application.status || 'Pending'}
                         </Badge>
                       </div>
-                      
+
                       <div className="flex flex-wrap gap-4 text-sm text-muted-foreground">
                         <div className="flex items-center gap-1">
                           <Mail className="h-4 w-4" />
