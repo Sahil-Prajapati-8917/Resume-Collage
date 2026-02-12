@@ -82,7 +82,8 @@ const Queue = () => {
 
   const copyJobLink = async (jobId) => {
     try {
-      const jobUrl = `${window.location.origin}/apply/${jobId}`
+      const id = jobId?._id || jobId
+      const jobUrl = `${window.location.origin}/apply/${id}`
       await navigator.clipboard.writeText(jobUrl)
       // You could add a toast notification here if you have one
       console.log('Job link copied to clipboard:', jobUrl)
@@ -90,7 +91,8 @@ const Queue = () => {
       console.error('Failed to copy job link:', error)
       // Fallback for older browsers
       const textArea = document.createElement('textarea')
-      textArea.value = `${window.location.origin}/apply/${jobId}`
+      const id = jobId?._id || jobId
+      textArea.value = `${window.location.origin}/apply/${id}`
       document.body.appendChild(textArea)
       textArea.select()
       document.execCommand('copy')
@@ -130,7 +132,8 @@ const Queue = () => {
       app.candidateEmail?.toLowerCase().includes(searchTerm.toLowerCase()) ||
       app.fileName?.toLowerCase().includes(searchTerm.toLowerCase())
 
-    const matchesForm = selectedForm === 'all' || app.jobId === selectedForm
+    const appId = app.jobId?._id || app.jobId
+    const matchesForm = selectedForm === 'all' || appId === selectedForm
     const matchesStatus = statusFilter === 'all' || app.status === statusFilter
 
     return matchesSearch && matchesForm && matchesStatus
@@ -154,12 +157,16 @@ const Queue = () => {
   })
 
   const getJobTitle = (jobId) => {
-    const form = hiringForms.find(f => f._id === jobId)
+    if (jobId && jobId.title) return jobId.title
+    const id = jobId?._id || jobId
+    const form = hiringForms.find(f => f._id === id)
     return form?.title || 'Unknown Position'
   }
 
   const getFormName = (jobId) => {
-    const form = hiringForms.find(f => f._id === jobId)
+    if (jobId && jobId.formName) return jobId.formName
+    const id = jobId?._id || jobId
+    const form = hiringForms.find(f => f._id === id)
     return form?.formName || 'Unknown Form'
   }
 
@@ -525,7 +532,7 @@ const Queue = () => {
                       <Button
                         variant="ghost"
                         size="sm"
-                        onClick={() => window.location.href = `/job-applications/${application.jobId}`}
+                        onClick={() => window.location.href = `/job-applications/${application.jobId?._id || application.jobId}`}
                       >
                         View Job
                       </Button>

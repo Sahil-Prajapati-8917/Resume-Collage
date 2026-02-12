@@ -2,6 +2,8 @@ const HiringForm = require('../models/HiringForm');
 const Resume = require('../models/Resume');
 const fs = require('fs');
 const path = require('path');
+const pdf = require('pdf-parse');
+const mammoth = require('mammoth');
 
 // @desc    Get public job details
 // @route   GET /api/public/jobs/:id
@@ -47,32 +49,55 @@ exports.applyForJob = async (req, res) => {
             return res.status(400).json({ success: false, message: 'This job is no longer accepting applications.' });
         }
 
-        // Handle File
-        // In a real app, upload to S3 here. For now, we assume multer memory storage or just store raw text if parsed.
-        // The existing resume controller uses memory storage and parses text.
-        // We will reuse the Logic or just save the file info for now.
-        // Since we are using the Resume model, we should populate it correctly.
+        // Helper to validate content - kept simple here
+        const validateResumeContent = (text) => {
+            const anomalies = [];
+            let isResume = true;
+            if (text.length < 50) { isResume = false; anomalies.push('Text is too short'); }
+            return { isResume, anomalies };
+        };
 
-        // For this MVP, we'll create a Resume document.
-        // Note: Real parsing logic (pdf-parse etc) would go here or be a separate service. 
-        // For now we'll put a placeholder text or use the buffer if we want to store it (requires gridfs or similar for mongo).
-        // Let's assume we just store metadata and maybe a mock URL/Text for now as the user requirement said "Resume upload to storage"
+        const { buffer, mimetype, originalname } = req.file;
+        let extractedText = '';
 
-        // Let's treat the buffer as text if it's text, or just say "Binary data" for now to keep it simple and safe for Mongo string fields? 
-        // No, the Resume model requires `parsedText`.
-        // I should probably use the `pdf-parse` or similar if available, or just put "Application from public portal".
+        // Parse File
+        if (mimetype === 'application/pdf') {
+            const data = await pdf(buffer);
+            extractedText = data.text;
+        } else if (
+            mimetype === 'application/vnd.openxmlformats-officedocument.wordprocessingml.document' ||
+            mimetype === 'application/msword'
+        ) {
+            const result = await mammoth.extractRawText({ buffer });
+            extractedText = result.value;
+        } else if (mimetype === 'text/plain') {
+            extractedText = buffer.toString('utf8');
+        } else {
+            // Fallback for others or error
+            extractedText = "Could not parse file content.";
+        }
+
+        // Clean text
+        extractedText = extractedText ? extractedText.replace(/\s+/g, ' ').trim() : '';
+
+        if (!extractedText) {
+            extractedText = "Text extraction failed or content is empty/scanned image.";
+        }
+
+        const { isResume, anomalies } = validateResumeContent(extractedText);
 
         const resumeEntry = new Resume({
             userId: 'candidate-' + Date.now(), // Placeholder for guest
-            fileName: req.file.originalname,
-            fileType: req.file.mimetype,
-            parsedText: "Resume content placeholder - File uploaded via public portal", // TODO: Implement parsing
-            isResume: true,
+            fileName: originalname,
+            fileType: mimetype,
+            parsedText: extractedText,
+            isResume: isResume,
+            anomalies: anomalies,
             jobId: jobId,
             candidateName: name,
             candidateEmail: email,
             candidatePhone: phone,
-            satus: 'Pending',
+            status: 'Pending', // Fixed typo: satus -> status
             uploadedBy: null // Guest
         });
 
