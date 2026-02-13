@@ -58,7 +58,14 @@ class ApiService {
           await this.refreshAccessToken();
           // Retry the original request with new token
           config.headers.Authorization = `Bearer ${this.token}`;
-          return fetch(url, config);
+          const retryResponse = await fetch(url, config);
+
+          if (retryResponse.status === 401) {
+            this.clearTokens();
+            window.location.href = '/login';
+          }
+
+          return retryResponse;
         } catch (refreshError) {
           // Refresh failed, clear tokens and redirect to login
           this.clearTokens();
@@ -252,7 +259,7 @@ class ApiService {
   }
 
   async getIndustries() {
-    return this.get('/industry');
+    return this.get('/industries');
   }
 
   // Verification method to check API connectivity

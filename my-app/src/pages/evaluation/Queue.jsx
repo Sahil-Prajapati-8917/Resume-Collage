@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react'
+import { useNavigate } from 'react-router-dom'
 import apiService from '@/services/api'
 import {
   Users,
@@ -25,6 +26,7 @@ import { Separator } from '@/components/ui/separator'
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert'
 
 const Queue = () => {
+  const navigate = useNavigate()
   const [applications, setApplications] = useState([])
   const [hiringForms, setHiringForms] = useState([])
   const [loading, setLoading] = useState(true)
@@ -266,6 +268,9 @@ const Queue = () => {
         setEvaluationStats(result.data)
         // Refresh queue
         fetchQueueData()
+
+        // Redirect to results page with the selected job
+        navigate('/results', { state: { jobId: selectedForm } })
       }
     } catch (error) {
       console.error('Bulk evaluation failed:', error)

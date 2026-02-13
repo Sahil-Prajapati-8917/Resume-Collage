@@ -105,6 +105,12 @@ const EvaluationResults = () => {
     }
   }
 
+  useEffect(() => {
+    if (location.state?.jobId) {
+      setSelectedJob(location.state.jobId)
+    }
+  }, [location.state])
+
   const filteredEvaluations = evaluations.filter(evaluation => {
     const matchesStatus = filterStatus === 'all' || evaluation.status.toLowerCase() === filterStatus.toLowerCase()
 
