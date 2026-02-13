@@ -58,6 +58,11 @@ This is a monorepo containing both frontend and backend applications:
 - **Smart Filtering**: Filter results by type (PDF, DOCX, Folder).
 - **Quick Navigation**: Jump directly to search results with a single click.
 
+### ⚡ Batch Processing & Advanced Filtering
+- **Bulk Evaluation**: Evaluate multiple candidates simultaneously in the queue.
+- **Global Prompt Selection**: Access any created prompt for evaluation, regardless of industry.
+- **Job-Specific Filtering**: deeply filter evaluation results by specific job postings.
+
 ### 🎛️ Comprehensive Management
 - **Hiring Forms**: Define role requirements, cut-offs, and evaluation weights
 - **Prompt Management**: Configure industry-specific evaluation prompts with version control
@@ -310,7 +315,13 @@ graph TD
 
 👉 **User action**: Choose role + start evaluation
 
-### 3️⃣ View evaluation results
+### 3️⃣ **New!** Bulk Evaluation & Queue
+* Go to **Queue** page to see all applicants.
+* Select a **Job** and an **Evaluation Prompt**.
+* Click **"Run Bulk Evaluation"** to process multiple candidates at once.
+* Automatically redirects to **Results** page with context.
+
+### 4️⃣ View evaluation results
 You get:
 * Overall score (0–100)
 * Category-wise breakdown (skills, experience, projects)

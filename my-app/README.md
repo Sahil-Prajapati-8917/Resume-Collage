@@ -142,6 +142,11 @@ Recruiters can:
 - Review evidence before making decisions
 - Track all changes in the audit trail
 
+### ⚡ Batch Operations
+- **Bulk Evaluation**: Evaluate multiple candidates simultaneously in the queue.
+- **Global Prompt Access**: Use any prompt for any job, ensuring full flexibility.
+- **Smart Result Filtering**: Filter evaluation results by Job ID to focus on specific roles.
+
 ## 🔧 Configuration
 
 ### Hiring Forms
