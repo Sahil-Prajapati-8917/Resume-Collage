@@ -72,6 +72,16 @@ const HiringForm = () => {
       if (response.ok) {
         const data = await response.json()
         setAvailablePrompts(data.data)
+
+        // Auto-select default prompt
+        if (data.data && data.data.length > 0) {
+          const defaultPrompt = data.data.find(p => p.isDefault) || data.data[0];
+          setFormData(prev => ({
+            ...prev,
+            promptId: defaultPrompt._id,
+            experienceLevel: prev.experienceLevel || 'Mid-Level (5-8 years)' // Default 
+          }));
+        }
       }
     } catch {
       setAvailablePrompts([])
@@ -368,41 +378,12 @@ const HiringForm = () => {
           </Card>
         </div>
 
-        <div className="lg:col-span-4 flex flex-col gap-6">
-          <Card className="border-border/40 bg-card/50 sticky top-24">
+        <div className="lg:col-span-4 flex flex-col gap-6 sticky top-24 h-fit">
+          <Card className="border-border/40 bg-card/50">
             <CardHeader>
-              <CardTitle className="text-base font-semibold">Deployment Settings</CardTitle>
-              <CardDescription>AI Model constraints and levels.</CardDescription>
+              <CardTitle className="text-base font-semibold">Actions</CardTitle>
             </CardHeader>
-            <CardContent className="space-y-6">
-              <div className="space-y-2">
-                <Label className="text-[10px] uppercase font-black text-muted-foreground">Evaluation Prompt</Label>
-                <Select value={formData.promptId} onValueChange={(v) => setFormData(p => ({ ...p, promptId: v }))} disabled={!formData.industry || availablePrompts.length === 0}>
-                  <SelectTrigger className="bg-background/50">
-                    <SelectValue placeholder="Select AI Prompt" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {availablePrompts.map(p => (
-                      <SelectItem key={p._id} value={p._id}>{p.name} (v{p.version})</SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
-              <div className="space-y-2">
-                <Label className="text-[10px] uppercase font-black text-muted-foreground">Seniority Level</Label>
-                <Select value={formData.experienceLevel} onValueChange={(v) => setFormData(p => ({ ...p, experienceLevel: v }))}>
-                  <SelectTrigger className="bg-background/50">
-                    <SelectValue placeholder="Select Level" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {experienceLevels.map(l => (
-                      <SelectItem key={l} value={l}>{l}</SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
-            </CardContent>
-            <CardFooter className="flex flex-col gap-3 pt-0">
+            <CardContent className="flex flex-col gap-3">
               <Button
                 className="w-full h-11"
                 disabled={
@@ -410,8 +391,6 @@ const HiringForm = () => {
                   !formData.formName ||
                   !formData.title ||
                   !formData.industry ||
-                  !formData.promptId ||
-                  !formData.experienceLevel ||
                   !formData.description ||
                   !formData.deadline
                 }
@@ -422,9 +401,11 @@ const HiringForm = () => {
               {editingId && (
                 <Button variant="ghost" className="w-full" onClick={handleCancelEdit}>Cancel Modification</Button>
               )}
-            </CardFooter>
+            </CardContent>
           </Card>
         </div>
+
+        {/* Deployment Settings Removed */},
       </div>
 
       <div className="flex flex-col gap-6">
