@@ -42,6 +42,8 @@ const EvaluationResults = () => {
   const [overrideReason, setOverrideReason] = useState('')
   const [overrideAction, setOverrideAction] = useState('')
   const [evaluations, setEvaluations] = useState([])
+  const [hiringForms, setHiringForms] = useState([])
+  const [selectedJob, setSelectedJob] = useState('all')
 
   // Feature states
   const [explainMode, setExplainMode] = useState(false)
@@ -65,7 +67,20 @@ const EvaluationResults = () => {
 
   useEffect(() => {
     fetchResumes()
+    fetchHiringForms()
   }, [])
+
+  const fetchHiringForms = async () => {
+    try {
+      const response = await apiService.get('/hiring-forms')
+      if (response.ok) {
+        const data = await response.json()
+        setHiringForms(data.data)
+      }
+    } catch (error) {
+      console.error('Failed to fetch hiring forms:', error)
+    }
+  }
 
   useEffect(() => {
     if (singleViewId && evaluations.length > 0) {
@@ -91,8 +106,13 @@ const EvaluationResults = () => {
   }
 
   const filteredEvaluations = evaluations.filter(evaluation => {
-    if (filterStatus === 'all') return true
-    return evaluation.status.toLowerCase() === filterStatus.toLowerCase()
+    const matchesStatus = filterStatus === 'all' || evaluation.status.toLowerCase() === filterStatus.toLowerCase()
+
+    // Check if evaluation.jobId matches (it can be an object or a string ID)
+    const evalJobId = evaluation.jobId?._id || evaluation.jobId
+    const matchesJob = selectedJob === 'all' || evalJobId === selectedJob
+
+    return matchesStatus && matchesJob
   })
 
   const getStatusBadge = (status) => {
@@ -182,6 +202,20 @@ const EvaluationResults = () => {
             <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
             <Input placeholder="Search candidates..." className="pl-9 bg-card/50" />
           </div>
+          <Select value={selectedJob} onValueChange={setSelectedJob}>
+            <SelectTrigger className="w-48 bg-card/50">
+              <Filter className="w-4 h-4 mr-2" />
+              <SelectValue placeholder="All Jobs" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">All Jobs</SelectItem>
+              {hiringForms.map(form => (
+                <SelectItem key={form._id} value={form._id}>
+                  {form.formName}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
           <Select value={filterStatus} onValueChange={setFilterStatus}>
             <SelectTrigger className="w-40 bg-card/50">
               <Filter className="w-4 h-4 mr-2" />

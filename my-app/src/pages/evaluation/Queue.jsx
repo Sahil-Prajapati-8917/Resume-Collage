@@ -183,6 +183,7 @@ const Queue = () => {
   const [selectedPrompt, setSelectedPrompt] = useState('')
   const [industries, setIndustries] = useState([])
   const [isBulkEvaluating, setIsBulkEvaluating] = useState(false)
+  const [loadingPrompts, setLoadingPrompts] = useState(false)
   const [evaluationStats, setEvaluationStats] = useState(null)
 
   useEffect(() => {
@@ -211,12 +212,17 @@ const Queue = () => {
   }, [selectedForm, industries])
 
   const fetchPromptsForJob = async (jobId) => {
+    setLoadingPrompts(true)
+    setPrompts([])
+    setSelectedPrompt('')
     try {
       const job = hiringForms.find(f => f._id === jobId)
       if (!job) return
 
-      // Find industry ID by name
-      const industry = industries.find(ind => ind.name === job.industry)
+      // Find industry ID by name with robust matching (case-insensitive, trimmed)
+      const industryName = job.industry?.toLowerCase().trim()
+      const industry = industries.find(ind => ind.name?.toLowerCase().trim() === industryName)
+
       if (industry) {
         const response = await apiService.getPromptsByIndustry(industry._id)
         if (response.ok) {
@@ -228,9 +234,13 @@ const Queue = () => {
             setSelectedPrompt(defaultPrompt._id)
           }
         }
+      } else {
+        console.warn(`Industry not found for job: ${job.formName} (${job.industry})`)
       }
     } catch (error) {
       console.error('Failed to fetch prompts:', error)
+    } finally {
+      setLoadingPrompts(false)
     }
   }
 
@@ -414,22 +424,26 @@ const Queue = () => {
             <div className="flex flex-col md:flex-row gap-4 items-end">
               <div className="flex-1 space-y-2">
                 <label className="text-sm font-medium">Select Evaluation Prompt</label>
-                <Select value={selectedPrompt} onValueChange={setSelectedPrompt}>
+                <Select value={selectedPrompt} onValueChange={setSelectedPrompt} disabled={loadingPrompts}>
                   <SelectTrigger className="bg-background/50">
-                    <SelectValue placeholder="Choose a prompt" />
+                    <SelectValue placeholder={loadingPrompts ? "Loading prompts..." : "Choose a prompt"} />
                   </SelectTrigger>
                   <SelectContent>
-                    {prompts.map(prompt => (
-                      <SelectItem key={prompt._id} value={prompt._id}>
-                        {prompt.name} {prompt.isDefault && '(Default)'}
-                      </SelectItem>
-                    ))}
+                    {prompts.length === 0 ? (
+                      <SelectItem value="none" disabled>No prompts available</SelectItem>
+                    ) : (
+                      prompts.map(prompt => (
+                        <SelectItem key={prompt._id} value={prompt._id}>
+                          {prompt.name} {prompt.isDefault && '(Default)'}
+                        </SelectItem>
+                      ))
+                    )}
                   </SelectContent>
                 </Select>
               </div>
               <Button
                 onClick={handleBulkEvaluation}
-                disabled={isBulkEvaluating || !selectedPrompt || sortedApplications.length === 0}
+                disabled={isBulkEvaluating || !selectedPrompt || sortedApplications.length === 0 || loadingPrompts}
                 className="min-w-[150px]"
               >
                 {isBulkEvaluating ? (
