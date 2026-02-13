@@ -15,12 +15,46 @@ exports.getFairnessStats = async (req, res) => {
 
         const disagreementCount = await Resume.countDocuments({ disagreementSignal: true });
 
-        // Mocking Industry Breakdowns for the dashboard visualization since we don't have strictly linked Job IDs on resumes in this MVP setup
-        const industryStats = [
-            { industry: 'Tech', total: 45, disqualified: 12, disagreementRate: 5 },
-            { industry: 'Finance', total: 30, disqualified: 8, disagreementRate: 2 },
-            { industry: 'Healthcare', total: 25, disqualified: 3, disagreementRate: 0 },
-        ];
+        // Aggregation for Industry Stats
+        const industryStats = await Resume.aggregate([
+            {
+                $group: {
+                    _id: "$industry",
+                    total: { $sum: 1 },
+                    disqualified: {
+                        $sum: {
+                            $cond: [{ $eq: ["$status", "Disqualified"] }, 1, 0]
+                        }
+                    },
+                    disagreementCount: {
+                        $sum: {
+                            $cond: [{ $eq: ["$disagreementSignal", true] }, 1, 0]
+                        }
+                    }
+                }
+            },
+            {
+                $project: {
+                    _id: 0,
+                    industry: { $ifNull: ["$_id", "Unknown"] },
+                    total: 1,
+                    disqualified: 1,
+                    disagreementRate: {
+                        $round: [
+                            {
+                                $cond: [
+                                    { $gt: ["$total", 0] },
+                                    { $multiply: [{ $divide: ["$disagreementCount", "$total"] }, 100] },
+                                    0
+                                ]
+                            },
+                            1
+                        ]
+                    }
+                }
+            },
+            { $sort: { total: -1 } }
+        ]);
 
         return res.status(200).json({
             success: true,
