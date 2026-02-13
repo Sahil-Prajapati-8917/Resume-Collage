@@ -12,6 +12,7 @@ const { authenticateToken: auth } = require('../middleware/auth');
 router.use(auth);
 
 router.route('/').get(getAllPrompts).post(createPrompt);
+router.get('/industry/:industryId', getPromptsByIndustry);
 router.route('/:id').put(updatePrompt).delete(deletePrompt);
 
 module.exports = router;
