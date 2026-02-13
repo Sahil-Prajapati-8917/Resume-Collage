@@ -22,23 +22,35 @@ import { Label } from '@/components/ui/label';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Badge } from '@/components/ui/badge';
 
+// New Imports for Shadcn Form
+import {
+    Form,
+    FormControl,
+    FormField,
+    FormItem,
+    FormLabel,
+    FormMessage,
+} from "@/components/ui/form"
+import { useForm } from "react-hook-form"
+import { zodResolver } from "@hookform/resolvers/zod"
+import * as z from "zod"
+
+const formSchema = z.object({
+    name: z.string().min(2, { message: "Name must be at least 2 characters." }),
+    email: z.string().email({ message: "Please enter a valid email address." }),
+    phone: z.string().optional(),
+    resume: z.custom((file) => file instanceof File, "Resume file is required.")
+        .refine((file) => file.size <= 5 * 1024 * 1024, { message: "File size must be less than 5MB." })
+})
+
 const JobView = () => {
     const { id } = useParams();
     const [job, setJob] = useState(null);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
 
-    // Form State
-    const [formData, setFormData] = useState({
-        name: '',
-        email: '',
-        phone: ''
-    });
-    const [resumeFile, setResumeFile] = useState(null);
-    const [submitting, setSubmitting] = useState(false);
-    const [submitSuccess, setSubmitSuccess] = useState(false);
-    const [submitError, setSubmitError] = useState(null);
     const [dragActive, setDragActive] = useState(false);
+    const [submitSuccess, setSubmitSuccess] = useState(false);
 
     useEffect(() => {
         const fetchJobDetails = async () => {
@@ -60,20 +72,50 @@ const JobView = () => {
         fetchJobDetails();
     }, [id]);
 
-    const handleInputChange = (e) => {
-        const { name, value } = e.target;
-        setFormData(prev => ({ ...prev, [name]: value }));
+    // 1. Define your form.
+    const form = useForm({
+        resolver: zodResolver(formSchema),
+        defaultValues: {
+            name: "",
+            email: "",
+            phone: "",
+        },
+    })
+
+    const { isSubmitting } = form.formState
+
+    const onSubmit = async (values) => {
+        const data = new FormData();
+        data.append('name', values.name);
+        data.append('email', values.email);
+        data.append('phone', values.phone || '');
+        data.append('resume', values.resume);
+
+        try {
+            const response = await apiService.applyForJob(id, data);
+            const result = await response.json();
+
+            if (response.ok && result.success) {
+                setSubmitSuccess(true);
+                form.reset();
+            } else {
+                form.setError("root", {
+                    type: "manual",
+                    message: result.message || 'Application failed.'
+                });
+            }
+        } catch (error) {
+            form.setError("root", {
+                type: "manual",
+                message: 'An error occurred. Please try again.'
+            });
+        }
     };
 
     const handleFileChange = (e) => {
         if (e.target.files && e.target.files[0]) {
             const file = e.target.files[0];
-            if (file.size > 5 * 1024 * 1024) { // 5MB limit
-                setSubmitError('File size must be less than 5MB');
-                return;
-            }
-            setResumeFile(file);
-            setSubmitError(null);
+            form.setValue("resume", file, { shouldValidate: true });
         }
     };
 
@@ -94,56 +136,7 @@ const JobView = () => {
 
         if (e.dataTransfer.files && e.dataTransfer.files[0]) {
             const file = e.dataTransfer.files[0];
-            if (file.size > 5 * 1024 * 1024) {
-                setSubmitError('File size must be less than 5MB');
-                return;
-            }
-            setResumeFile(file);
-            setSubmitError(null);
-        }
-    };
-
-    const handleSubmit = async (e) => {
-        e.preventDefault();
-
-        // Validation
-        if (!formData.name.trim()) {
-            setSubmitError('Please enter your full name.');
-            return;
-        }
-        if (!formData.email.trim()) {
-            setSubmitError('Please enter your email address.');
-            return;
-        }
-        if (!resumeFile) {
-            setSubmitError('Please upload your resume.');
-            return;
-        }
-
-        setSubmitting(true);
-        setSubmitError(null);
-
-        const data = new FormData();
-        data.append('name', formData.name);
-        data.append('email', formData.email);
-        data.append('phone', formData.phone);
-        data.append('resume', resumeFile);
-
-        try {
-            const response = await apiService.applyForJob(id, data);
-            const result = await response.json();
-
-            if (response.ok && result.success) {
-                setSubmitSuccess(true);
-                setFormData({ name: '', email: '', phone: '' });
-                setResumeFile(null);
-            } else {
-                setSubmitError(result.message || 'Application failed.');
-            }
-        } catch {
-            setSubmitError('An error occurred. Please try again.');
-        } finally {
-            setSubmitting(false);
+            form.setValue("resume", file, { shouldValidate: true });
         }
     };
 
@@ -284,135 +277,139 @@ const JobView = () => {
                                 </Button>
                             </div>
                         ) : (
-                            <form onSubmit={handleSubmit} className="space-y-6">
-                                {submitError && (
-                                    <Alert variant="destructive" className="border-red-200 bg-red-50">
-                                        <AlertCircle className="h-4 w-4" />
-                                        <AlertDescription>{submitError}</AlertDescription>
-                                    </Alert>
-                                )}
+                            <Form {...form}>
+                                <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
+                                    {form.formState.errors.root && (
+                                        <Alert variant="destructive" className="border-red-200 bg-red-50">
+                                            <AlertCircle className="h-4 w-4" />
+                                            <AlertDescription>{form.formState.errors.root.message}</AlertDescription>
+                                        </Alert>
+                                    )}
 
-                                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                                    <div className="space-y-2">
-                                        <Label htmlFor="name" className="text-sm font-medium text-gray-700">
-                                            Full Name *
-                                        </Label>
-                                        <div className="relative">
-                                            <User className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
-                                            <Input
-                                                id="name"
-                                                name="name"
-                                                type="text"
-                                                required
-                                                value={formData.name}
-                                                onChange={handleInputChange}
-                                                placeholder="John Doe"
-                                                className="pl-10 bg-background/50"
-                                            />
-                                        </div>
-                                    </div>
-
-                                    <div className="space-y-2">
-                                        <Label htmlFor="email" className="text-sm font-medium text-gray-700">
-                                            Email Address *
-                                        </Label>
-                                        <div className="relative">
-                                            <Mail className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
-                                            <Input
-                                                id="email"
-                                                name="email"
-                                                type="email"
-                                                required
-                                                value={formData.email}
-                                                onChange={handleInputChange}
-                                                placeholder="john@example.com"
-                                                className="pl-10 bg-background/50"
-                                            />
-                                        </div>
-                                    </div>
-
-                                    <div className="space-y-2">
-                                        <Label htmlFor="phone" className="text-sm font-medium text-gray-700">
-                                            Phone Number
-                                        </Label>
-                                        <div className="relative">
-                                            <Phone className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
-                                            <Input
-                                                id="phone"
-                                                name="phone"
-                                                type="tel"
-                                                value={formData.phone}
-                                                onChange={handleInputChange}
-                                                placeholder="+1 (555) 123-4567"
-                                                className="pl-10 bg-background/50"
-                                            />
-                                        </div>
-                                    </div>
-
-                                    <div className="md:col-span-2">
-                                        <Label className="text-sm font-medium text-gray-700">
-                                            Resume/CV *
-                                        </Label>
-                                        <div
-                                            className={`relative border-2 border-dashed rounded-lg p-6 text-center transition-colors ${dragActive
-                                                ? 'border-primary bg-primary/5'
-                                                : 'border-gray-300 hover:border-gray-400 bg-background/50'
-                                                }`}
-                                            onDragEnter={handleDrag}
-                                            onDragLeave={handleDrag}
-                                            onDragOver={handleDrag}
-                                            onDrop={handleDrop}
-                                        >
-                                            <input
-                                                id="resume-upload"
-                                                name="resume-upload"
-                                                type="file"
-                                                accept=".pdf,.docx,.doc"
-                                                onChange={handleFileChange}
-                                                className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
-                                            />
-
-                                            <div className="space-y-2">
-                                                <Upload className="mx-auto h-12 w-12 text-gray-400" />
-                                                <div>
-                                                    <p className="text-sm text-gray-600">
-                                                        <span className="font-medium text-primary">Click to upload</span> or drag and drop
-                                                    </p>
-                                                    <p className="text-xs text-gray-500">PDF, DOC, DOCX (MAX. 5MB)</p>
-                                                </div>
-                                                {resumeFile && (
-                                                    <div className="mt-4 p-3 bg-green-50 border border-green-200 rounded-md">
-                                                        <div className="flex items-center gap-2 text-green-800">
-                                                            <FileText className="h-4 w-4" />
-                                                            <span className="text-sm font-medium">{resumeFile.name}</span>
-                                                            <span className="text-xs text-green-600">({(resumeFile.size / 1024 / 1024).toFixed(2)} MB)</span>
+                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                        <FormField
+                                            control={form.control}
+                                            name="name"
+                                            render={({ field }) => (
+                                                <FormItem>
+                                                    <FormLabel>Full Name *</FormLabel>
+                                                    <FormControl>
+                                                        <div className="relative">
+                                                            <User className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
+                                                            <Input placeholder="John Doe" className="pl-10 bg-background/50" {...field} />
                                                         </div>
-                                                    </div>
-                                                )}
-                                            </div>
-                                        </div>
-                                    </div>
-                                </div>
+                                                    </FormControl>
+                                                    <FormMessage />
+                                                </FormItem>
+                                            )}
+                                        />
 
-                                <div className="pt-4">
-                                    <Button
-                                        type="submit"
-                                        disabled={submitting}
-                                        className="w-full h-11 text-base font-medium"
-                                    >
-                                        {submitting ? (
-                                            <>
-                                                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                                                Submitting Application...
-                                            </>
-                                        ) : (
-                                            <>
-                                                Submit Application
-                                            </>
-                                        )}
-                                    </Button>
-                                </div>
-                            </form>
+                                        <FormField
+                                            control={form.control}
+                                            name="email"
+                                            render={({ field }) => (
+                                                <FormItem>
+                                                    <FormLabel>Email Address *</FormLabel>
+                                                    <FormControl>
+                                                        <div className="relative">
+                                                            <Mail className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
+                                                            <Input placeholder="john@example.com" className="pl-10 bg-background/50" {...field} />
+                                                        </div>
+                                                    </FormControl>
+                                                    <FormMessage />
+                                                </FormItem>
+                                            )}
+                                        />
+
+                                        <FormField
+                                            control={form.control}
+                                            name="phone"
+                                            render={({ field }) => (
+                                                <FormItem>
+                                                    <FormLabel>Phone Number</FormLabel>
+                                                    <FormControl>
+                                                        <div className="relative">
+                                                            <Phone className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
+                                                            <Input type="tel" placeholder="+1 (555) 123-4567" className="pl-10 bg-background/50" {...field} />
+                                                        </div>
+                                                    </FormControl>
+                                                    <FormMessage />
+                                                </FormItem>
+                                            )}
+                                        />
+
+                                        <FormField
+                                            control={form.control}
+                                            name="resume"
+                                            render={({ field: { value, onChange, ...field } }) => (
+                                                <FormItem className="md:col-span-2">
+                                                    <FormLabel>Resume/CV *</FormLabel>
+                                                    <FormControl>
+                                                        <div
+                                                            className={`relative border-2 border-dashed rounded-lg p-6 text-center transition-colors ${dragActive
+                                                                ? 'border-primary bg-primary/5'
+                                                                : 'border-gray-300 hover:border-gray-400 bg-background/50'
+                                                                }`}
+                                                            onDragEnter={handleDrag}
+                                                            onDragLeave={handleDrag}
+                                                            onDragOver={handleDrag}
+                                                            onDrop={handleDrop}
+                                                        >
+                                                            <input
+                                                                type="file"
+                                                                accept=".pdf,.docx,.doc"
+                                                                onChange={handleFileChange}
+                                                                className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
+                                                                {...field}
+                                                                value="" // controlled input workaround for file
+                                                            />
+
+                                                            <div className="space-y-2">
+                                                                <Upload className="mx-auto h-12 w-12 text-gray-400" />
+                                                                <div>
+                                                                    <p className="text-sm text-gray-600">
+                                                                        <span className="font-medium text-primary">Click to upload</span> or drag and drop
+                                                                    </p>
+                                                                    <p className="text-xs text-gray-500">PDF, DOC, DOCX (MAX. 5MB)</p>
+                                                                </div>
+                                                                {value && (
+                                                                    <div className="mt-4 p-3 bg-green-50 border border-green-200 rounded-md relative z-10">
+                                                                        <div className="flex items-center gap-2 text-green-800">
+                                                                            <FileText className="h-4 w-4" />
+                                                                            <span className="text-sm font-medium">{value.name}</span>
+                                                                            <span className="text-xs text-green-600">({(value.size / 1024 / 1024).toFixed(2)} MB)</span>
+                                                                        </div>
+                                                                    </div>
+                                                                )}
+                                                            </div>
+                                                        </div>
+                                                    </FormControl>
+                                                    <FormMessage />
+                                                </FormItem>
+                                            )}
+                                        />
+                                    </div>
+
+                                    <div className="pt-4">
+                                        <Button
+                                            type="submit"
+                                            disabled={isSubmitting}
+                                            className="w-full h-11 text-base font-medium"
+                                        >
+                                            {isSubmitting ? (
+                                                <>
+                                                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                                                    Submitting Application...
+                                                </>
+                                            ) : (
+                                                <>
+                                                    Submit Application
+                                                </>
+                                            )}
+                                        </Button>
+                                    </div>
+                                </form>
+                            </Form>
                         )}
                     </CardContent>
                 </Card>
