@@ -250,8 +250,16 @@ class ApiService {
     return this.put(`/resume/${id}/status`, { status, reason });
   }
 
-  async bulkEvaluateResumes(jobId, promptId, candidateIds) {
-    return this.post('/resume/bulk-evaluate', { jobId, promptId, candidateIds });
+  async startBulkEvaluation(jobId, promptId, candidateIds) {
+    return this.post('/evaluation/bulk', { jobId, promptId, candidateIds });
+  }
+
+  async getJobProgress(jobId) {
+    return this.get(`/evaluation/progress/${jobId}`);
+  }
+
+  async getEvaluationResults(jobId) {
+    return this.get(`/evaluation/results/${jobId}`);
   }
 
   async getPromptsByIndustry(industryId) {

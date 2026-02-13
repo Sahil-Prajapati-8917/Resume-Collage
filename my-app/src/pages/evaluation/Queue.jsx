@@ -24,6 +24,7 @@ import { Badge } from '@/components/ui/badge'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { Separator } from '@/components/ui/separator'
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert'
+import { Progress } from '@/components/ui/progress'
 
 const Queue = () => {
   const navigate = useNavigate()
@@ -249,6 +250,39 @@ const Queue = () => {
     }
   }
 
+  const intervalRef = React.useRef(null)
+
+  useEffect(() => {
+    return () => {
+      if (intervalRef.current) clearInterval(intervalRef.current)
+    }
+  }, [])
+
+  const pollProgress = async (jobId) => {
+    try {
+      const response = await apiService.getJobProgress(jobId)
+      if (response.ok) {
+        const data = await response.json()
+        setEvaluationStats(data.data) // { total, completed, failed, pending }
+
+        // Check if finished
+        if (data.data.pending === 0 && (data.data.completed + data.data.failed > 0)) {
+          // Finished
+          if (intervalRef.current) clearInterval(intervalRef.current)
+          setIsBulkEvaluating(false)
+
+          // Small delay before redirect to let user see 100%
+          setTimeout(() => {
+            fetchQueueData() // Refresh list
+            navigate('/evaluation/results', { state: { jobId } })
+          }, 1500)
+        }
+      }
+    } catch (error) {
+      console.error("Polling error", error)
+    }
+  }
+
   const handleBulkEvaluation = async () => {
     if (selectedForm === 'all' || !selectedPrompt) return
 
@@ -256,28 +290,26 @@ const Queue = () => {
     setEvaluationStats(null)
 
     try {
-      // Get all pending resumes for this job or just rely on backend to find all?
-      // Backend bulkEvaluateResumes takes candidateIds (optional) or processes all.
-      // Let's filter visible candidates on current screen or just send the job ID to process all eligible.
-      // Based on my backend implementation, if I don't send candidateIds, it finds all Pending/Under Process.
-      // Or I can send the IDs of the filtered list to be precise.
-
       const candidateIds = sortedApplications.map(app => app._id)
 
-      const response = await apiService.bulkEvaluateResumes(selectedForm, selectedPrompt, candidateIds)
+      // Start Bulk Process
+      const response = await apiService.startBulkEvaluation(selectedForm, selectedPrompt, candidateIds)
 
       if (response.ok) {
-        const result = await response.json()
-        setEvaluationStats(result.data)
-        // Refresh queue
-        fetchQueueData()
+        // Start Polling
+        const data = await response.json()
+        console.log("Bulk started:", data)
 
-        // Redirect to results page with the selected job
-        navigate('/results', { state: { jobId: selectedForm } })
+        // Poll every 2 seconds
+        intervalRef.current = setInterval(() => {
+          pollProgress(selectedForm)
+        }, 2000)
+      } else {
+        setIsBulkEvaluating(false)
+        console.error("Failed to start bulk eval")
       }
     } catch (error) {
       console.error('Bulk evaluation failed:', error)
-    } finally {
       setIsBulkEvaluating(false)
     }
   }
@@ -468,15 +500,28 @@ const Queue = () => {
               </Button>
             </div>
             {evaluationStats && (
-              <Alert className="mt-4 bg-green-500/10 border-green-500/20 text-green-700 dark:text-green-300">
-                <CheckCircle className="h-4 w-4" />
-                <AlertTitle>Evaluation Completed</AlertTitle>
-                <AlertDescription>
-                  Processed: {evaluationStats.successful + evaluationStats.failed} |
-                  Success: {evaluationStats.successful} |
-                  Failed: {evaluationStats.failed}
-                </AlertDescription>
-              </Alert>
+              <div className="mt-4 space-y-3">
+                {isBulkEvaluating && (
+                  <div className="space-y-1">
+                    <div className="flex justify-between text-xs text-muted-foreground">
+                      <span>Evaluating candidates...</span>
+                      <span>{Math.round(((evaluationStats.completed + evaluationStats.failed) / evaluationStats.total) * 100)}%</span>
+                    </div>
+                    <Progress value={((evaluationStats.completed + evaluationStats.failed) / evaluationStats.total) * 100} className="h-2" />
+                  </div>
+                )}
+
+                <Alert className={(evaluationStats.pending === 0 && (evaluationStats.completed + evaluationStats.failed > 0)) ? "bg-green-500/10 border-green-500/20 text-green-700" : "bg-blue-500/10 border-blue-500/20 text-blue-700"}>
+                  <CheckCircle className="h-4 w-4" />
+                  <AlertTitle>{isBulkEvaluating ? 'Processing...' : 'Evaluation Status'}</AlertTitle>
+                  <AlertDescription>
+                    Total: {evaluationStats.total} |
+                    Completed: {evaluationStats.completed} |
+                    Failed: {evaluationStats.failed} |
+                    Pending: {evaluationStats.pending}
+                  </AlertDescription>
+                </Alert>
+              </div>
             )}
           </CardContent>
         )}

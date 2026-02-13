@@ -86,6 +86,7 @@ app.use('/api/evaluation-oversight', require('./src/routes/evaluationOversight')
 app.use('/api/system-analytics', require('./src/routes/systemAnalytics'));
 app.use('/api/system-settings', require('./src/routes/systemSettings'));
 app.use('/api/queue', require('./src/routes/queue'));
+app.use('/api/evaluation', require('./src/routes/evaluationRoutes'));
 
 
 
