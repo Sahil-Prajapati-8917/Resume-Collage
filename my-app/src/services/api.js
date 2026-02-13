@@ -258,6 +258,10 @@ class ApiService {
     return this.get(`/prompts/industry/${industryId}?all=true`);
   }
 
+  async getAllPrompts() {
+    return this.get('/prompts');
+  }
+
   async getIndustries() {
     return this.get('/industries');
   }

@@ -1,6 +1,24 @@
 const Prompt = require('../models/Prompt');
 const Industry = require('../models/Industry');
 
+exports.getAllPrompts = async (req, res) => {
+    try {
+        const prompts = await Prompt.find({}).sort({ isDefault: -1, createdAt: -1 }).lean();
+
+        res.status(200).json({
+            success: true,
+            count: prompts.length,
+            data: prompts
+        });
+    } catch (error) {
+        res.status(500).json({
+            success: false,
+            message: 'Server Error',
+            error: error.message
+        });
+    }
+};
+
 exports.getPromptsByIndustry = async (req, res) => {
     try {
         const { industryId } = req.params;

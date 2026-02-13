@@ -226,18 +226,21 @@ const Queue = () => {
       const industry = industries.find(ind => ind.name?.toLowerCase().trim() === industryName)
 
       if (industry) {
+        // Match PromptManagement.jsx: Fetch all characters for this industry
         const response = await apiService.getPromptsByIndustry(industry._id)
         if (response.ok) {
           const data = await response.json()
-          setPrompts(data.data)
-          // Set default prompt if available
-          if (data.data.length > 0) {
+          setPrompts(data.data || [])
+
+          // Auto-select default if available
+          if (data.data?.length > 0) {
             const defaultPrompt = data.data.find(p => p.isDefault) || data.data[0]
             setSelectedPrompt(defaultPrompt._id)
           }
         }
       } else {
         console.warn(`Industry not found for job: ${job.formName} (${job.industry})`)
+        // Fallback or empty state is already set
       }
     } catch (error) {
       console.error('Failed to fetch prompts:', error)
