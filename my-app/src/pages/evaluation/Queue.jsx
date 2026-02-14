@@ -209,7 +209,7 @@ const Queue = () => {
    * Fetch prompts for a specific job (industry-based)
    * Memoized to prevent infinite loops in useEffect
    */
-  const fetchPromptsForJob = React.useCallback(async (jobId) => {
+  const fetchJobPrompts = React.useCallback(async (jobId) => {
     setLoadingPrompts(true)
     setPrompts([])
     setSelectedPrompt('')
@@ -247,12 +247,12 @@ const Queue = () => {
 
   useEffect(() => {
     if (selectedForm !== 'all') {
-      fetchPromptsForJob(selectedForm)
+      fetchJobPrompts(selectedForm)
     } else {
       setPrompts([])
       setSelectedPrompt('')
     }
-  }, [selectedForm, industries, fetchPromptsForJob])
+  }, [selectedForm, industries, fetchJobPrompts])
 
 
   const intervalRef = React.useRef(null)

@@ -228,6 +228,11 @@ class ApiService {
     }
   }
 
+  // Resume APIs
+  getResumeUrl(id) {
+    return `${API_BASE_URL}/resume/view/${id}`;
+  }
+
   // Public Job APIs
   async getPublicJob(id) {
     return this.get(`/public/jobs/${id}`);

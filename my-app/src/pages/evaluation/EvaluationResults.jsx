@@ -31,6 +31,7 @@ import { Progress } from '@/components/ui/progress'
 import { Separator } from '@/components/ui/separator'
 
 import CandidateComparison from '../../components/features/evaluation/CandidateComparison'
+import CandidateEvaluation from '../../components/features/evaluation/CandidateEvaluation'
 
 const EvaluationResults = () => {
   const location = useLocation()
@@ -165,6 +166,28 @@ const EvaluationResults = () => {
     if (selectedCandidate) {
       handleStatusChange(selectedCandidate._id, 'Disqualified', overrideReason);
     }
+  }
+
+  // New Integration: If a candidate is selected, show the split-view terminal
+  if (selectedCandidate) {
+    return (
+      <CandidateEvaluation
+        candidate={selectedCandidate}
+        onBack={() => setSelectedCandidate(null)}
+        onAction={(action, candidate) => {
+          if (action === 'reject') {
+            setOverrideAction('Disqualified');
+            setShowOverrideModal(true);
+          } else if (action === 'shortlist') {
+            handleStatusChange(candidate._id, 'Shortlisted');
+            // Optional: Close view or show toast
+          } else if (action === 'interview') {
+            // Placeholder for interview scheduling logic
+            console.log('Schedule interview for', candidate.candidateName);
+          }
+        }}
+      />
+    );
   }
 
   return (
@@ -345,237 +368,7 @@ const EvaluationResults = () => {
         />
       )}
 
-      {/* Detailed Analysis Dialog */}
-      <Dialog open={!!selectedCandidate} onOpenChange={() => setSelectedCandidate(null)}>
-        <DialogContent className="max-w-[95vw] w-full md:max-w-7xl h-[90vh] p-0 border-border/40 bg-background/95 backdrop-blur-xl gap-0 overflow-hidden flex flex-col">
-          <div className="p-8 pb-0">
-            <div className="flex flex-col md:flex-row gap-8 items-start mb-8">
-              <div className="flex-1 space-y-2">
-                <div className="flex items-center gap-3">
-                  <h2 className="text-3xl font-bold tracking-tight">{selectedCandidate?.fileName}</h2>
-                  {selectedCandidate && getStatusBadge(selectedCandidate.status)}
-                </div>
-                <p className="text-muted-foreground flex items-center gap-2">
-                  <User className="size-4" />
-                  {selectedCandidate?.roleType} • {selectedCandidate?.industry}
-                </p>
-              </div>
-              <div className="flex items-center gap-6 bg-accent/30 p-6 rounded-2xl border border-border/40">
-                <div className="text-center">
-                  <p className="text-4xl font-black font-mono tracking-tighter text-primary">
-                    {selectedCandidate?.aiEvaluation?.totalScore || 0}
-                  </p>
-                  <p className="text-[10px] uppercase font-bold text-muted-foreground mt-1 tracking-widest">AI Aggregate</p>
-                </div>
-                <Separator orientation="vertical" className="h-10" />
-                <div className="text-center">
-                  <p className="text-lg font-bold text-primary">
-                    {selectedCandidate?.aiEvaluation?.confidenceLevel || 'Medium'}
-                  </p>
-                  <p className="text-[10px] uppercase font-bold text-muted-foreground mt-1 tracking-widest">Confidence</p>
-                </div>
-              </div>
-            </div>
-          </div>
-
-          <div className="p-8 pt-0 grid md:grid-cols-2 gap-8 overflow-y-auto flex-1">
-            <div className="space-y-8">
-              <div className="space-y-4">
-                <h4 className="text-xs font-black uppercase tracking-[0.2em] text-muted-foreground flex items-center gap-2">
-                  <BrainCircuit className="size-3 text-primary" /> Metrics Breakdown
-                </h4>
-                <div className="space-y-4">
-                  {selectedCandidate?.aiEvaluation?.details && Object.entries(selectedCandidate.aiEvaluation.details).map(([key, value]) => (
-                    <div key={key} className="space-y-1.5">
-                      <div className="flex justify-between text-[11px]">
-                        <span className="font-semibold text-muted-foreground uppercase tracking-wider">{key.replace(/([A-Z])/g, ' $1')}</span>
-                        <span className="font-mono">{value}%</span>
-                      </div>
-                      <Progress value={value} className="h-1.5 bg-accent" indicatorClassName="bg-primary" />
-                    </div>
-                  ))}
-                </div>
-              </div>
-
-              {/* AI Transparency Layer */}
-              <div className="space-y-4">
-                <h4 className="text-xs font-black uppercase tracking-[0.2em] text-muted-foreground flex items-center gap-2">
-                  <Eye className="size-3 text-purple-500" /> AI Transparency
-                </h4>
-                {selectedCandidate?.aiEvaluation?.transparency ? (
-                  <div className="grid grid-cols-2 gap-4">
-                    <div className="space-y-1">
-                      <span className="text-[10px] uppercase font-bold text-muted-foreground">Skill Match</span>
-                      <Progress value={selectedCandidate.aiEvaluation.transparency.skillMatch || 0} className="h-2" indicatorClassName="bg-purple-500" />
-                      <span className="text-xs font-mono">{selectedCandidate.aiEvaluation.transparency.skillMatch || 0}%</span>
-                    </div>
-                    <div className="space-y-1">
-                      <span className="text-[10px] uppercase font-bold text-muted-foreground">Exp. Match</span>
-                      <Progress value={selectedCandidate.aiEvaluation.transparency.experienceMatch || 0} className="h-2" indicatorClassName="bg-blue-500" />
-                      <span className="text-xs font-mono">{selectedCandidate.aiEvaluation.transparency.experienceMatch || 0}%</span>
-                    </div>
-                    <div className="space-y-1">
-                      <span className="text-[10px] uppercase font-bold text-muted-foreground">Domain Fit</span>
-                      <Progress value={selectedCandidate.aiEvaluation.transparency.domainFit || 0} className="h-2" indicatorClassName="bg-green-500" />
-                      <span className="text-xs font-mono">{selectedCandidate.aiEvaluation.transparency.domainFit || 0}%</span>
-                    </div>
-                    <div className="space-y-1">
-                      <span className="text-[10px] uppercase font-bold text-muted-foreground">Benchmark</span>
-                      <div>
-                        <Badge variant="outline" className="text-xs border-purple-200 text-purple-700 bg-purple-50">
-                          {selectedCandidate.aiEvaluation.transparency.benchmark || 'N/A'}
-                        </Badge>
-                      </div>
-                    </div>
-                  </div>
-                ) : (
-                  <div className="text-xs text-muted-foreground italic">Transparency data not available for this evaluation.</div>
-                )}
-              </div>
-
-              {/* Matched Skills */}
-              <div className="space-y-4">
-                <h4 className="text-xs font-black uppercase tracking-[0.2em] text-muted-foreground flex items-center gap-2">
-                  <CheckCircle2 className="size-3 text-green-500" /> Matched Skills
-                </h4>
-                <div className="flex flex-wrap gap-2">
-                  {selectedCandidate?.aiEvaluation?.matchedSkills?.length > 0 ? (
-                    selectedCandidate.aiEvaluation.matchedSkills.map((s, i) => (
-                      <Badge key={i} variant="outline" className="bg-green-500/5 text-green-600 border-green-200 hover:bg-green-500/10">
-                        {s}
-                      </Badge>
-                    ))
-                  ) : (
-                    <span className="text-xs text-muted-foreground italic">No specific matches found or data unavailable.</span>
-                  )}
-                </div>
-              </div>
-
-              {/* Missing Skills */}
-              <div className="space-y-4">
-                <h4 className="text-xs font-black uppercase tracking-[0.2em] text-muted-foreground flex items-center gap-2">
-                  <AlertCircle className="size-3 text-red-500" /> Missing Skills
-                </h4>
-                <div className="flex flex-wrap gap-2">
-                  {selectedCandidate?.aiEvaluation?.missingSkills?.length > 0 ? (
-                    selectedCandidate.aiEvaluation.missingSkills.map((s, i) => (
-                      <Badge key={i} variant="outline" className="bg-red-500/5 text-red-600 border-red-200 hover:bg-red-500/10">
-                        {s}
-                      </Badge>
-                    ))
-                  ) : (
-                    <span className="text-xs text-muted-foreground italic">No missing skills identified or data unavailable.</span>
-                  )}
-                </div>
-              </div>
-
-
-              <div className="space-y-4">
-                <h4 className="text-xs font-black uppercase tracking-[0.2em] text-muted-foreground flex items-center gap-2">
-                  <CheckCircle2 className="size-3 text-green-500" /> Latent Strengths
-                </h4>
-                <div className="flex flex-col gap-2">
-                  {selectedCandidate?.aiEvaluation?.strengths?.map((s, i) => (
-                    <div key={i} className="text-xs p-3 rounded-lg bg-green-500/5 text-muted-foreground flex gap-2 border border-green-500/10">
-                      <ArrowRight className="size-3 text-green-500 shrink-0 mt-0.5" />
-                      {s}
-                    </div>
-                  ))}
-                </div>
-              </div>
-
-              {/* Current Skills (Candidate's Skills) */}
-              <div className="space-y-4">
-                <h4 className="text-xs font-black uppercase tracking-[0.2em] text-muted-foreground flex items-center gap-2">
-                  <User className="size-3 text-blue-500" /> Candidate Skills
-                </h4>
-                <div className="flex flex-wrap gap-2">
-                  {selectedCandidate?.aiEvaluation?.candidateSkills?.length > 0 ? (
-                    selectedCandidate.aiEvaluation.candidateSkills.map((s, i) => (
-                      <Badge key={i} variant="secondary" className="text-xs">
-                        {s}
-                      </Badge>
-                    ))
-                  ) : (
-                    <span className="text-xs text-muted-foreground italic">No extracted skills found or data unavailable.</span>
-                  )}
-                </div>
-              </div>
-            </div>
-
-            <div className="space-y-8">
-              {/* Risk Analysis */}
-              <div className="space-y-4">
-                <h4 className="text-xs font-black uppercase tracking-[0.2em] text-muted-foreground flex items-center gap-2">
-                  <ShieldCheck className="size-3 text-orange-500" /> Risk Analysis
-                </h4>
-                <div className="flex flex-col gap-2">
-                  {selectedCandidate?.aiEvaluation?.risks?.length > 0 ? (
-                    selectedCandidate.aiEvaluation.risks.map((risk, i) => (
-                      <div key={i} className={`text-xs p-3 rounded-lg flex gap-2 border ${risk.level === 'High' ? 'bg-red-50 text-red-700 border-red-100' :
-                          risk.level === 'Medium' ? 'bg-orange-50 text-orange-700 border-orange-100' :
-                            'bg-yellow-50 text-yellow-700 border-yellow-100'
-                        }`}>
-                        <AlertTriangle className="size-3 shrink-0 mt-0.5" />
-                        <div>
-                          <span className="font-bold uppercase tracking-wider text-[10px]">{risk.flag} ({risk.level})</span>
-                          <p className="mt-1">{risk.details}</p>
-                        </div>
-                      </div>
-                    ))
-                  ) : (
-                    <div className="text-xs p-3 rounded-lg bg-green-50 text-green-700 border border-green-100 flex gap-2">
-                      <CheckCircle2 className="size-3 mt-0.5" />
-                      No significant risks detected.
-                    </div>
-                  )}
-                </div>
-              </div>
-
-              <div className="space-y-4">
-                <h4 className="text-xs font-black uppercase tracking-[0.2em] text-muted-foreground flex items-center gap-2">
-                  Critical Gaps
-                </h4>
-                <div className="flex flex-col gap-2">
-                  {selectedCandidate?.aiEvaluation?.weaknesses?.map((w, i) => (
-                    <div key={i} className="text-xs p-3 rounded-lg bg-destructive/5 text-muted-foreground flex gap-2 border border-destructive/10">
-                      <AlertCircle className="size-3 text-destructive shrink-0 mt-0.5" />
-                      {w}
-                    </div>
-                  ))}
-                </div>
-              </div>
-
-              <div className="p-6 rounded-2xl bg-primary/[0.03] border border-primary/10 space-y-4">
-                <div>
-                  <h4 className="text-sm font-bold tracking-tight">Human Override</h4>
-                  <p className="text-[11px] text-muted-foreground mt-1">Audit Trail logged with your identity.</p>
-                </div>
-                <div className="flex flex-col gap-2">
-                  <div className="grid grid-cols-2 gap-2">
-                    <Button variant="default" size="sm" className="h-9 text-xs" onClick={() => handleStatusChange(selectedCandidate._id, 'Shortlisted')}>
-                      <ThumbsUp className="size-3 mr-1.5" /> Shortlist
-                    </Button>
-                    <Button variant="destructive" size="sm" className="h-9 text-xs" onClick={() => {
-                      setOverrideAction('Disqualified')
-                      setShowOverrideModal(true)
-                    }}>
-                      <ThumbsDown className="size-3 mr-1.5" /> Reject
-                    </Button>
-                  </div>
-                  <Button variant="outline" size="sm" className="h-9 text-xs w-full" onClick={() => handleStatusChange(selectedCandidate._id, 'Manual Review Required')}>
-                    <Clock className="size-3 mr-1.5" /> Flag for Review
-                  </Button>
-                </div>
-              </div>
-            </div>
-          </div>
-
-          <div className="p-6 border-t border-border/40 bg-accent/20 flex justify-end">
-            <Button variant="outline" size="sm" onClick={() => setSelectedCandidate(null)}>Close Analysis</Button>
-          </div>
-        </DialogContent>
-      </Dialog>
+      {/* Detailed Analysis Dialog - REMOVED in favor of CandidateEvaluation view */}
 
       {/* Override Dialog */}
       <Dialog open={showOverrideModal} onOpenChange={() => setShowOverrideModal(false)}>
