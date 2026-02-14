@@ -3,54 +3,22 @@ import { useParams } from 'react-router-dom';
 import apiService from '../../services/api';
 import {
     AlertCircle,
-    CheckCircle,
-    Upload,
     Briefcase,
     MapPin,
     Clock,
     Calendar,
-    User,
-    Mail,
-    Phone,
-    FileText,
     Loader2
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import { Alert, AlertDescription } from '@/components/ui/alert';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-
-// New Imports for Shadcn Form
-import {
-    Form,
-    FormControl,
-    FormField,
-    FormItem,
-    FormLabel,
-    FormMessage,
-} from "@/components/ui/form"
-import { useForm } from "react-hook-form"
-import { zodResolver } from "@hookform/resolvers/zod"
-import * as z from "zod"
-
-const formSchema = z.object({
-    name: z.string().min(2, { message: "Name must be at least 2 characters." }),
-    email: z.string().email({ message: "Please enter a valid email address." }),
-    phone: z.string().optional(),
-    resume: z.custom((file) => file instanceof File, "Resume file is required.")
-        .refine((file) => file.size <= 5 * 1024 * 1024, { message: "File size must be less than 5MB." })
-})
+import DynamicApplyForm from '@/components/features/DynamicApplyForm';
 
 const JobView = () => {
     const { id } = useParams();
     const [job, setJob] = useState(null);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
-
-    const [dragActive, setDragActive] = useState(false);
-    const [submitSuccess, setSubmitSuccess] = useState(false);
 
     useEffect(() => {
         const fetchJobDetails = async () => {
@@ -71,74 +39,6 @@ const JobView = () => {
 
         fetchJobDetails();
     }, [id]);
-
-    // 1. Define your form.
-    const form = useForm({
-        resolver: zodResolver(formSchema),
-        defaultValues: {
-            name: "",
-            email: "",
-            phone: "",
-        },
-    })
-
-    const { isSubmitting } = form.formState
-
-    const onSubmit = async (values) => {
-        const data = new FormData();
-        data.append('name', values.name);
-        data.append('email', values.email);
-        data.append('phone', values.phone || '');
-        data.append('resume', values.resume);
-
-        try {
-            const response = await apiService.applyForJob(id, data);
-            const result = await response.json();
-
-            if (response.ok && result.success) {
-                setSubmitSuccess(true);
-                form.reset();
-            } else {
-                form.setError("root", {
-                    type: "manual",
-                    message: result.message || 'Application failed.'
-                });
-            }
-        } catch {
-            form.setError("root", {
-                type: "manual",
-                message: 'An error occurred. Please try again.'
-            });
-        }
-    };
-
-    const handleFileChange = (e) => {
-        if (e.target.files && e.target.files[0]) {
-            const file = e.target.files[0];
-            form.setValue("resume", file, { shouldValidate: true });
-        }
-    };
-
-    const handleDrag = (e) => {
-        e.preventDefault();
-        e.stopPropagation();
-        if (e.type === "dragenter" || e.type === "dragover") {
-            setDragActive(true);
-        } else if (e.type === "dragleave") {
-            setDragActive(false);
-        }
-    };
-
-    const handleDrop = (e) => {
-        e.preventDefault();
-        e.stopPropagation();
-        setDragActive(false);
-
-        if (e.dataTransfer.files && e.dataTransfer.files[0]) {
-            const file = e.dataTransfer.files[0];
-            form.setValue("resume", file, { shouldValidate: true });
-        }
-    };
 
     const formatDate = (dateString) => {
         return new Date(dateString).toLocaleDateString('en-US', {
@@ -252,167 +152,16 @@ const JobView = () => {
                     </CardContent>
                 </Card>
 
-                {/* Application Form Card */}
-                <Card className="border-border/40 bg-card/50">
-                    <CardHeader className="bg-gradient-to-r from-blue-50 to-indigo-50 border-b">
-                        <CardTitle className="text-xl">Apply for this Position</CardTitle>
-                        <CardDescription>
-                            Fill in your details and upload your resume to apply
-                        </CardDescription>
-                    </CardHeader>
-
-                    <CardContent className="p-6">
-                        {submitSuccess ? (
-                            <div className="text-center py-8">
-                                <div className="bg-green-50 border border-green-200 rounded-full w-16 h-16 flex items-center justify-center mx-auto mb-4">
-                                    <CheckCircle className="h-8 w-8 text-green-600" />
-                                </div>
-                                <h3 className="text-xl font-semibold text-gray-900 mb-2">Application Submitted Successfully!</h3>
-                                <p className="text-gray-600 mb-6">
-                                    Thank you for your interest in this position. We have received your application and will review it carefully.
-                                    Our team will get back to you within 3-5 business days.
-                                </p>
-                                <Button onClick={() => setSubmitSuccess(false)} variant="outline">
-                                    Submit Another Application
-                                </Button>
-                            </div>
-                        ) : (
-                            <Form {...form}>
-                                <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
-                                    {form.formState.errors.root && (
-                                        <Alert variant="destructive" className="border-red-200 bg-red-50">
-                                            <AlertCircle className="h-4 w-4" />
-                                            <AlertDescription>{form.formState.errors.root.message}</AlertDescription>
-                                        </Alert>
-                                    )}
-
-                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                                        <FormField
-                                            control={form.control}
-                                            name="name"
-                                            render={({ field }) => (
-                                                <FormItem>
-                                                    <FormLabel>Full Name *</FormLabel>
-                                                    <FormControl>
-                                                        <div className="relative">
-                                                            <User className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
-                                                            <Input placeholder="John Doe" className="pl-10 bg-background/50" {...field} />
-                                                        </div>
-                                                    </FormControl>
-                                                    <FormMessage />
-                                                </FormItem>
-                                            )}
-                                        />
-
-                                        <FormField
-                                            control={form.control}
-                                            name="email"
-                                            render={({ field }) => (
-                                                <FormItem>
-                                                    <FormLabel>Email Address *</FormLabel>
-                                                    <FormControl>
-                                                        <div className="relative">
-                                                            <Mail className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
-                                                            <Input placeholder="john@example.com" className="pl-10 bg-background/50" {...field} />
-                                                        </div>
-                                                    </FormControl>
-                                                    <FormMessage />
-                                                </FormItem>
-                                            )}
-                                        />
-
-                                        <FormField
-                                            control={form.control}
-                                            name="phone"
-                                            render={({ field }) => (
-                                                <FormItem>
-                                                    <FormLabel>Phone Number</FormLabel>
-                                                    <FormControl>
-                                                        <div className="relative">
-                                                            <Phone className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
-                                                            <Input type="tel" placeholder="+1 (555) 123-4567" className="pl-10 bg-background/50" {...field} />
-                                                        </div>
-                                                    </FormControl>
-                                                    <FormMessage />
-                                                </FormItem>
-                                            )}
-                                        />
-
-                                        <FormField
-                                            control={form.control}
-                                            name="resume"
-                                            render={({ field: { value, onChange: _onChange, ...field } }) => ( // eslint-disable-line no-unused-vars
-                                                <FormItem className="md:col-span-2">
-                                                    <FormLabel>Resume/CV *</FormLabel>
-                                                    <FormControl>
-                                                        <div
-                                                            className={`relative border-2 border-dashed rounded-lg p-6 text-center transition-colors ${dragActive
-                                                                ? 'border-primary bg-primary/5'
-                                                                : 'border-gray-300 hover:border-gray-400 bg-background/50'
-                                                                }`}
-                                                            onDragEnter={handleDrag}
-                                                            onDragLeave={handleDrag}
-                                                            onDragOver={handleDrag}
-                                                            onDrop={handleDrop}
-                                                        >
-                                                            <input
-                                                                type="file"
-                                                                accept=".pdf,.docx,.doc"
-                                                                onChange={handleFileChange}
-                                                                className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
-                                                                {...field}
-                                                                value="" // controlled input workaround for file
-                                                            />
-
-                                                            <div className="space-y-2">
-                                                                <Upload className="mx-auto h-12 w-12 text-gray-400" />
-                                                                <div>
-                                                                    <p className="text-sm text-gray-600">
-                                                                        <span className="font-medium text-primary">Click to upload</span> or drag and drop
-                                                                    </p>
-                                                                    <p className="text-xs text-gray-500">PDF, DOC, DOCX (MAX. 5MB)</p>
-                                                                </div>
-                                                                {value && (
-                                                                    <div className="mt-4 p-3 bg-green-50 border border-green-200 rounded-md relative z-10">
-                                                                        <div className="flex items-center gap-2 text-green-800">
-                                                                            <FileText className="h-4 w-4" />
-                                                                            <span className="text-sm font-medium">{value.name}</span>
-                                                                            <span className="text-xs text-green-600">({(value.size / 1024 / 1024).toFixed(2)} MB)</span>
-                                                                        </div>
-                                                                    </div>
-                                                                )}
-                                                            </div>
-                                                        </div>
-                                                    </FormControl>
-                                                    <FormMessage />
-                                                </FormItem>
-                                            )}
-                                        />
-                                    </div>
-
-                                    <div className="pt-4">
-                                        <Button
-                                            type="submit"
-                                            disabled={isSubmitting}
-                                            className="w-full h-11 text-base font-medium"
-                                        >
-                                            {isSubmitting ? (
-                                                <>
-                                                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                                                    Submitting Application...
-                                                </>
-                                            ) : (
-                                                <>
-                                                    Submit Application
-                                                </>
-                                            )}
-                                        </Button>
-                                    </div>
-                                </form>
-                            </Form>
-                        )}
-                    </CardContent>
-                </Card>
+                {/* Application Form */}
+                {job.status === 'Open' ? (
+                    <DynamicApplyForm job={job} />
+                ) : (
+                    <Card className="border-border/40 bg-card/50">
+                        <CardContent className="p-8 text-center text-muted-foreground">
+                            <p>This job is currently closed for new applications.</p>
+                        </CardContent>
+                    </Card>
+                )}
             </div>
         </div>
     );

@@ -121,7 +121,26 @@ const resumeSchema = new mongoose.Schema({
     candidateName: { type: String, trim: true },
     candidateEmail: { type: String, trim: true, lowercase: true },
     candidatePhone: { type: String, trim: true },
-    resumeUrl: { type: String } // URL to file storage if moved to cloud later
+    resumeUrl: { type: String }, // URL to file storage if moved to cloud later
+
+    // Standard Fields Data
+    linkedIn: { type: String, trim: true },
+    portfolio: { type: String, trim: true },
+    github: { type: String, trim: true },
+    expectedSalary: { type: String, trim: true },
+    currentSalary: { type: String, trim: true },
+    noticePeriod: { type: String, trim: true },
+    experienceYears: { type: String, trim: true },
+    currentCompany: { type: String, trim: true },
+    currentDesignation: { type: String, trim: true },
+    workMode: { type: String, trim: true },
+    relocate: { type: Boolean },
+
+    // Dynamic Form Data (Custom Fields)
+    formData: {
+        type: mongoose.Schema.Types.Mixed,
+        default: {}
+    }
 });
 
 const Resume = mongoose.model('Resume', resumeSchema);

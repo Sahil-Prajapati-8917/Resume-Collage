@@ -49,6 +49,54 @@ exports.applyForJob = async (req, res) => {
             return res.status(400).json({ success: false, message: 'This job is no longer accepting applications.' });
         }
 
+        // Validate Standard Fields
+        const standardFields = job.standardFields || {};
+        const missingStandardFields = [];
+
+        if (standardFields.linkedIn && !req.body.linkedIn) missingStandardFields.push('LinkedIn Profile');
+        if (standardFields.portfolio && !req.body.portfolio) missingStandardFields.push('Portfolio URL');
+        if (standardFields.github && !req.body.github) missingStandardFields.push('GitHub Profile');
+        if (standardFields.expectedSalary && !req.body.expectedSalary) missingStandardFields.push('Expected Salary');
+        if (standardFields.currentSalary && !req.body.currentSalary) missingStandardFields.push('Current Salary');
+        if (standardFields.noticePeriod && !req.body.noticePeriod) missingStandardFields.push('Notice Period');
+        if (standardFields.experienceYears && !req.body.experienceYears) missingStandardFields.push('Years of Experience');
+        if (standardFields.currentCompany && !req.body.currentCompany) missingStandardFields.push('Current Company');
+        if (standardFields.currentDesignation && !req.body.currentDesignation) missingStandardFields.push('Current Designation');
+        if (standardFields.workMode && !req.body.workMode) missingStandardFields.push('Preferred Work Mode');
+        if (standardFields.relocate && req.body.relocate === undefined) missingStandardFields.push('Willing to Relocate');
+
+        if (missingStandardFields.length > 0) {
+            return res.status(400).json({ success: false, message: `Missing required fields: ${missingStandardFields.join(', ')}` });
+        }
+
+        // Validate Custom Fields
+        const formData = req.body.formData ? JSON.parse(req.body.formData) : {};
+        const customFields = job.applyFormFields || [];
+        const missingCustomFields = [];
+
+        for (const field of customFields) {
+            // Check if field is required and conditionally shown
+            // NOTE: complex conditional logic validation on backend might be tricky if it depends on other fields that are also being validated.
+            // For now, we'll enforce required check if it is required.
+
+            // TODO: Add backend-side conditional logic check to strictly allow/disallow fields based on conditions.
+            // Current simple check: if required, it must be present.
+            if (field.required && !formData[field.id]) {
+                missingCustomFields.push(field.label);
+            }
+            // Regex validation
+            if (field.validation && field.validation.regex && formData[field.id]) {
+                const regex = new RegExp(field.validation.regex);
+                if (!regex.test(formData[field.id])) {
+                    return res.status(400).json({ success: false, message: `Invalid format for field: ${field.label}` });
+                }
+            }
+        }
+
+        if (missingCustomFields.length > 0) {
+            return res.status(400).json({ success: false, message: `Missing required custom fields: ${missingCustomFields.join(', ')}` });
+        }
+
         // Helper to validate content - kept simple here
         const validateResumeContent = (text) => {
             const anomalies = [];
@@ -98,7 +146,23 @@ exports.applyForJob = async (req, res) => {
             candidateEmail: email,
             candidatePhone: phone,
             status: 'Pending', // Fixed typo: satus -> status
-            uploadedBy: null // Guest
+            uploadedBy: null, // Guest
+
+            // Standard Fields
+            linkedIn: req.body.linkedIn,
+            portfolio: req.body.portfolio,
+            github: req.body.github,
+            expectedSalary: req.body.expectedSalary,
+            currentSalary: req.body.currentSalary,
+            noticePeriod: req.body.noticePeriod,
+            experienceYears: req.body.experienceYears,
+            currentCompany: req.body.currentCompany,
+            currentDesignation: req.body.currentDesignation,
+            workMode: req.body.workMode,
+            relocate: req.body.relocate === 'true' || req.body.relocate === true,
+
+            // Capture Dynamic Form Data
+            formData: formData
         });
 
         await resumeEntry.save();

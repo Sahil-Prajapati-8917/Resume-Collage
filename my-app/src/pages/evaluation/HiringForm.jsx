@@ -11,10 +11,10 @@ import {
   Settings2,
   ListChecks,
   History,
-  CheckCircle2,
-  Trash,
-  Copy
+  Copy,
+  Trash
 } from 'lucide-react'
+import { Switch } from "@/components/ui/switch"
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from '@/components/ui/card'
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert'
@@ -23,6 +23,7 @@ import { Label } from '@/components/ui/label'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { Separator } from '@/components/ui/separator'
 import { Badge } from '@/components/ui/badge'
+import FormBuilder from '@/components/admin/FormBuilder'
 
 const HiringForm = () => {
   const [formData, setFormData] = useState({
@@ -38,8 +39,28 @@ const HiringForm = () => {
     requirements: [''],
     roleExpectations: [''],
     performanceIndicators: [''],
-    cutOffSettings: { autoShortlist: 85, manualReview: 65, autoReject: 60 }
+    responsibilities: [''],
+    requirements: [''],
+    roleExpectations: [''],
+    performanceIndicators: [''],
+    cutOffSettings: { autoShortlist: 85, manualReview: 65, autoReject: 60 },
+    standardFields: {
+      linkedIn: false,
+      portfolio: false,
+      github: false,
+      expectedSalary: false,
+      currentSalary: false,
+      noticePeriod: false,
+      experienceYears: false,
+      currentCompany: false,
+      currentDesignation: false,
+      workMode: false,
+      relocate: false
+    },
+    applyFormFields: []
   })
+
+  // Custom Field State
   const [loading, setLoading] = useState(false)
   const [fetchingForms, setFetchingForms] = useState(false)
   const [status, setStatus] = useState({ type: '', message: '' })
@@ -123,7 +144,22 @@ const HiringForm = () => {
       requirements: form.requirements?.length > 0 ? form.requirements : [''],
       roleExpectations: form.roleExpectations?.length > 0 ? form.roleExpectations : [''],
       performanceIndicators: form.performanceIndicators?.length > 0 ? form.performanceIndicators : [''],
-      cutOffSettings: form.cutOffSettings || { autoShortlist: 85, manualReview: 65, autoReject: 60 }
+      performanceIndicators: form.performanceIndicators?.length > 0 ? form.performanceIndicators : [''],
+      cutOffSettings: form.cutOffSettings || { autoShortlist: 85, manualReview: 65, autoReject: 60 },
+      standardFields: form.standardFields || { // Ensure defaults
+        linkedIn: false,
+        portfolio: false,
+        github: false,
+        expectedSalary: false,
+        currentSalary: false,
+        noticePeriod: false,
+        experienceYears: false,
+        currentCompany: false,
+        currentDesignation: false,
+        workMode: false,
+        relocate: false
+      },
+      applyFormFields: form.applyFormFields || []
     })
     window.scrollTo({ top: 0, behavior: 'smooth' })
   }
@@ -143,7 +179,22 @@ const HiringForm = () => {
       requirements: [''],
       roleExpectations: [''],
       performanceIndicators: [''],
-      cutOffSettings: { autoShortlist: 85, manualReview: 65, autoReject: 60 }
+      performanceIndicators: [''],
+      cutOffSettings: { autoShortlist: 85, manualReview: 65, autoReject: 60 },
+      standardFields: {
+        linkedIn: false,
+        portfolio: false,
+        github: false,
+        expectedSalary: false,
+        currentSalary: false,
+        noticePeriod: false,
+        experienceYears: false,
+        currentCompany: false,
+        currentDesignation: false,
+        workMode: false,
+        relocate: false
+      },
+      applyFormFields: []
     })
   }
 
@@ -160,10 +211,6 @@ const HiringForm = () => {
       setStatus({ type: 'error', message: error.message })
     }
   }
-
-
-
-
 
   const handleInputChange = (e) => {
     const { name, value } = e.target
@@ -414,6 +461,13 @@ const HiringForm = () => {
               </div>
             </CardContent>
           </Card>
+
+
+          <FormBuilder
+            initialStandardFields={formData.standardFields}
+            initialCustomFields={formData.applyFormFields}
+            onSave={(std, custom) => setFormData(prev => ({ ...prev, standardFields: std, applyFormFields: custom }))}
+          />
         </div>
 
         <div className="lg:col-span-4 flex flex-col gap-6 sticky top-24 h-fit">
@@ -443,7 +497,7 @@ const HiringForm = () => {
           </Card>
         </div>
 
-        {/* Deployment Settings Removed */},
+
       </div>
 
       <div className="flex flex-col gap-6">
