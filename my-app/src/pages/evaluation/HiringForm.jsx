@@ -37,7 +37,8 @@ const HiringForm = () => {
     responsibilities: [''],
     requirements: [''],
     roleExpectations: [''],
-    performanceIndicators: ['']
+    performanceIndicators: [''],
+    cutOffSettings: { autoShortlist: 85, manualReview: 65, autoReject: 60 }
   })
   const [loading, setLoading] = useState(false)
   const [fetchingForms, setFetchingForms] = useState(false)
@@ -46,7 +47,6 @@ const HiringForm = () => {
   const [editingId, setEditingId] = useState(null)
 
   const [industries, setIndustries] = useState([])
-  const [availablePrompts, setAvailablePrompts] = useState([])
 
   useEffect(() => {
     fetchIndustries()
@@ -58,11 +58,7 @@ const HiringForm = () => {
       const selectedInd = industries.find(i => (i.name || i) === formData.industry)
       if (selectedInd && selectedInd._id) {
         fetchPrompts(selectedInd._id)
-      } else {
-        setAvailablePrompts([])
       }
-    } else {
-      setAvailablePrompts([])
     }
   }, [formData.industry, industries])
 
@@ -71,20 +67,17 @@ const HiringForm = () => {
       const response = await apiService.get(`/prompts/industry/${industryId}`)
       if (response.ok) {
         const data = await response.json()
-        setAvailablePrompts(data.data)
-
-        // Auto-select default prompt
         if (data.data && data.data.length > 0) {
-          const defaultPrompt = data.data.find(p => p.isDefault) || data.data[0];
+          const defaultPrompt = data.data[0]
           setFormData(prev => ({
             ...prev,
             promptId: defaultPrompt._id,
-            experienceLevel: prev.experienceLevel || 'Mid-Level (5-8 years)' // Default 
+            experienceLevel: prev.experienceLevel || 'Mid-Level (5-8 years)' // Default
           }));
         }
       }
     } catch {
-      setAvailablePrompts([])
+      // Ignore error
     }
   }
 
@@ -129,7 +122,8 @@ const HiringForm = () => {
       responsibilities: form.responsibilities?.length > 0 ? form.responsibilities : [''],
       requirements: form.requirements?.length > 0 ? form.requirements : [''],
       roleExpectations: form.roleExpectations?.length > 0 ? form.roleExpectations : [''],
-      performanceIndicators: form.performanceIndicators?.length > 0 ? form.performanceIndicators : ['']
+      performanceIndicators: form.performanceIndicators?.length > 0 ? form.performanceIndicators : [''],
+      cutOffSettings: form.cutOffSettings || { autoShortlist: 85, manualReview: 65, autoReject: 60 }
     })
     window.scrollTo({ top: 0, behavior: 'smooth' })
   }
@@ -148,7 +142,8 @@ const HiringForm = () => {
       responsibilities: [''],
       requirements: [''],
       roleExpectations: [''],
-      performanceIndicators: ['']
+      performanceIndicators: [''],
+      cutOffSettings: { autoShortlist: 85, manualReview: 65, autoReject: 60 }
     })
   }
 
@@ -166,13 +161,7 @@ const HiringForm = () => {
     }
   }
 
-  const experienceLevels = [
-    'Entry Level (0-2 years)',
-    'Junior (2-5 years)',
-    'Mid-Level (5-8 years)',
-    'Senior (8-12 years)',
-    'Lead/Principal (12+ years)'
-  ]
+
 
 
 
@@ -372,6 +361,55 @@ const HiringForm = () => {
                       )}
                     </div>
                   ))}
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+
+          <Card className="border-border/40 bg-card/50">
+            <CardHeader className="flex flex-row items-center gap-4">
+              <div className="size-10 rounded-xl bg-purple-500/10 flex items-center justify-center text-purple-500">
+                <Settings2 className="size-5" />
+              </div>
+              <div>
+                <CardTitle className="text-xl">Smart Automation Rules</CardTitle>
+                <CardDescription>Configure AI decision thresholds.</CardDescription>
+              </div>
+            </CardHeader>
+            <CardContent className="space-y-6 pt-2">
+              <div className="grid md:grid-cols-3 gap-6">
+                <div className="space-y-2">
+                  <Label htmlFor="autoShortlist" className="text-xs uppercase tracking-widest text-green-500 font-bold">Auto-Shortlist Score</Label>
+                  <Input
+                    type="number"
+                    id="autoShortlist"
+                    value={formData.cutOffSettings.autoShortlist}
+                    onChange={(e) => setFormData(p => ({ ...p, cutOffSettings: { ...p.cutOffSettings, autoShortlist: parseInt(e.target.value) } }))}
+                    className="bg-background/50 h-11 border-green-500/20 focus-visible:ring-green-500/20"
+                  />
+                  <p className="text-[10px] text-muted-foreground">Scores above this will be automatically shortlisted.</p>
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="manualReview" className="text-xs uppercase tracking-widest text-yellow-500 font-bold">Manual Review Range</Label>
+                  <Input
+                    type="number"
+                    id="manualReview"
+                    value={formData.cutOffSettings.manualReview}
+                    onChange={(e) => setFormData(p => ({ ...p, cutOffSettings: { ...p.cutOffSettings, manualReview: parseInt(e.target.value) } }))}
+                    className="bg-background/50 h-11 border-yellow-500/20 focus-visible:ring-yellow-500/20"
+                  />
+                  <p className="text-[10px] text-muted-foreground">Scores between Reject and Shortlist trigger review.</p>
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="autoReject" className="text-xs uppercase tracking-widest text-red-500 font-bold">Auto-Reject Score</Label>
+                  <Input
+                    type="number"
+                    id="autoReject"
+                    value={formData.cutOffSettings.autoReject}
+                    onChange={(e) => setFormData(p => ({ ...p, cutOffSettings: { ...p.cutOffSettings, autoReject: parseInt(e.target.value) } }))}
+                    className="bg-background/50 h-11 border-red-500/20 focus-visible:ring-red-500/20"
+                  />
+                  <p className="text-[10px] text-muted-foreground">Scores below this will be automatically disqualified.</p>
                 </div>
               </div>
             </CardContent>

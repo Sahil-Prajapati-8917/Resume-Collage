@@ -7,8 +7,10 @@ import {
   Users,
   FileText,
   Shield,
-  BarChart3,
-  LineChart
+  BarChart3
+} from 'lucide-react'
+import {
+  DollarSign
 } from 'lucide-react'
 import {
   Line,
@@ -23,101 +25,121 @@ import {
   AreaChart,
   Area,
   BarChart,
-  Bar
+  Bar,
+  ComposedChart,
+  ReferenceLine,
+  LineChart
 } from 'recharts'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
+import { api } from '@/services/api' // Ensure api service is imported
 
 const SystemAnalytics = () => {
   const [metrics, setMetrics] = useState({})
+  const [costMetrics, setCostMetrics] = useState(null)
   const [loading, setLoading] = useState(true)
   const [timeRange, setTimeRange] = useState('30d')
   const [activeTab, setActiveTab] = useState('overview')
 
-  // Mock data
   useEffect(() => {
-    const mockMetrics = {
-      overview: {
-        totalCompanies: 156,
-        totalUsers: 1248,
-        totalResumes: 8947,
-        totalEvaluations: 8723,
-        processingSuccessRate: 98.3,
-        avgProcessingTime: 2.3,
-        aiModelAccuracy: 94.2,
-        queueHealth: 25
-      },
-      resumeProcessing: {
-        totalResumes: 8947,
-        processedResumes: 8723,
-        failedResumes: 224,
-        avgProcessingTime: 2.3,
-        byStatus: [
-          { status: 'evaluated', count: 8723 },
-          { status: 'human_reviewed', count: 224 },
-          { status: 'failed', count: 15 }
-        ],
-        byFileType: [
-          { type: 'PDF', count: 6250 },
-          { type: 'DOCX', count: 2100 },
-          { type: 'DOC', count: 450 },
-          { type: 'TXT', count: 147 }
-        ]
-      },
-      aiUsage: {
-        totalCalls: 8723,
-        byModel: [
-          { model: 'GPT-4', calls: 6100, avgScore: 78.5, avgConfidence: 89.2 },
-          { model: 'Claude 3', calls: 2100, avgScore: 72.3, avgConfidence: 84.7 },
-          { model: 'Gemini Pro', calls: 523, avgScore: 75.1, avgConfidence: 86.4 }
-        ],
-        dailyUsage: [
-          { date: 'Jan 1', calls: 240, avgScore: 76.2 },
-          { date: 'Jan 2', calls: 180, avgScore: 74.8 },
-          { date: 'Jan 3', calls: 320, avgScore: 77.1 },
-          { date: 'Jan 4', calls: 280, avgScore: 75.9 },
-          { date: 'Jan 5', calls: 450, avgScore: 78.3 },
-          { date: 'Jan 6', calls: 380, avgScore: 77.6 },
-          { date: 'Jan 7', calls: 520, avgScore: 79.1 }
-        ]
-      },
-      evaluationQuality: {
-        totalEvaluations: 8723,
-        avgAiScore: 76.8,
-        avgConfidence: 86.4,
-        totalOverrides: 224,
-        avgOverrideTime: 45.2,
-        avgOverrideScore: 79.1,
-        overrideTrends: [
-          { date: 'Jan 1', overrides: 8, avgAiScore: 74.2, avgOverrideScore: 78.1 },
-          { date: 'Jan 2', overrides: 12, avgAiScore: 73.8, avgOverrideScore: 77.5 },
-          { date: 'Jan 3', overrides: 15, avgAiScore: 75.1, avgOverrideScore: 78.9 },
-          { date: 'Jan 4', overrides: 9, avgAiScore: 74.6, avgOverrideScore: 77.8 },
-          { date: 'Jan 5', overrides: 22, avgAiScore: 76.3, avgOverrideScore: 79.4 },
-          { date: 'Jan 6', overrides: 14, avgAiScore: 75.7, avgOverrideScore: 78.6 },
-          { date: 'Jan 7', overrides: 24, avgAiScore: 77.2, avgOverrideScore: 80.1 }
-        ]
-      },
-      recruiterPatterns: [
-        { recruiter: 'Sarah Johnson', company: 'TechCorp', overrides: 15, avgOverrideTime: 32, avgAiScore: 74.5, avgOverrideScore: 78.2 },
-        { recruiter: 'Mike Chen', company: 'HealthPlus', overrides: 8, avgOverrideTime: 58, avgAiScore: 72.1, avgOverrideScore: 76.8 },
-        { recruiter: 'Emma Rodriguez', company: 'FinSecure', overrides: 12, avgOverrideTime: 45, avgAiScore: 73.8, avgOverrideScore: 77.9 },
-        { recruiter: 'Alex Smith', company: 'ManufacturePro', overrides: 5, avgOverrideTime: 67, avgAiScore: 71.2, avgOverrideScore: 75.4 }
-      ],
-      industryDistribution: [
-        { industry: 'IT', count: 3560, avgScore: 78.2, overrideRate: 6.2 },
-        { industry: 'Healthcare', count: 2240, avgScore: 74.1, overrideRate: 11.8 },
-        { industry: 'Finance', count: 1780, avgScore: 79.5, overrideRate: 4.8 },
-        { industry: 'Manufacturing', count: 1363, avgScore: 72.8, overrideRate: 14.2 }
-      ]
-    }
+    const fetchAnalytics = async () => {
+      setLoading(true)
+      // Fetch new Cost Analytics
+      try {
+        // Assuming api.get handles full URL or base URL config
+        const costRes = await api.get('/system-analytics/cost')
+        if (costRes.data && costRes.data.success) {
+          setCostMetrics(costRes.data.data)
+        }
+      } catch (err) {
+        console.error("Failed to fetch cost analytics", err)
+      }
 
-    setTimeout(() => {
+      // Mock data logic remains as fallback or for other tabs not yet hooked up
+
+      const mockMetrics = {
+        overview: {
+          totalCompanies: 156,
+          totalUsers: 1248,
+          totalResumes: 8947,
+          totalEvaluations: 8723,
+          processingSuccessRate: 98.3,
+          avgProcessingTime: 2.3,
+          aiModelAccuracy: 94.2,
+          queueHealth: 25
+        },
+        resumeProcessing: {
+          totalResumes: 8947,
+          processedResumes: 8723,
+          failedResumes: 224,
+          avgProcessingTime: 2.3,
+          byStatus: [
+            { status: 'evaluated', count: 8723 },
+            { status: 'human_reviewed', count: 224 },
+            { status: 'failed', count: 15 }
+          ],
+          byFileType: [
+            { type: 'PDF', count: 6250 },
+            { type: 'DOCX', count: 2100 },
+            { type: 'DOC', count: 450 },
+            { type: 'TXT', count: 147 }
+          ]
+        },
+        aiUsage: {
+          totalCalls: 8723,
+          byModel: [
+            { model: 'GPT-4', calls: 6100, avgScore: 78.5, avgConfidence: 89.2 },
+            { model: 'Claude 3', calls: 2100, avgScore: 72.3, avgConfidence: 84.7 },
+            { model: 'Gemini Pro', calls: 523, avgScore: 75.1, avgConfidence: 86.4 }
+          ],
+          dailyUsage: [
+            { date: 'Jan 1', calls: 240, avgScore: 76.2 },
+            { date: 'Jan 2', calls: 180, avgScore: 74.8 },
+            { date: 'Jan 3', calls: 320, avgScore: 77.1 },
+            { date: 'Jan 4', calls: 280, avgScore: 75.9 },
+            { date: 'Jan 5', calls: 450, avgScore: 78.3 },
+            { date: 'Jan 6', calls: 380, avgScore: 77.6 },
+            { date: 'Jan 7', calls: 520, avgScore: 79.1 }
+          ]
+        },
+        evaluationQuality: {
+          totalEvaluations: 8723,
+          avgAiScore: 76.8,
+          avgConfidence: 86.4,
+          totalOverrides: 224,
+          avgOverrideTime: 45.2,
+          avgOverrideScore: 79.1,
+          overrideTrends: [
+            { date: 'Jan 1', overrides: 8, avgAiScore: 74.2, avgOverrideScore: 78.1 },
+            { date: 'Jan 2', overrides: 12, avgAiScore: 73.8, avgOverrideScore: 77.5 },
+            { date: 'Jan 3', overrides: 15, avgAiScore: 75.1, avgOverrideScore: 78.9 },
+            { date: 'Jan 4', overrides: 9, avgAiScore: 74.6, avgOverrideScore: 77.8 },
+            { date: 'Jan 5', overrides: 22, avgAiScore: 76.3, avgOverrideScore: 79.4 },
+            { date: 'Jan 6', overrides: 14, avgAiScore: 75.7, avgOverrideScore: 78.6 },
+            { date: 'Jan 7', overrides: 24, avgAiScore: 77.2, avgOverrideScore: 80.1 }
+          ]
+        },
+        recruiterPatterns: [
+          { recruiter: 'Sarah Johnson', company: 'TechCorp', overrides: 15, avgOverrideTime: 32, avgAiScore: 74.5, avgOverrideScore: 78.2 },
+          { recruiter: 'Mike Chen', company: 'HealthPlus', overrides: 8, avgOverrideTime: 58, avgAiScore: 72.1, avgOverrideScore: 76.8 },
+          { recruiter: 'Emma Rodriguez', company: 'FinSecure', overrides: 12, avgOverrideTime: 45, avgAiScore: 73.8, avgOverrideScore: 77.9 },
+          { recruiter: 'Alex Smith', company: 'ManufacturePro', overrides: 5, avgOverrideTime: 67, avgAiScore: 71.2, avgOverrideScore: 75.4 }
+        ],
+        industryDistribution: [
+          { industry: 'IT', count: 3560, avgScore: 78.2, overrideRate: 6.2 },
+          { industry: 'Healthcare', count: 2240, avgScore: 74.1, overrideRate: 11.8 },
+          { industry: 'Finance', count: 1780, avgScore: 79.5, overrideRate: 4.8 },
+          { industry: 'Manufacturing', count: 1363, avgScore: 72.8, overrideRate: 14.2 }
+        ]
+      }
+
       setMetrics(mockMetrics)
       setLoading(false)
-    }, 1000)
+    }
+
+    fetchAnalytics()
   }, [])
 
   const getSeverityColor = (rate) => {
@@ -130,6 +152,7 @@ const SystemAnalytics = () => {
     { id: 'overview', name: 'Overview', icon: TrendingUp },
     { id: 'resume-processing', name: 'Resume Processing', icon: FileText },
     { id: 'ai-usage', name: 'AI Usage', icon: Activity },
+    { id: 'cost-analysis', name: 'Cost Analysis', icon: DollarSign },
     { id: 'evaluation-quality', name: 'Evaluation Quality', icon: Shield },
     { id: 'recruiter-patterns', name: 'Recruiter Patterns', icon: Users },
     { id: 'industry-distribution', name: 'Industry Insights', icon: BarChart3 }
@@ -190,6 +213,22 @@ const SystemAnalytics = () => {
       {/* Overview Tab */}
       {activeTab === 'overview' && (
         <div className="space-y-6">
+          {/* Inject Cost KPI into Overview if valid */}
+          {costMetrics?.total && (
+            <div className="grid gap-4 md:grid-cols-4 mb-6">
+              <Card className="bg-slate-900 text-white border-slate-800">
+                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                  <CardTitle className="text-sm font-medium text-slate-300">Total AI Cost</CardTitle>
+                  <DollarSign className="h-4 w-4 text-green-400" />
+                </CardHeader>
+                <CardContent>
+                  <div className="text-2xl font-bold">${costMetrics.total.totalCost?.toFixed(4) || '0.00'}</div>
+                  <p className="text-xs text-slate-400">Total spend</p>
+                </CardContent>
+              </Card>
+            </div>
+          )}
+
           {/* Key Metrics */}
           <div className="grid gap-4 md:grid-cols-4">
             <Card>
@@ -423,6 +462,101 @@ const SystemAnalytics = () => {
                         <div className="text-sm text-muted-foreground">
                           {((status.count / (metrics.resumeProcessing.totalResumes || 1)) * 100).toFixed(1)}%
                         </div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </CardContent>
+            </Card>
+          </div>
+        </div>
+      )}
+
+      {/* Cost Analysis Tab */}
+      {activeTab === 'cost-analysis' && costMetrics && (
+        <div className="space-y-6">
+          <div className="grid gap-4 md:grid-cols-4">
+            <Card>
+              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                <CardTitle className="text-sm font-medium">Total Tokens Used</CardTitle>
+                <Database className="h-4 w-4 text-muted-foreground" />
+              </CardHeader>
+              <CardContent>
+                <div className="text-2xl font-bold">{(costMetrics.total?.totalTokens || 0).toLocaleString()}</div>
+                <p className="text-xs text-muted-foreground">All time usage</p>
+              </CardContent>
+            </Card>
+
+            <Card>
+              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                <CardTitle className="text-sm font-medium">Total Cost</CardTitle>
+                <DollarSign className="h-4 w-4 text-green-600" />
+              </CardHeader>
+              <CardContent>
+                <div className="text-2xl font-bold">${costMetrics.total?.totalCost?.toFixed(4) || '0.00'}</div>
+                <p className="text-xs text-muted-foreground">Estimated API spend</p>
+              </CardContent>
+            </Card>
+
+            <Card>
+              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                <CardTitle className="text-sm font-medium">Avg Cost / Resume</CardTitle>
+                <TrendingUp className="h-4 w-4 text-muted-foreground" />
+              </CardHeader>
+              <CardContent>
+                <div className="text-2xl font-bold">${costMetrics.total?.avgCost?.toFixed(4) || '0.00'}</div>
+                <p className="text-xs text-muted-foreground">Efficiency metric</p>
+              </CardContent>
+            </Card>
+
+            <Card>
+              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                <CardTitle className="text-sm font-medium">Evaluations Counted</CardTitle>
+                <Activity className="h-4 w-4 text-muted-foreground" />
+              </CardHeader>
+              <CardContent>
+                <div className="text-2xl font-bold">{costMetrics.total?.count || 0}</div>
+                <p className="text-xs text-muted-foreground">Tracked evaluations</p>
+              </CardContent>
+            </Card>
+          </div>
+
+          <div className="grid gap-6 md:grid-cols-2">
+            {/* Monthly Cost Trend */}
+            <Card className="col-span-1">
+              <CardHeader>
+                <CardTitle>Monthly Cost Trend</CardTitle>
+                <CardDescription>AI spending over time</CardDescription>
+              </CardHeader>
+              <CardContent>
+                <div className="h-64">
+                  <ResponsiveContainer width="100%" height="100%">
+                    <BarChart data={costMetrics.monthly || []}>
+                      <CartesianGrid strokeDasharray="3 3" />
+                      <XAxis dataKey="_id" tickFormatter={(val) => `Month ${val}`} />
+                      <YAxis />
+                      <Tooltip />
+                      <Bar dataKey="cost" fill="#10b981" name="Cost ($)" />
+                    </BarChart>
+                  </ResponsiveContainer>
+                </div>
+              </CardContent>
+            </Card>
+
+            {/* Top Prompts by Cost */}
+            <Card className="col-span-1">
+              <CardHeader>
+                <CardTitle>Top Prompts by Cost</CardTitle>
+                <CardDescription>Most expensive prompts</CardDescription>
+              </CardHeader>
+              <CardContent>
+                <div className="space-y-4">
+                  {costMetrics.topPrompts?.map((prompt, i) => (
+                    <div key={i} className="flex items-center justify-between">
+                      <span className="text-sm font-medium truncate w-1/2" title={prompt.name}>{prompt.name || 'Unknown Prompt'}</span>
+                      <div className="flex items-center gap-4">
+                        <span className="text-xs text-muted-foreground">{prompt.count} runs</span>
+                        <span className="text-sm font-bold">${prompt.cost?.toFixed(3)}</span>
                       </div>
                     </div>
                   ))}

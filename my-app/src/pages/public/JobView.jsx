@@ -104,7 +104,7 @@ const JobView = () => {
                     message: result.message || 'Application failed.'
                 });
             }
-        } catch (error) {
+        } catch {
             form.setError("root", {
                 type: "manual",
                 message: 'An error occurred. Please try again.'
@@ -341,7 +341,7 @@ const JobView = () => {
                                         <FormField
                                             control={form.control}
                                             name="resume"
-                                            render={({ field: { value, onChange, ...field } }) => (
+                                            render={({ field: { value, onChange: _onChange, ...field } }) => ( // eslint-disable-line no-unused-vars
                                                 <FormItem className="md:col-span-2">
                                                     <FormLabel>Resume/CV *</FormLabel>
                                                     <FormControl>

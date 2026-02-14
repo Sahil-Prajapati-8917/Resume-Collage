@@ -7,7 +7,7 @@ const { GoogleGenerativeAI } = require('@google/generative-ai');
 
 // Re-using the single evaluate logic but adapted for worker
 const evaluateResumeJob = async (job) => {
-    const { resumeId, jobId, promptId, userId } = job.data;
+    const { resumeId, jobId, promptId } = job.data;
     const startTime = Date.now();
 
     try {
@@ -116,7 +116,6 @@ Output ONLY valid JSON in the following format:
         // 4. Smart Automation Rules
         const cutoffs = hiringForm.cutOffSettings || { autoShortlist: 85, manualReview: 65, autoReject: 60 };
         const score = evaluationResult.totalScore || 0;
-        let status = 'Completed'; // Default
         let recommendation = 'Review';
 
         if (score >= cutoffs.autoShortlist) {

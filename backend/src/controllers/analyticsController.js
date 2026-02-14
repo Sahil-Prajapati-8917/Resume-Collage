@@ -147,3 +147,4 @@ exports.getSystemStats = async (req, res) => {
         });
     }
 };
+exports.getFairnessStats = exports.getSystemStats;

@@ -397,6 +397,42 @@ const EvaluationResults = () => {
                 </div>
               </div>
 
+              {/* AI Transparency Layer */}
+              <div className="space-y-4">
+                <h4 className="text-xs font-black uppercase tracking-[0.2em] text-muted-foreground flex items-center gap-2">
+                  <Eye className="size-3 text-purple-500" /> AI Transparency
+                </h4>
+                {selectedCandidate?.aiEvaluation?.transparency ? (
+                  <div className="grid grid-cols-2 gap-4">
+                    <div className="space-y-1">
+                      <span className="text-[10px] uppercase font-bold text-muted-foreground">Skill Match</span>
+                      <Progress value={selectedCandidate.aiEvaluation.transparency.skillMatch || 0} className="h-2" indicatorClassName="bg-purple-500" />
+                      <span className="text-xs font-mono">{selectedCandidate.aiEvaluation.transparency.skillMatch || 0}%</span>
+                    </div>
+                    <div className="space-y-1">
+                      <span className="text-[10px] uppercase font-bold text-muted-foreground">Exp. Match</span>
+                      <Progress value={selectedCandidate.aiEvaluation.transparency.experienceMatch || 0} className="h-2" indicatorClassName="bg-blue-500" />
+                      <span className="text-xs font-mono">{selectedCandidate.aiEvaluation.transparency.experienceMatch || 0}%</span>
+                    </div>
+                    <div className="space-y-1">
+                      <span className="text-[10px] uppercase font-bold text-muted-foreground">Domain Fit</span>
+                      <Progress value={selectedCandidate.aiEvaluation.transparency.domainFit || 0} className="h-2" indicatorClassName="bg-green-500" />
+                      <span className="text-xs font-mono">{selectedCandidate.aiEvaluation.transparency.domainFit || 0}%</span>
+                    </div>
+                    <div className="space-y-1">
+                      <span className="text-[10px] uppercase font-bold text-muted-foreground">Benchmark</span>
+                      <div>
+                        <Badge variant="outline" className="text-xs border-purple-200 text-purple-700 bg-purple-50">
+                          {selectedCandidate.aiEvaluation.transparency.benchmark || 'N/A'}
+                        </Badge>
+                      </div>
+                    </div>
+                  </div>
+                ) : (
+                  <div className="text-xs text-muted-foreground italic">Transparency data not available for this evaluation.</div>
+                )}
+              </div>
+
               {/* Matched Skills */}
               <div className="space-y-4">
                 <h4 className="text-xs font-black uppercase tracking-[0.2em] text-muted-foreground flex items-center gap-2">
@@ -468,6 +504,34 @@ const EvaluationResults = () => {
             </div>
 
             <div className="space-y-8">
+              {/* Risk Analysis */}
+              <div className="space-y-4">
+                <h4 className="text-xs font-black uppercase tracking-[0.2em] text-muted-foreground flex items-center gap-2">
+                  <ShieldCheck className="size-3 text-orange-500" /> Risk Analysis
+                </h4>
+                <div className="flex flex-col gap-2">
+                  {selectedCandidate?.aiEvaluation?.risks?.length > 0 ? (
+                    selectedCandidate.aiEvaluation.risks.map((risk, i) => (
+                      <div key={i} className={`text-xs p-3 rounded-lg flex gap-2 border ${risk.level === 'High' ? 'bg-red-50 text-red-700 border-red-100' :
+                          risk.level === 'Medium' ? 'bg-orange-50 text-orange-700 border-orange-100' :
+                            'bg-yellow-50 text-yellow-700 border-yellow-100'
+                        }`}>
+                        <AlertTriangle className="size-3 shrink-0 mt-0.5" />
+                        <div>
+                          <span className="font-bold uppercase tracking-wider text-[10px]">{risk.flag} ({risk.level})</span>
+                          <p className="mt-1">{risk.details}</p>
+                        </div>
+                      </div>
+                    ))
+                  ) : (
+                    <div className="text-xs p-3 rounded-lg bg-green-50 text-green-700 border border-green-100 flex gap-2">
+                      <CheckCircle2 className="size-3 mt-0.5" />
+                      No significant risks detected.
+                    </div>
+                  )}
+                </div>
+              </div>
+
               <div className="space-y-4">
                 <h4 className="text-xs font-black uppercase tracking-[0.2em] text-muted-foreground flex items-center gap-2">
                   Critical Gaps

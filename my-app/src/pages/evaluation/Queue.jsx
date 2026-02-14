@@ -212,9 +212,9 @@ const Queue = () => {
       setPrompts([])
       setSelectedPrompt('')
     }
-  }, [selectedForm, industries])
+  }, [selectedForm, industries, fetchPromptsForJob])
 
-  const fetchPromptsForJob = async (jobId) => {
+  const fetchPromptsForJob = React.useCallback(async (jobId) => {
     setLoadingPrompts(true)
     setPrompts([])
     setSelectedPrompt('')
@@ -248,7 +248,7 @@ const Queue = () => {
     } finally {
       setLoadingPrompts(false)
     }
-  }
+  }, [hiringForms, industries])
 
   const intervalRef = React.useRef(null)
 
