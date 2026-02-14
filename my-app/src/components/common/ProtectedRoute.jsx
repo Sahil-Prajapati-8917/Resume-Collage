@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react'
 import { Navigate, useLocation } from 'react-router-dom'
 import authService from '../../services/auth'
+import { FullPageLoader } from '../ui/loader';
 
 const ProtectedRoute = ({ children, requiredRole = null, requiredPermission = null }) => {
   const [isAuthenticated, setIsAuthenticated] = useState(null)
@@ -62,11 +63,7 @@ const ProtectedRoute = ({ children, requiredRole = null, requiredPermission = nu
 
   // Show loading spinner while checking authentication
   if (isAuthenticated === null) {
-    return (
-      <div className="flex items-center justify-center h-screen">
-        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
-      </div>
-    )
+    return <FullPageLoader />
   }
 
   // Redirect to login if not authenticated
