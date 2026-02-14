@@ -10,17 +10,17 @@ const logger = require('../utils/logger');
 router.get('/dashboard', authenticateToken, authorizeRoles(['master_admin', 'ops_admin']), async (req, res) => {
     try {
         const { dateRange = '30d' } = req.query;
-        
+
         const days = dateRange === '7d' ? 7 : dateRange === '90d' ? 90 : 30;
         const startDate = new Date();
         startDate.setDate(startDate.getDate() - days);
 
         // Get key metrics
         const metrics = await getSystemMetrics(startDate);
-        
+
         // Get trends
         const trends = await getSystemTrends(startDate);
-        
+
         // Get performance metrics
         const performance = await getPerformanceMetrics(startDate);
 
@@ -47,7 +47,7 @@ router.get('/dashboard', authenticateToken, authorizeRoles(['master_admin', 'ops
 router.get('/resume-processing', authenticateToken, authorizeRoles(['master_admin', 'ops_admin']), async (req, res) => {
     try {
         const { dateRange = '30d' } = req.query;
-        
+
         const days = dateRange === '7d' ? 7 : dateRange === '90d' ? 90 : 30;
         const startDate = new Date();
         startDate.setDate(startDate.getDate() - days);
@@ -79,7 +79,7 @@ router.get('/resume-processing', authenticateToken, authorizeRoles(['master_admi
             }
         ]);
 
-        const successRate = metrics[0] ? 
+        const successRate = metrics[0] ?
             (metrics[0].processedResumes / metrics[0].totalResumes) * 100 : 0;
 
         res.json({
@@ -103,7 +103,7 @@ router.get('/resume-processing', authenticateToken, authorizeRoles(['master_admi
 router.get('/ai-usage', authenticateToken, authorizeRoles(['master_admin', 'ops_admin']), async (req, res) => {
     try {
         const { dateRange = '30d', modelProvider } = req.query;
-        
+
         const days = dateRange === '7d' ? 7 : dateRange === '90d' ? 90 : 30;
         const startDate = new Date();
         startDate.setDate(startDate.getDate() - days);
@@ -173,7 +173,7 @@ router.get('/ai-usage', authenticateToken, authorizeRoles(['master_admin', 'ops_
 router.get('/evaluation-quality', authenticateToken, authorizeRoles(['master_admin', 'ops_admin']), async (req, res) => {
     try {
         const { dateRange = '30d' } = req.query;
-        
+
         const days = dateRange === '7d' ? 7 : dateRange === '90d' ? 90 : 30;
         const startDate = new Date();
         startDate.setDate(startDate.getDate() - days);
@@ -245,7 +245,7 @@ router.get('/evaluation-quality', authenticateToken, authorizeRoles(['master_adm
 router.get('/recruiter-patterns', authenticateToken, authorizeRoles(['master_admin', 'ops_admin']), async (req, res) => {
     try {
         const { dateRange = '30d', companyId } = req.query;
-        
+
         const days = dateRange === '7d' ? 7 : dateRange === '90d' ? 90 : 30;
         const startDate = new Date();
         startDate.setDate(startDate.getDate() - days);
@@ -312,7 +312,7 @@ router.get('/recruiter-patterns', authenticateToken, authorizeRoles(['master_adm
 router.get('/industry-distribution', authenticateToken, authorizeRoles(['master_admin', 'ops_admin']), async (req, res) => {
     try {
         const { dateRange = '30d' } = req.query;
-        
+
         const days = dateRange === '7d' ? 7 : dateRange === '90d' ? 90 : 30;
         const startDate = new Date();
         startDate.setDate(startDate.getDate() - days);
@@ -367,11 +367,11 @@ async function getSystemMetrics(startDate) {
         Company.countDocuments({ status: 'active' }),
         User.countDocuments({ isActive: true }),
         Resume.countDocuments({ createdAt: { $gte: startDate } }),
-        Resume.countDocuments({ 
+        Resume.countDocuments({
             createdAt: { $gte: startDate },
             status: { $in: ['evaluated', 'human_reviewed'] }
         }),
-        Company.countDocuments({ 
+        Company.countDocuments({
             status: 'active',
             updatedAt: { $gte: startDate }
         })
@@ -383,7 +383,7 @@ async function getSystemMetrics(startDate) {
         totalResumes,
         totalEvaluations,
         activeCompanies,
-        processingSuccessRate: totalEvaluations > 0 ? 
+        processingSuccessRate: totalEvaluations > 0 ?
             Math.round((totalEvaluations / totalResumes) * 100) : 0
     };
 }

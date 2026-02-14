@@ -1,6 +1,77 @@
 const Resume = require('../models/Resume');
+const Evaluation = require('../models/Evaluation');
 
-exports.getFairnessStats = async (req, res) => {
+// Get Cost Analytics
+exports.getCostAnalytics = async (req, res) => {
+    try {
+        const costStats = await Evaluation.aggregate([
+            {
+                $group: {
+                    _id: null,
+                    totalTokens: { $sum: "$cost.tokensUsed" },
+                    totalCost: { $sum: "$cost.estimatedCost" },
+                    count: { $sum: 1 },
+                    avgCost: { $avg: "$cost.estimatedCost" }
+                }
+            }
+        ]);
+
+        const monthlyStats = await Evaluation.aggregate([
+            {
+                $group: {
+                    _id: { $month: "$evaluatedAt" },
+                    tokens: { $sum: "$cost.tokensUsed" },
+                    cost: { $sum: "$cost.estimatedCost" },
+                    count: { $sum: 1 }
+                }
+            },
+            { $sort: { "_id": 1 } }
+        ]);
+
+        const promptStats = await Evaluation.aggregate([
+            {
+                $group: {
+                    _id: "$promptId",
+                    count: { $sum: 1 },
+                    cost: { $sum: "$cost.estimatedCost" }
+                }
+            },
+            { $sort: { count: -1 } },
+            { $limit: 5 },
+            {
+                $lookup: {
+                    from: "prompts",
+                    localField: "_id",
+                    foreignField: "_id",
+                    as: "prompt"
+                }
+            },
+            { $unwind: "$prompt" },
+            {
+                $project: {
+                    name: "$prompt.name",
+                    count: 1,
+                    cost: 1
+                }
+            }
+        ]);
+
+        res.status(200).json({
+            success: true,
+            data: {
+                total: costStats[0] || { totalTokens: 0, totalCost: 0, count: 0, avgCost: 0 },
+                monthly: monthlyStats,
+                topPrompts: promptStats
+            }
+        });
+
+    } catch (error) {
+        console.error('Cost Analytics Error:', error);
+        res.status(500).json({ success: false, message: 'Server Error', error: error.message });
+    }
+};
+
+exports.getSystemStats = async (req, res) => {
     try {
         // Aggregate Disqualification Rates by Industry (derived from Prompt/Resume data if available)
         // Since Industry is on HiringForm/Prompt, we might fallback to simple mock grouping or just total stats for now 

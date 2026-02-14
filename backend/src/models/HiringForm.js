@@ -47,6 +47,14 @@ const HiringFormSchema = new mongoose.Schema({
         type: String,
         trim: true
     }],
+
+    // Phase 2: Smart Automation Rules
+    cutOffSettings: {
+        autoShortlist: { type: Number, default: 85 },
+        manualReview: { type: Number, default: 65 },
+        autoReject: { type: Number, default: 60 }
+    },
+
     version: {
         type: Number,
         default: 1

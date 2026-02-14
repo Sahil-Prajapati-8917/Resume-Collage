@@ -8,6 +8,7 @@ const { GoogleGenerativeAI } = require('@google/generative-ai');
 // Re-using the single evaluate logic but adapted for worker
 const evaluateResumeJob = async (job) => {
     const { resumeId, jobId, promptId, userId } = job.data;
+    const startTime = Date.now();
 
     try {
         console.log(`Processing evaluation job for resume: ${resumeId}`);
@@ -25,9 +26,6 @@ const evaluateResumeJob = async (job) => {
         let basePromptInstructions = "You are an expert HR AI assistant.";
         if (promptDoc && promptDoc.prompt) {
             basePromptInstructions = promptDoc.prompt;
-        } else if (hiringForm.promptId) {
-            // Fallback to job's default prompt if direct promptId not found/valid (though we passed specific promptId)
-            // Ideally we use the passed promptId
         }
 
         const responsibilities = hiringForm.responsibilities || [];
@@ -50,16 +48,31 @@ ${responsibilities.map(r => `- ${r}`).join('\n')}
 Candidate Resume:
 ${resume.parsedText}
 
-Output valid JSON:
+Analyze the candidate critically. Detect any risks or inconsistencies.
+Output ONLY valid JSON in the following format:
 {
   "totalScore": number (0-100),
   "summary": string,
   "strengths": [string],
   "weaknesses": [string],
   "matchedSkills": [string],
-  "confidence": number,
-  "confidenceLevel": string ("High"|"Medium"|"Low"),
-  "riskFlag": string ("Low"|"Medium"|"High")
+  "missingSkills": [string],
+  "transparency": {
+    "skillMatch": number (0-100),
+    "experienceMatch": number (0-100),
+    "domainFit": number (0-100),
+    "benchmark": string (e.g. "Top 10%", "Average", "Below Average")
+  },
+  "risks": [
+    {
+      "flag": string,
+      "level": "Low" | "Medium" | "High",
+      "details": string
+    }
+  ],
+  "confidence": number (0-100),
+  "confidenceLevel": "High" | "Medium" | "Low",
+  "riskFlag": "Low" | "Medium" | "High"
 }
 `;
 
@@ -67,6 +80,7 @@ Output valid JSON:
         const apiKey = process.env.GOOGLE_API_KEY;
         let evaluationResult = null;
         let usedModel = 'None';
+        let tokensUsed = 0;
 
         if (apiKey) {
             const genAI = new GoogleGenerativeAI(apiKey);
@@ -75,6 +89,9 @@ Output valid JSON:
                 const result = await model.generateContent(promptText);
                 const response = await result.response;
                 let text = response.text();
+
+                // Estimate tokens (approx 4 chars per token)
+                tokensUsed = Math.ceil((promptText.length + text.length) / 4);
 
                 // Clean markdown
                 text = text.replace(/```json/g, '').replace(/```/g, '').trim();
@@ -88,7 +105,6 @@ Output valid JSON:
                 usedModel = 'Gemini-1.5-Flash';
             } catch (err) {
                 console.error('AI Generation failed:', err);
-                // Fallback or re-throw
                 throw err;
             }
         }
@@ -97,34 +113,54 @@ Output valid JSON:
             throw new Error('Failed to generate evaluation result');
         }
 
-        // 4. Save Evaluation
+        // 4. Smart Automation Rules
+        const cutoffs = hiringForm.cutOffSettings || { autoShortlist: 85, manualReview: 65, autoReject: 60 };
+        const score = evaluationResult.totalScore || 0;
+        let status = 'Completed'; // Default
+        let recommendation = 'Review';
+
+        if (score >= cutoffs.autoShortlist) {
+            recommendation = 'Shortlist';
+        } else if (score <= cutoffs.autoReject) {
+            recommendation = 'Reject';
+        } else {
+            recommendation = 'Review';
+        }
+
+
+        // 5. Save Evaluation
         const evaluation = new Evaluation({
             resumeId,
             jobId,
             promptId,
             status: 'Completed',
-            result: evaluationResult,
+            result: {
+                ...evaluationResult,
+                // Map new fields to schema structure
+                transparency: evaluationResult.transparency,
+                risks: evaluationResult.risks
+            },
+            cost: {
+                tokensUsed,
+                estimatedCost: (tokensUsed / 1000) * 0.0005, // Approx cost for Flash
+                model: usedModel
+            },
             evaluatedAt: new Date(),
-            processingTimeMs: Date.now() - job.timestamp
+            processingTimeMs: Date.now() - startTime
         });
 
         await evaluation.save();
 
-        // 5. Update Resume Status (Optional consistency)
-        // We might want to keep the Resume.aiEvaluation for quick access, or migrate fully to Evaluation model.
-        // For now, let's update Resume schema too for backward compatibility if needed, 
-        // but the main source of truth for THIS feature is the Evaluation model.
-
+        // 6. Update Resume Status
         resume.aiEvaluation = {
             ...evaluationResult,
             metadata: { model: usedModel, timestamp: new Date() }
         };
 
-        // Update specific status based on score
-        const score = evaluationResult.totalScore || 0;
-        if (score >= 80) resume.status = 'Shortlisted';
-        else if (score >= 50) resume.status = 'Manual Review Required';
-        else resume.status = 'Disqualified';
+        // Map recommendation to resume status
+        if (recommendation === 'Shortlist') resume.status = 'Shortlisted';
+        else if (recommendation === 'Reject') resume.status = 'Disqualified';
+        else resume.status = 'Manual Review Required';
 
         await resume.save();
 
@@ -132,8 +168,6 @@ Output valid JSON:
 
     } catch (error) {
         console.error(`Evaluation Job Failed: ${error.message}`);
-        // Log failure in Evaluation model if we created one? 
-        // Or create a failed record.
         await Evaluation.create({
             resumeId,
             jobId,
