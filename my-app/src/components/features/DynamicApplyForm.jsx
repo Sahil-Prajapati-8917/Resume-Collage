@@ -336,6 +336,58 @@ const DynamicApplyForm = ({ job }) => {
                                             value={formData[field.id] || ''}
                                             onChange={(e) => handleChange(field.id, e.target.value)}
                                         />
+                                    ) : field.type === 'select' ? (
+                                        <Select value={formData[field.id]} onValueChange={(v) => handleChange(field.id, v)}>
+                                            <SelectTrigger className={inputClasses}>
+                                                <SelectValue placeholder={field.placeholder || "Select option"} />
+                                            </SelectTrigger>
+                                            <SelectContent>
+                                                {field.options?.map(opt => (
+                                                    <SelectItem key={opt} value={opt}>{opt}</SelectItem>
+                                                ))}
+                                            </SelectContent>
+                                        </Select>
+                                    ) : field.type === 'radio' ? (
+                                        <RadioGroup value={formData[field.id]} onValueChange={(v) => handleChange(field.id, v)} className="flex flex-wrap gap-4 pt-2">
+                                            {field.options?.map(opt => (
+                                                <div key={opt} className="flex items-center space-x-2">
+                                                    <RadioGroupItem value={opt} id={`${field.id}-${opt}`} />
+                                                    <Label htmlFor={`${field.id}-${opt}`} className="font-normal">{opt}</Label>
+                                                </div>
+                                            ))}
+                                        </RadioGroup>
+                                    ) : field.type === 'checkbox' ? (
+                                        <div className="flex flex-wrap gap-4 pt-2">
+                                            {field.options?.map(opt => (
+                                                <div key={opt} className="flex items-center space-x-2">
+                                                    <input
+                                                        type="checkbox"
+                                                        id={`${field.id}-${opt}`}
+                                                        checked={(formData[field.id] || []).includes(opt)}
+                                                        onChange={(e) => {
+                                                            const current = formData[field.id] || [];
+                                                            const next = e.target.checked
+                                                                ? [...current, opt]
+                                                                : current.filter(o => o !== opt);
+                                                            handleChange(field.id, next);
+                                                        }}
+                                                        className="size-4 rounded border-slate-300 text-[#137fec] focus:ring-[#137fec]"
+                                                    />
+                                                    <Label htmlFor={`${field.id}-${opt}`} className="font-normal">{opt}</Label>
+                                                </div>
+                                            ))}
+                                        </div>
+                                    ) : field.type === 'yesno' ? (
+                                        <RadioGroup value={formData[field.id]} onValueChange={(v) => handleChange(field.id, v === 'true')} className="flex gap-6 pt-2">
+                                            <div className="flex items-center space-x-2">
+                                                <RadioGroupItem value="true" id={`${field.id}-yes`} />
+                                                <Label htmlFor={`${field.id}-yes`} className="font-normal">Yes</Label>
+                                            </div>
+                                            <div className="flex items-center space-x-2">
+                                                <RadioGroupItem value="false" id={`${field.id}-no`} />
+                                                <Label htmlFor={`${field.id}-no`} className="font-normal">No</Label>
+                                            </div>
+                                        </RadioGroup>
                                     ) : (
                                         <input
                                             id={field.id}

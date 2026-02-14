@@ -20,7 +20,13 @@ exports.getPublicJob = async (req, res) => {
             return res.status(400).json({ success: false, message: 'This job is no longer accepting applications.' });
         }
 
-        res.status(200).json({ success: true, data: job });
+        const applicantCount = await Resume.countDocuments({ jobId: req.params.id });
+
+        // Add applicantCount to the job object for the frontend
+        const jobData = job.toObject();
+        jobData.applicantCount = applicantCount;
+
+        res.status(200).json({ success: true, data: jobData });
     } catch (error) {
         console.error(error);
         res.status(500).json({ success: false, message: 'Server Error' });

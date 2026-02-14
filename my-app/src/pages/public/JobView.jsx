@@ -52,9 +52,13 @@ const JobView = () => {
         const date = new Date(dateString);
         const now = new Date();
         const diffTime = Math.abs(now - date);
-        const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+        const diffMinutes = Math.floor(diffTime / (1000 * 60));
+        const diffHours = Math.floor(diffTime / (1000 * 60 * 60));
+        const diffDays = Math.floor(diffTime / (1000 * 60 * 60 * 24));
 
-        if (diffDays <= 1) return 'Today';
+        if (diffMinutes < 60) return `${diffMinutes}m ago`;
+        if (diffHours < 24) return `${diffHours}h ago`;
+        if (diffDays === 1) return 'Yesterday';
         if (diffDays <= 30) return `${diffDays}d ago`;
 
         return date.toLocaleDateString('en-US', {
@@ -117,7 +121,7 @@ const JobView = () => {
                             </div>
                             <h1 className="text-4xl md:text-5xl font-extrabold text-slate-900 dark:text-white tracking-tight">{job.title}</h1>
                         </div>
-                        <div className="flex flex-wrap gap-2 mb-1">
+                        <div className="flex flex-wrap gap-2 mb-1 text-slate-800">
                             <span className="px-3 py-1 rounded-full bg-[#137fec]/10 text-[#137fec] text-xs font-bold uppercase tracking-wider">{job.industry || 'Engineering'}</span>
                             <span className="px-3 py-1 rounded-full bg-emerald-500/10 text-emerald-600 text-xs font-bold uppercase tracking-wider">{job.jobType || 'Full-Time'}</span>
                         </div>
@@ -196,7 +200,9 @@ const JobView = () => {
                                 <div>
                                     <p className="text-sm text-slate-500 dark:text-slate-400 font-medium mb-1">Salary Range</p>
                                     <p className="text-xl font-bold text-slate-900 dark:text-white">
-                                        {job.salaryRange ? `$${job.salaryRange.min}k – $${job.salaryRange.max}k` : 'Competitive'}
+                                        {job.salaryRange?.min && job.salaryRange?.max
+                                            ? `$${job.salaryRange.min}k – $${job.salaryRange.max}k`
+                                            : 'Competitive'}
                                         <span className="text-xs text-slate-400 font-normal"> / year</span>
                                     </p>
                                 </div>
@@ -216,13 +222,13 @@ const JobView = () => {
                                     <div>
                                         <p className="text-xs text-slate-500 dark:text-slate-400 font-medium uppercase tracking-wider mb-1">Level</p>
                                         <p className="text-sm font-semibold text-slate-900 dark:text-white flex items-center gap-1">
-                                            <TrendingUp className="w-3 h-3 text-slate-400" /> {job.level || 'Senior'}
+                                            <TrendingUp className="w-3 h-3 text-slate-400" /> {job.experienceLevel ? job.experienceLevel.split('(')[0].trim() : (job.level || 'Senior')}
                                         </p>
                                     </div>
                                     <div>
                                         <p className="text-xs text-slate-500 dark:text-slate-400 font-medium uppercase tracking-wider mb-1">Applicants</p>
                                         <p className="text-sm font-semibold text-slate-900 dark:text-white flex items-center gap-1">
-                                            <Users className="w-3 h-3 text-slate-400" /> {job.applicantCount || 24}
+                                            <Users className="w-3 h-3 text-slate-400" /> {job.applicantCount || 0}
                                         </p>
                                     </div>
                                 </div>

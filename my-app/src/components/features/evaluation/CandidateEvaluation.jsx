@@ -215,6 +215,55 @@ const CandidateEvaluation = ({ candidate, onBack, onAction }) => {
                                 </section>
                             )}
 
+                            {/* Standard Fields Section */}
+                            {(candidate.linkedIn || candidate.github || candidate.portfolio) && (
+                                <section>
+                                    <h3 className="font-bold text-lg mb-4">Professional Presence</h3>
+                                    <div className="flex flex-wrap gap-4">
+                                        {candidate.linkedIn && (
+                                            <a href={candidate.linkedIn} target="_blank" rel="noopener noreferrer" className="flex items-center gap-2 bg-slate-50 dark:bg-slate-800 px-4 py-2 rounded-lg border border-slate-200 dark:border-slate-700 hover:border-[#0f49bd] transition-all">
+                                                <LinkIcon className="w-4 h-4 text-[#0f49bd]" />
+                                                <span className="text-sm font-medium">LinkedIn</span>
+                                            </a>
+                                        )}
+                                        {candidate.github && (
+                                            <a href={candidate.github} target="_blank" rel="noopener noreferrer" className="flex items-center gap-2 bg-slate-50 dark:bg-slate-800 px-4 py-2 rounded-lg border border-slate-200 dark:border-slate-700 hover:border-[#0f49bd] transition-all">
+                                                <LinkIcon className="w-4 h-4 text-[#0f49bd]" />
+                                                <span className="text-sm font-medium">GitHub</span>
+                                            </a>
+                                        )}
+                                        {candidate.portfolio && (
+                                            <a href={candidate.portfolio} target="_blank" rel="noopener noreferrer" className="flex items-center gap-2 bg-slate-50 dark:bg-slate-800 px-4 py-2 rounded-lg border border-slate-200 dark:border-slate-700 hover:border-[#0f49bd] transition-all">
+                                                <LinkIcon className="w-4 h-4 text-[#0f49bd]" />
+                                                <span className="text-sm font-medium">Portfolio</span>
+                                            </a>
+                                        )}
+                                    </div>
+                                </section>
+                            )}
+
+                            {/* Candidate Form Responses (Dynamic Data) */}
+                            {candidate.formData && Object.keys(candidate.formData).length > 0 && (
+                                <section>
+                                    <div className="flex items-center gap-2 mb-4">
+                                        <FileText className="text-[#0f49bd] w-5 h-5" />
+                                        <h3 className="font-bold text-lg">Application Responses</h3>
+                                    </div>
+                                    <div className="space-y-4 bg-slate-50 dark:bg-slate-800/50 p-6 rounded-xl border border-slate-100 dark:border-slate-800">
+                                        {Object.entries(candidate.formData).map(([key, value]) => (
+                                            <div key={key} className="space-y-1">
+                                                <span className="text-xs font-bold uppercase text-slate-500 tracking-wider capitalize">
+                                                    {key.replace(/([A-Z])/g, ' $1').replace(/_/g, ' ')}
+                                                </span>
+                                                <p className="text-sm text-slate-700 dark:text-slate-300 whitespace-pre-wrap">
+                                                    {typeof value === 'boolean' ? (value ? 'Yes' : 'No') : String(value)}
+                                                </p>
+                                            </div>
+                                        ))}
+                                    </div>
+                                </section>
+                            )}
+
                             {/* Notes Section */}
                             <section>
                                 <h3 className="font-bold text-lg mb-4">Manual Evaluation Notes</h3>

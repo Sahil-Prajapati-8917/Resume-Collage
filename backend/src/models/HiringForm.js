@@ -29,7 +29,16 @@ const HiringFormSchema = new mongoose.Schema({
     jobType: {
         type: String,
         required: [true, 'Job type is required'],
-        enum: ['full-time', 'internship', 'placement']
+        enum: ['full-time', 'internship', 'placement', 'remote', 'onsite', 'hybrid']
+    },
+    location: {
+        type: String,
+        trim: true,
+        default: 'Remote'
+    },
+    salaryRange: {
+        min: { type: Number },
+        max: { type: Number }
     },
     responsibilities: [{
         type: String,

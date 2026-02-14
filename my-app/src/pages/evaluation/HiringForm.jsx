@@ -35,10 +35,8 @@ const HiringForm = () => {
     promptId: '',
     experienceLevel: '',
     jobType: 'full-time',
-    responsibilities: [''],
-    requirements: [''],
-    roleExpectations: [''],
-    performanceIndicators: [''],
+    location: '',
+    salaryRange: { min: '', max: '' },
     responsibilities: [''],
     requirements: [''],
     roleExpectations: [''],
@@ -140,10 +138,11 @@ const HiringForm = () => {
       promptId: form.promptId,
       experienceLevel: form.experienceLevel,
       jobType: form.jobType || 'full-time',
+      location: form.location || '',
+      salaryRange: form.salaryRange || { min: '', max: '' },
       responsibilities: form.responsibilities?.length > 0 ? form.responsibilities : [''],
       requirements: form.requirements?.length > 0 ? form.requirements : [''],
       roleExpectations: form.roleExpectations?.length > 0 ? form.roleExpectations : [''],
-      performanceIndicators: form.performanceIndicators?.length > 0 ? form.performanceIndicators : [''],
       performanceIndicators: form.performanceIndicators?.length > 0 ? form.performanceIndicators : [''],
       cutOffSettings: form.cutOffSettings || { autoShortlist: 85, manualReview: 65, autoReject: 60 },
       standardFields: form.standardFields || { // Ensure defaults
@@ -175,10 +174,11 @@ const HiringForm = () => {
       promptId: '',
       experienceLevel: '',
       jobType: 'full-time',
+      location: '',
+      salaryRange: { min: '', max: '' },
       responsibilities: [''],
       requirements: [''],
       roleExpectations: [''],
-      performanceIndicators: [''],
       performanceIndicators: [''],
       cutOffSettings: { autoShortlist: 85, manualReview: 65, autoReject: 60 },
       standardFields: {
@@ -285,6 +285,13 @@ const HiringForm = () => {
 
   return (
     <div className="flex flex-col gap-10 pb-20">
+      {status.message && (
+        <Alert variant={status.type === 'error' ? 'destructive' : 'default'} className={status.type === 'success' ? 'border-green-500 bg-green-500/10 text-green-500' : ''}>
+          {status.type === 'error' ? <AlertCircle className="h-4 w-4" /> : <ListChecks className="h-4 w-4" />}
+          <AlertTitle className="font-bold">{status.type === 'success' ? 'Success' : 'Notice'}</AlertTitle>
+          <AlertDescription>{status.message}</AlertDescription>
+        </Alert>
+      )}
       <div className="flex flex-col gap-1">
         <h1 className="text-3xl font-semibold tracking-tight">Hiring Criteria / Jobs</h1>
         <p className="text-muted-foreground">Create job openings and define evaluation constraints.</p>
@@ -331,7 +338,34 @@ const HiringForm = () => {
                 <Input id="title" name="title" value={formData.title} onChange={handleInputChange} placeholder="e.g., Frontend Lead" className="bg-background/50 h-11" />
               </div>
               <div className="space-y-2">
-                <Label htmlFor="industry" className="text-xs uppercase tracking-widest text-muted-foreground font-bold">Industry</Label>
+                <Label htmlFor="location" className="text-xs uppercase tracking-widest text-muted-foreground font-bold">Location</Label>
+                <Input id="location" name="location" value={formData.location} onChange={handleInputChange} placeholder="e.g., Remote / New York" className="bg-background/50 h-11" />
+              </div>
+            </div>
+
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-6 text-slate-800">
+              <div className="space-y-2">
+                <Label className="text-xs uppercase tracking-widest text-muted-foreground font-bold">Salary Range (k / year)</Label>
+                <div className="flex items-center gap-2">
+                  <Input
+                    type="number"
+                    placeholder="Min"
+                    value={formData.salaryRange.min}
+                    onChange={(e) => setFormData(p => ({ ...p, salaryRange: { ...p.salaryRange, min: e.target.value } }))}
+                    className="bg-background/50 h-11"
+                  />
+                  <span className="text-muted-foreground">–</span>
+                  <Input
+                    type="number"
+                    placeholder="Max"
+                    value={formData.salaryRange.max}
+                    onChange={(e) => setFormData(p => ({ ...p, salaryRange: { ...p.salaryRange, max: e.target.value } }))}
+                    className="bg-background/50 h-11"
+                  />
+                </div>
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="industry" className="text-xs uppercase tracking-widest text-muted-foreground font-bold">Industry Sector</Label>
                 <Select value={formData.industry} onValueChange={(v) => setFormData(p => ({ ...p, industry: v }))} disabled={!!editingId}>
                   <SelectTrigger className="bg-background/50 h-11">
                     <SelectValue placeholder="Select Sector" />
@@ -340,6 +374,40 @@ const HiringForm = () => {
                     {industries.map(i => (
                       <SelectItem key={i._id || i} value={i.name || i}>{i.name || i}</SelectItem>
                     ))}
+                  </SelectContent>
+                </Select>
+              </div>
+            </div>
+
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
+              <div className="space-y-2">
+                <Label htmlFor="experienceLevel" className="text-xs uppercase tracking-widest text-muted-foreground font-bold">Experience Level</Label>
+                <Select value={formData.experienceLevel} onValueChange={(v) => setFormData(p => ({ ...p, experienceLevel: v }))}>
+                  <SelectTrigger className="bg-background/50 h-11">
+                    <SelectValue placeholder="Select Experience" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="Entry Level (0-2 years)">Entry Level (0-2 years)</SelectItem>
+                    <SelectItem value="Junior (2-5 years)">Junior (2-5 years)</SelectItem>
+                    <SelectItem value="Mid-Level (5-8 years)">Mid-Level (5-8 years)</SelectItem>
+                    <SelectItem value="Senior (8-12 years)">Senior (8-12 years)</SelectItem>
+                    <SelectItem value="Lead / Manager (12+ years)">Lead / Manager (12+ years)</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="jobType" className="text-xs uppercase tracking-widest text-muted-foreground font-bold">Job Type / Work Mode</Label>
+                <Select value={formData.jobType} onValueChange={(v) => setFormData(p => ({ ...p, jobType: v }))}>
+                  <SelectTrigger className="bg-background/50 h-11">
+                    <SelectValue placeholder="Select Type" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="full-time">Full-Time</SelectItem>
+                    <SelectItem value="internship">Internship</SelectItem>
+                    <SelectItem value="placement">Placement</SelectItem>
+                    <SelectItem value="remote">Remote</SelectItem>
+                    <SelectItem value="onsite">On-Site</SelectItem>
+                    <SelectItem value="hybrid">Hybrid</SelectItem>
                   </SelectContent>
                 </Select>
               </div>
