@@ -2,16 +2,23 @@ import React, { useState, useEffect } from 'react';
 import { useParams } from 'react-router-dom';
 import apiService from '../../services/api';
 import {
-    AlertCircle,
-    Briefcase,
+    Zap,
     MapPin,
+    CheckCircle2,
+    BadgeCheck,
+    CloudUpload,
+    Globe,
     Clock,
-    Calendar,
-    Loader2
+    TrendingUp,
+    Users,
+    Bookmark,
+    Link,
+    Share2,
+    Loader2,
+    AlertCircle
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Badge } from '@/components/ui/badge';
+import { Card, CardContent } from '@/components/ui/card';
 import DynamicApplyForm from '@/components/features/DynamicApplyForm';
 
 const JobView = () => {
@@ -41,7 +48,16 @@ const JobView = () => {
     }, [id]);
 
     const formatDate = (dateString) => {
-        return new Date(dateString).toLocaleDateString('en-US', {
+        if (!dateString) return 'N/A';
+        const date = new Date(dateString);
+        const now = new Date();
+        const diffTime = Math.abs(now - date);
+        const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+
+        if (diffDays <= 1) return 'Today';
+        if (diffDays <= 30) return `${diffDays}d ago`;
+
+        return date.toLocaleDateString('en-US', {
             year: 'numeric',
             month: 'long',
             day: 'numeric'
@@ -50,10 +66,10 @@ const JobView = () => {
 
     if (loading) {
         return (
-            <div className="min-h-screen flex items-center justify-center bg-gray-50">
+            <div className="min-h-screen flex items-center justify-center bg-gray-50 dark:bg-gray-900">
                 <div className="text-center">
-                    <Loader2 className="size-8 animate-spin mx-auto mb-4 text-gray-400" />
-                    <p className="text-gray-600">Loading job details...</p>
+                    <Loader2 className="size-8 animate-spin mx-auto mb-4 text-[#137fec]" />
+                    <p className="text-slate-600 dark:text-slate-400">Loading job details...</p>
                 </div>
             </div>
         );
@@ -61,13 +77,13 @@ const JobView = () => {
 
     if (error) {
         return (
-            <div className="min-h-screen flex items-center justify-center bg-gray-50">
-                <Card className="w-full max-w-md border-red-200">
+            <div className="min-h-screen flex items-center justify-center bg-gray-50 dark:bg-gray-900">
+                <Card className="w-full max-w-md border-red-200 dark:border-red-900 bg-white dark:bg-slate-900">
                     <CardContent className="p-6 text-center">
                         <AlertCircle className="size-12 text-red-500 mx-auto mb-4" />
-                        <h3 className="text-lg font-semibold text-gray-900 mb-2">Job Not Found</h3>
-                        <p className="text-gray-600 mb-4">{error}</p>
-                        <Button onClick={() => window.history.back()}>
+                        <h3 className="text-lg font-semibold text-slate-900 dark:text-white mb-2">Job Not Found</h3>
+                        <p className="text-slate-600 dark:text-slate-400 mb-4">{error}</p>
+                        <Button onClick={() => window.history.back()} className="bg-[#137fec] hover:bg-[#137fec]/90">
                             Go Back
                         </Button>
                     </CardContent>
@@ -77,92 +93,213 @@ const JobView = () => {
     }
 
     return (
-        <div className="min-h-screen bg-gray-50 py-8 px-4 sm:px-6 lg:px-8">
-            <div className="max-w-4xl mx-auto">
-                {/* Job Details Card */}
-                <Card className="mb-8 border-border/40 bg-card/50">
-                    <CardHeader className="pb-6">
-                        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-                            <div className="flex-1">
-                                <CardTitle className="text-2xl font-bold text-gray-900 mb-2">{job.title}</CardTitle>
-                                <div className="flex flex-wrap gap-3 text-sm text-muted-foreground">
-                                    <div className="flex items-center gap-1">
-                                        <Briefcase className="h-4 w-4" />
-                                        {job.industry || 'Engineering'}
-                                    </div>
-                                    <div className="flex items-center gap-1">
-                                        <MapPin className="h-4 w-4" />
-                                        {job.location || 'Remote'}
-                                    </div>
-                                    <div className="flex items-center gap-1">
-                                        <Clock className="h-4 w-4" />
-                                        {job.jobType || 'Full-time'}
-                                    </div>
-                                </div>
-                            </div>
-                            <Badge variant="secondary" className="bg-green-100 text-green-800 border-green-200">
-                                {job.status === 'Open' ? 'Accepting Applications' : 'Closed'}
-                            </Badge>
+        <div className="font-display bg-[#f6f7f8] dark:bg-[#101922] text-slate-800 dark:text-slate-200 min-h-screen flex flex-col antialiased">
+            {/* Navigation */}
+            <nav className="sticky top-0 z-50 bg-white/80 dark:bg-[#101922]/80 backdrop-blur-md border-b border-slate-200 dark:border-slate-800">
+                <div className="max-w-6xl mx-auto px-6 h-16 flex items-center justify-between">
+                    <div className="flex items-center gap-2">
+                        <div className="w-8 h-8 bg-[#137fec] rounded-lg flex items-center justify-center">
+                            <Zap className="text-white w-5 h-5" />
                         </div>
-                    </CardHeader>
+                        <span className="font-extrabold text-xl tracking-tight text-slate-900 dark:text-white">TalentFlow</span>
+                    </div>
+                    <div className="flex items-center gap-6 hidden sm:flex">
+                        <a href="#" className="text-sm font-medium text-slate-600 dark:text-slate-400 hover:text-[#137fec] transition-colors">Find Jobs</a>
+                        <a href="#" className="text-sm font-medium text-slate-600 dark:text-slate-400 hover:text-[#137fec] transition-colors">Companies</a>
+                        <button className="text-sm font-semibold bg-[#137fec] text-white px-4 py-2 rounded-lg hover:bg-[#137fec]/90 transition-all shadow-sm">Sign In</button>
+                    </div>
+                </div>
+            </nav>
 
-                    <CardContent className="space-y-8">
+            <main className="flex-grow max-w-6xl mx-auto px-6 py-12 w-full">
+                {/* Hero Header */}
+                <header className="mb-12">
+                    <div className="flex flex-col md:flex-row md:items-end justify-between gap-6">
                         <div>
-                            <h3 className="text-lg font-semibold text-gray-900 mb-3">Job Description</h3>
-                            <p className="text-gray-700 leading-relaxed">{job.description || 'No description provided.'}</p>
-                        </div>
-
-                        {job.responsibilities && job.responsibilities.length > 0 && (
-                            <div>
-                                <h3 className="text-lg font-semibold text-gray-900 mb-3">Key Responsibilities</h3>
-                                <ul className="space-y-2">
-                                    {job.responsibilities.map((res, idx) => (
-                                        <li key={idx} className="flex items-start gap-2">
-                                            <span className="text-primary mt-1">•</span>
-                                            <span className="text-gray-700">{res}</span>
-                                        </li>
-                                    ))}
-                                </ul>
-                            </div>
-                        )}
-
-                        {job.requirements && job.requirements.length > 0 && (
-                            <div>
-                                <h3 className="text-lg font-semibold text-gray-900 mb-3">Requirements & Qualifications</h3>
-                                <ul className="space-y-2">
-                                    {job.requirements.map((req, idx) => (
-                                        <li key={idx} className="flex items-start gap-2">
-                                            <span className="text-primary mt-1">•</span>
-                                            <span className="text-gray-700">{req}</span>
-                                        </li>
-                                    ))}
-                                </ul>
-                            </div>
-                        )}
-
-                        {job.deadline && (
-                            <div className="bg-amber-50 border border-amber-200 rounded-lg p-4">
-                                <div className="flex items-center gap-2 text-amber-800">
-                                    <Calendar className="h-4 w-4" />
-                                    <span className="font-medium">Application Deadline:</span>
-                                    <span>{formatDate(job.deadline)}</span>
+                            <div className="flex items-center gap-3 mb-4">
+                                <img
+                                    src="https://lh3.googleusercontent.com/aida-public/AB6AXuCgNqMGicJSl5NLrkJJUdaWmRcVo6FrBU0iUdIcl5g6r6TDMonA33l4TQleW0PcDwtr8RqR6ElZ5YgV-8MyDZTsooH4HWdJeWrWfcFjs-Z0qS1EWBVM_QvIz1HGKuylAC-kcMpAKYkun4yyI4jSeNbeXPxRglogBLF5-XP1L2_Dfmtot09u4xNemWdkP1RYZWDsmafNYzbscPszKhAi4c9G42cE-_Z69SY4sWZWnlUpp4EuYAnS38MDZz6N4E3EELeSUrcRHDTNncM"
+                                    alt="TechCorp Logo"
+                                    className="w-16 h-16 rounded-xl border border-slate-200 dark:border-slate-800 shadow-sm object-cover"
+                                />
+                                <div>
+                                    <h2 className="text-lg font-semibold text-slate-900 dark:text-white">TechCorp Solutions</h2>
+                                    <div className="flex items-center text-slate-500 dark:text-slate-400 text-sm gap-1">
+                                        <MapPin className="w-4 h-4" />
+                                        <span>{job.location || 'Remote'}</span>
+                                    </div>
                                 </div>
                             </div>
-                        )}
-                    </CardContent>
-                </Card>
+                            <h1 className="text-4xl md:text-5xl font-extrabold text-slate-900 dark:text-white tracking-tight">{job.title}</h1>
+                        </div>
+                        <div className="flex flex-wrap gap-2 mb-1">
+                            <span className="px-3 py-1 rounded-full bg-[#137fec]/10 text-[#137fec] text-xs font-bold uppercase tracking-wider">{job.industry || 'Engineering'}</span>
+                            <span className="px-3 py-1 rounded-full bg-emerald-500/10 text-emerald-600 text-xs font-bold uppercase tracking-wider">{job.jobType || 'Full-Time'}</span>
+                        </div>
+                    </div>
+                </header>
 
-                {/* Application Form */}
-                {job.status === 'Open' ? (
-                    <DynamicApplyForm job={job} />
-                ) : (
-                    <Card className="border-border/40 bg-card/50">
-                        <CardContent className="p-8 text-center text-muted-foreground">
-                            <p>This job is currently closed for new applications.</p>
-                        </CardContent>
-                    </Card>
-                )}
-            </div>
+                <div className="grid grid-cols-1 lg:grid-cols-12 gap-12 relative">
+                    {/* Main Content Area */}
+                    <div className="lg:col-span-8 space-y-12">
+                        {/* Description Section */}
+                        <section>
+                            <h3 className="text-xl font-bold text-slate-900 dark:text-white mb-6 flex items-center gap-2">
+                                <span className="w-1.5 h-6 bg-[#137fec] rounded-full"></span>
+                                Description
+                            </h3>
+                            <div className="prose dark:prose-invert prose-slate max-w-none">
+                                <p className="text-lg leading-relaxed text-slate-600 dark:text-slate-400 whitespace-pre-wrap">
+                                    {job.description || 'No description provided.'}
+                                </p>
+                            </div>
+                        </section>
+
+                        {/* Responsibilities Section */}
+                        {job.responsibilities && job.responsibilities.length > 0 && (
+                            <section>
+                                <h3 className="text-xl font-bold text-slate-900 dark:text-white mb-6 flex items-center gap-2">
+                                    <span className="w-1.5 h-6 bg-[#137fec] rounded-full"></span>
+                                    Responsibilities
+                                </h3>
+                                <ul className="space-y-4">
+                                    {job.responsibilities.map((res, idx) => (
+                                        <li key={idx} className="flex items-start gap-4 text-slate-600 dark:text-slate-400">
+                                            <CheckCircle2 className="w-5 h-5 text-[#137fec]/60 mt-0.5" />
+                                            <span>{res}</span>
+                                        </li>
+                                    ))}
+                                </ul>
+                            </section>
+                        )}
+
+                        {/* Requirements Section */}
+                        {job.requirements && job.requirements.length > 0 && (
+                            <section>
+                                <h3 className="text-xl font-bold text-slate-900 dark:text-white mb-6 flex items-center gap-2">
+                                    <span className="w-1.5 h-6 bg-[#137fec] rounded-full"></span>
+                                    Requirements
+                                </h3>
+                                <ul className="space-y-4">
+                                    {job.requirements.map((req, idx) => (
+                                        <li key={idx} className="flex items-start gap-4 text-slate-600 dark:text-slate-400">
+                                            <BadgeCheck className="w-5 h-5 text-[#137fec]/60 mt-0.5" />
+                                            <span>{req}</span>
+                                        </li>
+                                    ))}
+                                </ul>
+                            </section>
+                        )}
+
+                        {/* Application Form Card */}
+                        <section id="apply-form" className="bg-white dark:bg-[#101922]/50 border border-slate-200 dark:border-slate-800 rounded-xl p-8 shadow-xl shadow-slate-200/50 dark:shadow-none">
+                            <h3 className="text-2xl font-bold text-slate-900 dark:text-white mb-8">Apply for this position</h3>
+                            {job.status === 'Open' ? (
+                                <DynamicApplyForm job={job} />
+                            ) : (
+                                <div className="text-center py-8">
+                                    <p className="text-slate-500 font-medium">This position is currently closed/not accepting applications.</p>
+                                </div>
+                            )}
+                        </section>
+                    </div>
+
+                    {/* Sticky Sidebar */}
+                    <aside className="lg:col-span-4 h-fit sticky top-24">
+                        <div className="bg-white dark:bg-[#101922]/50 border border-slate-200 dark:border-slate-800 rounded-xl p-6 shadow-sm">
+                            <div className="space-y-6">
+                                <div>
+                                    <p className="text-sm text-slate-500 dark:text-slate-400 font-medium mb-1">Salary Range</p>
+                                    <p className="text-xl font-bold text-slate-900 dark:text-white">
+                                        {job.salaryRange ? `$${job.salaryRange.min}k – $${job.salaryRange.max}k` : 'Competitive'}
+                                        <span className="text-xs text-slate-400 font-normal"> / year</span>
+                                    </p>
+                                </div>
+                                <div className="grid grid-cols-2 gap-4 border-y border-slate-100 dark:border-slate-800 py-6">
+                                    <div>
+                                        <p className="text-xs text-slate-500 dark:text-slate-400 font-medium uppercase tracking-wider mb-1">Location</p>
+                                        <p className="text-sm font-semibold text-slate-900 dark:text-white flex items-center gap-1">
+                                            <Globe className="w-3 h-3 text-slate-400" /> {job.location || 'Remote'}
+                                        </p>
+                                    </div>
+                                    <div>
+                                        <p className="text-xs text-slate-500 dark:text-slate-400 font-medium uppercase tracking-wider mb-1">Posted</p>
+                                        <p className="text-sm font-semibold text-slate-900 dark:text-white flex items-center gap-1">
+                                            <Clock className="w-3 h-3 text-slate-400" /> {formatDate(job.postedAt || job.createdAt)}
+                                        </p>
+                                    </div>
+                                    <div>
+                                        <p className="text-xs text-slate-500 dark:text-slate-400 font-medium uppercase tracking-wider mb-1">Level</p>
+                                        <p className="text-sm font-semibold text-slate-900 dark:text-white flex items-center gap-1">
+                                            <TrendingUp className="w-3 h-3 text-slate-400" /> {job.level || 'Senior'}
+                                        </p>
+                                    </div>
+                                    <div>
+                                        <p className="text-xs text-slate-500 dark:text-slate-400 font-medium uppercase tracking-wider mb-1">Applicants</p>
+                                        <p className="text-sm font-semibold text-slate-900 dark:text-white flex items-center gap-1">
+                                            <Users className="w-3 h-3 text-slate-400" /> {job.applicantCount || 24}
+                                        </p>
+                                    </div>
+                                </div>
+                                <a href="#apply-form" className="block w-full text-center bg-[#137fec] text-white font-bold py-3 rounded-lg hover:bg-[#137fec]/90 transition-all shadow-md">
+                                    Apply Now
+                                </a>
+                                <button className="w-full flex items-center justify-center gap-2 text-slate-600 dark:text-slate-400 font-medium py-3 border border-slate-200 dark:border-slate-800 rounded-lg hover:bg-slate-50 dark:hover:bg-slate-900 transition-all">
+                                    <Bookmark className="w-4 h-4" /> Save Job
+                                </button>
+                                <div className="pt-4">
+                                    <p className="text-xs text-center text-slate-400 dark:text-slate-500">
+                                        Share this opportunity with your network
+                                    </p>
+                                    <div className="flex justify-center gap-4 mt-3">
+                                        <button className="w-10 h-10 rounded-full flex items-center justify-center text-slate-400 hover:text-[#137fec] hover:bg-[#137fec]/10 transition-all">
+                                            <Share2 className="w-5 h-5" />
+                                        </button>
+                                        <button className="w-10 h-10 rounded-full flex items-center justify-center text-slate-400 hover:text-[#137fec] hover:bg-[#137fec]/10 transition-all">
+                                            <Link className="w-5 h-5" />
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        {/* Map Image Placeholder */}
+                        <div className="mt-6 rounded-xl overflow-hidden border border-slate-200 dark:border-slate-800 h-40 relative group">
+                            <img
+                                src="https://lh3.googleusercontent.com/aida-public/AB6AXuAhMbaUAKXe8pR9UwKwpL8u2pxBwL-eZasWz8BTlggAA8Y6ztVnRU5TehQ5n2KvGXmnWgP673lWstR_a-iNssPzOmGTERfl-HKcZdZzq_O1kdQ3n8WaWSv1TUpXoHPWoHM54ItwFtJSgzlqTJTVMYaVID-odLsM5_cQg-NaDDJ5-wgrIgjDiKTqp4xA-V5jNXnqWomJagHgKLG32vIMQOR7y-fAa1ZIXmT3E848uLJJGAAUKv_RHfHnbCMAOPoLAnIdhnJ1Vp-jY38"
+                                alt="Map"
+                                className="w-full h-full object-cover grayscale opacity-60 group-hover:grayscale-0 transition-all duration-500"
+                            />
+                            <div className="absolute inset-0 bg-gradient-to-t from-slate-900/80 to-transparent flex items-end p-4">
+                                <div className="flex items-center gap-2 text-white">
+                                    <MapPin className="w-3 h-3" />
+                                    <span className="text-xs font-semibold">TechCorp HQ, Market St</span>
+                                </div>
+                            </div>
+                        </div>
+                    </aside>
+                </div>
+            </main>
+
+            {/* Footer */}
+            <footer className="mt-24 border-t border-slate-200 dark:border-slate-800 bg-white dark:bg-[#101922] py-12">
+                <div className="max-w-6xl mx-auto px-6">
+                    <div className="flex flex-col md:flex-row justify-between items-center gap-6">
+                        <div className="flex items-center gap-2">
+                            <div className="w-6 h-6 bg-[#137fec]/20 rounded-md flex items-center justify-center">
+                                <Zap className="text-[#137fec] w-3 h-3" />
+                            </div>
+                            <span className="font-bold text-slate-900 dark:text-white">TalentFlow</span>
+                        </div>
+                        <div className="flex gap-8 text-sm text-slate-500 dark:text-slate-400">
+                            <a href="#" className="hover:text-[#137fec] transition-colors">Privacy Policy</a>
+                            <a href="#" className="hover:text-[#137fec] transition-colors">Terms of Service</a>
+                            <a href="#" className="hover:text-[#137fec] transition-colors">Contact Support</a>
+                        </div>
+                        <p className="text-sm text-slate-400">© 2024 TalentFlow Inc. All rights reserved.</p>
+                    </div>
+                </div>
+            </footer>
         </div>
     );
 };
