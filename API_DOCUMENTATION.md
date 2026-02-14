@@ -379,6 +379,74 @@ Authorization: Bearer <token>
 }
 ```
 
+### POST /api/evaluation/bulk
+**Purpose**: Start bulk evaluation for multiple candidates  
+**Headers**: `Authorization: Bearer <token>`  
+**Request Body**:
+```json
+{
+  "jobId": "HF-001",
+  "promptId": "prompt_789",
+  "candidateIds": ["resume_123", "resume_456", "resume_789"]
+}
+```
+**Response**:
+```json
+{
+  "success": true,
+  "message": "Started evaluation for 3 candidates",
+  "data": {
+    "total": 3,
+    "jobId": "HF-001"
+  }
+}
+```
+
+### GET /api/evaluation/progress/:jobId
+**Purpose**: Get progress of bulk evaluation for a specific job  
+**Headers**: `Authorization: Bearer <token>`  
+**Response**:
+```json
+{
+  "success": true,
+  "data": {
+    "total": 50,
+    "completed": 45,
+    "failed": 2,
+    "pending": 3
+  }
+}
+```
+
+### GET /api/evaluation/results/:jobId
+**Purpose**: Get evaluation results filtered by job  
+**Headers**: `Authorization: Bearer <token>`  
+**Query Params**:
+- `status` (optional): Filter by risk flag or status
+- `sort` (optional): `date_asc` or default score desc
+**Response**:
+```json
+{
+  "success": true,
+  "count": 25,
+  "data": [
+    {
+      "_id": "eval_123",
+      "resumeId": {
+        "fileName": "candidate.pdf",
+        "candidateName": "Jane Doe",
+        "candidateEmail": "jane@example.com"
+      },
+      "result": {
+        "totalScore": 88,
+        "riskFlag": "Low"
+      },
+      "status": "Completed"
+    }
+  ]
+}
+```
+
 ---
 
 ## 6. Prompt Management APIs

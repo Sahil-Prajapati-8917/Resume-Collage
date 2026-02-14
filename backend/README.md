@@ -150,8 +150,11 @@ backend/
 
 ### Evaluation
 - `POST /api/evaluation/start` - Start AI evaluation
+- `POST /api/evaluation/bulk` - Start bulk evaluation for multiple candidates
 - `GET /api/evaluation/:id` - Get evaluation results
 - `GET /api/evaluation` - List evaluations
+- `GET /api/evaluation/results/:jobId` - Get evaluation results for a specific job
+- `GET /api/evaluation/progress/:jobId` - Track bulk evaluation progress
 
 ### Hiring Forms
 - `POST /api/hiring-form` - Create hiring form

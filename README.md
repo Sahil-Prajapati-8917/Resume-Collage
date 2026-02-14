@@ -59,9 +59,9 @@ This is a monorepo containing both frontend and backend applications:
 - **Quick Navigation**: Jump directly to search results with a single click.
 
 ### ⚡ Batch Processing & Advanced Filtering
-- **Bulk Evaluation**: Evaluate multiple candidates simultaneously in the queue.
-- **Global Prompt Selection**: Access any created prompt for evaluation, regardless of industry.
-- **Job-Specific Filtering**: deeply filter evaluation results by specific job postings.
+- **Bulk Evaluation**: Evaluate multiple candidates simultaneously with real-time progress tracking in the queue.
+- **Global Prompt Selection**: Access any created prompt for evaluation, regardless of industry, ensuring maximum flexibility.
+- **Job-Specific Filtering**: Filter evaluation results by specific job postings to focus on relevant candidates.
 
 ### 🎛️ Comprehensive Management
 - **Hiring Forms**: Define role requirements, cut-offs, and evaluation weights

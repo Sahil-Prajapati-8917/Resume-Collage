@@ -143,9 +143,9 @@ Recruiters can:
 - Track all changes in the audit trail
 
 ### ⚡ Batch Operations
-- **Bulk Evaluation**: Evaluate multiple candidates simultaneously in the queue.
-- **Global Prompt Access**: Use any prompt for any job, ensuring full flexibility.
-- **Smart Result Filtering**: Filter evaluation results by Job ID to focus on specific roles.
+- **Bulk Evaluation**: Process multiple candidates at once with a real-time progress bar.
+- **Global Prompt Access**: select from any available prompt across industries for tailored evaluations.
+- **Smart Result Filtering**: Instantly filter results by Job ID to isolate candidates for specific roles.
 
 ## 🔧 Configuration
 
