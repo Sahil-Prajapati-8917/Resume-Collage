@@ -290,179 +290,170 @@ const HiringForm = () => {
         <p className="text-muted-foreground">Create job openings and define evaluation constraints.</p>
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
-        <div className="lg:col-span-8 flex flex-col gap-8">
-          {status.message && (
-            <Alert variant={status.type === 'error' ? 'destructive' : 'default'} className="bg-card/50 border-border/40">
-              <AlertCircle className="h-4 w-4" />
-              <AlertTitle>{status.type === 'success' ? 'Success' : 'Error'}</AlertTitle>
-              <AlertDescription>{status.message}</AlertDescription>
-            </Alert>
-          )}
-
-          <Card className="border-border/40 bg-card/50">
-            <CardHeader className="flex flex-row items-center gap-4">
-              <div className="size-10 rounded-xl bg-primary/10 flex items-center justify-center text-primary">
-                <Briefcase className="size-5" />
-              </div>
-              <div>
-                <CardTitle className="text-xl">Job Details</CardTitle>
-                <CardDescription>Primary job identity and industry sector.</CardDescription>
-              </div>
-            </CardHeader>
-            <CardContent className="space-y-6 pt-2">
-              <div className="grid md:grid-cols-2 gap-6">
-                <div className="space-y-2">
-                  <Label htmlFor="formName" className="text-xs uppercase tracking-widest text-muted-foreground font-bold">Internal Reference Name</Label>
-                  <Input id="formName" name="formName" value={formData.formName} onChange={handleInputChange} placeholder="e.g., Q3 Senior React Engineer" className="bg-background/50 h-11" />
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="deadline" className="text-xs uppercase tracking-widest text-muted-foreground font-bold">Application Deadline</Label>
-                  <Input id="deadline" name="deadline" type="date" value={formData.deadline} onChange={handleInputChange} className="bg-background/50 h-11" />
-                </div>
-              </div>
-
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <Card className="border-border/40 bg-card/50 h-full">
+          <CardHeader className="flex flex-row items-center gap-4">
+            <div className="size-10 rounded-xl bg-primary/10 flex items-center justify-center text-primary">
+              <Briefcase className="size-5" />
+            </div>
+            <div>
+              <CardTitle className="text-xl">Job Details</CardTitle>
+              <CardDescription>Primary job identity and industry sector.</CardDescription>
+            </div>
+          </CardHeader>
+          <CardContent className="space-y-6 pt-2">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
               <div className="space-y-2">
-                <Label htmlFor="description" className="text-xs uppercase tracking-widest text-muted-foreground font-bold">Job Description</Label>
-                <textarea
-                  id="description"
-                  name="description"
-                  value={formData.description}
-                  onChange={handleInputChange}
-                  placeholder="Enter detailed job description..."
-                  className="flex min-h-[120px] w-full rounded-md border border-input bg-background/50 px-3 py-2 text-sm shadow-sm placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-50"
+                <Label htmlFor="formName" className="text-xs uppercase tracking-widest text-muted-foreground font-bold">Internal Reference Name</Label>
+                <Input id="formName" name="formName" value={formData.formName} onChange={handleInputChange} placeholder="e.g., Q3 Senior React Engineer" className="bg-background/50 h-11" />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="deadline" className="text-xs uppercase tracking-widest text-muted-foreground font-bold">Application Deadline</Label>
+                <Input id="deadline" name="deadline" type="date" value={formData.deadline} onChange={handleInputChange} className="bg-background/50 h-11" />
+              </div>
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="description" className="text-xs uppercase tracking-widest text-muted-foreground font-bold">Job Description</Label>
+              <textarea
+                id="description"
+                name="description"
+                value={formData.description}
+                onChange={handleInputChange}
+                placeholder="Enter detailed job description..."
+                className="flex min-h-[120px] w-full rounded-md border border-input bg-background/50 px-3 py-2 text-sm shadow-sm placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-50"
+              />
+            </div>
+
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
+              <div className="space-y-2">
+                <Label htmlFor="title" className="text-xs uppercase tracking-widest text-muted-foreground font-bold">Job Title</Label>
+                <Input id="title" name="title" value={formData.title} onChange={handleInputChange} placeholder="e.g., Frontend Lead" className="bg-background/50 h-11" />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="industry" className="text-xs uppercase tracking-widest text-muted-foreground font-bold">Industry</Label>
+                <Select value={formData.industry} onValueChange={(v) => setFormData(p => ({ ...p, industry: v }))} disabled={!!editingId}>
+                  <SelectTrigger className="bg-background/50 h-11">
+                    <SelectValue placeholder="Select Sector" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {industries.map(i => (
+                      <SelectItem key={i._id || i} value={i.name || i}>{i.name || i}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+
+        <Card className="border-border/40 bg-card/50 h-full">
+          <CardHeader className="flex flex-row items-center gap-4">
+            <div className="size-10 rounded-xl bg-orange-500/10 flex items-center justify-center text-orange-500">
+              <Target className="size-5" />
+            </div>
+            <div>
+              <CardTitle className="text-xl">Evaluation Metrics</CardTitle>
+              <CardDescription>Define responsibilities and key qualifications.</CardDescription>
+            </div>
+          </CardHeader>
+          <CardContent className="space-y-8 pt-2">
+            <div className="space-y-4">
+              <div className="flex items-center justify-between">
+                <Label className="text-xs uppercase tracking-widest text-muted-foreground font-bold">Key Responsibilities</Label>
+                <Button variant="ghost" size="sm" onClick={() => addArrayItem('responsibilities')} className="h-7 text-[10px] uppercase font-bold tracking-wider">
+                  <Plus className="size-3 mr-1" /> Add Item
+                </Button>
+              </div>
+              <div className="flex flex-col gap-3">
+                {formData.responsibilities.map((r, i) => (
+                  <div key={i} className="group relative">
+                    <Input value={r} onChange={(e) => handleArrayChange('responsibilities', i, e.target.value)} placeholder="Enter responsibility..." className="bg-background/50 pr-10" />
+                    {formData.responsibilities.length > 1 && (
+                      <Button variant="ghost" size="icon" className="absolute right-1 top-1/2 -translate-y-1/2 size-8 text-muted-foreground opacity-0 group-hover:opacity-100 transition-opacity" onClick={() => removeArrayItem('responsibilities', i)}>
+                        <Trash className="size-4" />
+                      </Button>
+                    )}
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            <Separator className="bg-border/20" />
+
+            <div className="space-y-4">
+              <div className="flex items-center justify-between">
+                <Label className="text-xs uppercase tracking-widest text-muted-foreground font-bold">Minimum Qualifications</Label>
+                <Button variant="ghost" size="sm" onClick={() => addArrayItem('requirements')} className="h-7 text-[10px] uppercase font-bold tracking-wider">
+                  <Plus className="size-3 mr-1" /> Add Item
+                </Button>
+              </div>
+              <div className="flex flex-col gap-3">
+                {formData.requirements.map((r, i) => (
+                  <div key={i} className="group relative">
+                    <Input value={r} onChange={(e) => handleArrayChange('requirements', i, e.target.value)} placeholder="Required skill or experience..." className="bg-background/50 pr-10" />
+                    {formData.requirements.length > 1 && (
+                      <Button variant="ghost" size="icon" className="absolute right-1 top-1/2 -translate-y-1/2 size-8 text-muted-foreground opacity-0 group-hover:opacity-100 transition-opacity" onClick={() => removeArrayItem('requirements', i)}>
+                        <Trash className="size-4" />
+                      </Button>
+                    )}
+                  </div>
+                ))}
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+
+        <Card className="border-border/40 bg-card/50 md:col-span-2">
+          <CardHeader className="flex flex-row items-center gap-4">
+            <div className="size-10 rounded-xl bg-purple-500/10 flex items-center justify-center text-purple-500">
+              <Settings2 className="size-5" />
+            </div>
+            <div>
+              <CardTitle className="text-xl">Smart Automation Rules</CardTitle>
+              <CardDescription>Configure AI decision thresholds.</CardDescription>
+            </div>
+          </CardHeader>
+          <CardContent className="space-y-6 pt-2">
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+              <div className="space-y-2">
+                <Label htmlFor="autoShortlist" className="text-xs uppercase tracking-widest text-green-500 font-bold">Auto-Shortlist Score</Label>
+                <Input
+                  type="number"
+                  id="autoShortlist"
+                  value={formData.cutOffSettings.autoShortlist}
+                  onChange={(e) => setFormData(p => ({ ...p, cutOffSettings: { ...p.cutOffSettings, autoShortlist: parseInt(e.target.value) } }))}
+                  className="bg-background/50 h-11 border-green-500/20 focus-visible:ring-green-500/20"
                 />
+                <p className="text-[10px] text-muted-foreground">Scores above this will be automatically shortlisted.</p>
               </div>
+              <div className="space-y-2">
+                <Label htmlFor="manualReview" className="text-xs uppercase tracking-widest text-yellow-500 font-bold">Manual Review Range</Label>
+                <Input
+                  type="number"
+                  id="manualReview"
+                  value={formData.cutOffSettings.manualReview}
+                  onChange={(e) => setFormData(p => ({ ...p, cutOffSettings: { ...p.cutOffSettings, manualReview: parseInt(e.target.value) } }))}
+                  className="bg-background/50 h-11 border-yellow-500/20 focus-visible:ring-yellow-500/20"
+                />
+                <p className="text-[10px] text-muted-foreground">Scores between Reject and Shortlist trigger review.</p>
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="autoReject" className="text-xs uppercase tracking-widest text-red-500 font-bold">Auto-Reject Score</Label>
+                <Input
+                  type="number"
+                  id="autoReject"
+                  value={formData.cutOffSettings.autoReject}
+                  onChange={(e) => setFormData(p => ({ ...p, cutOffSettings: { ...p.cutOffSettings, autoReject: parseInt(e.target.value) } }))}
+                  className="bg-background/50 h-11 border-red-500/20 focus-visible:ring-red-500/20"
+                />
+                <p className="text-[10px] text-muted-foreground">Scores below this will be automatically disqualified.</p>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
 
-              <div className="grid md:grid-cols-2 gap-6">
-                <div className="space-y-2">
-                  <Label htmlFor="title" className="text-xs uppercase tracking-widest text-muted-foreground font-bold">Job Title</Label>
-                  <Input id="title" name="title" value={formData.title} onChange={handleInputChange} placeholder="e.g., Frontend Lead" className="bg-background/50 h-11" />
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="industry" className="text-xs uppercase tracking-widest text-muted-foreground font-bold">Industry</Label>
-                  <Select value={formData.industry} onValueChange={(v) => setFormData(p => ({ ...p, industry: v }))} disabled={!!editingId}>
-                    <SelectTrigger className="bg-background/50 h-11">
-                      <SelectValue placeholder="Select Sector" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {industries.map(i => (
-                        <SelectItem key={i._id || i} value={i.name || i}>{i.name || i}</SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-
-          <Card className="border-border/40 bg-card/50">
-            <CardHeader className="flex flex-row items-center gap-4">
-              <div className="size-10 rounded-xl bg-orange-500/10 flex items-center justify-center text-orange-500">
-                <Target className="size-5" />
-              </div>
-              <div>
-                <CardTitle className="text-xl">Evaluation Metrics</CardTitle>
-                <CardDescription>Define responsibilities and key qualifications.</CardDescription>
-              </div>
-            </CardHeader>
-            <CardContent className="space-y-8 pt-2">
-              <div className="space-y-4">
-                <div className="flex items-center justify-between">
-                  <Label className="text-xs uppercase tracking-widest text-muted-foreground font-bold">Key Responsibilities</Label>
-                  <Button variant="ghost" size="sm" onClick={() => addArrayItem('responsibilities')} className="h-7 text-[10px] uppercase font-bold tracking-wider">
-                    <Plus className="size-3 mr-1" /> Add Item
-                  </Button>
-                </div>
-                <div className="flex flex-col gap-3">
-                  {formData.responsibilities.map((r, i) => (
-                    <div key={i} className="group relative">
-                      <Input value={r} onChange={(e) => handleArrayChange('responsibilities', i, e.target.value)} placeholder="Enter responsibility..." className="bg-background/50 pr-10" />
-                      {formData.responsibilities.length > 1 && (
-                        <Button variant="ghost" size="icon" className="absolute right-1 top-1/2 -translate-y-1/2 size-8 text-muted-foreground opacity-0 group-hover:opacity-100 transition-opacity" onClick={() => removeArrayItem('responsibilities', i)}>
-                          <Trash className="size-4" />
-                        </Button>
-                      )}
-                    </div>
-                  ))}
-                </div>
-              </div>
-
-              <Separator className="bg-border/20" />
-
-              <div className="space-y-4">
-                <div className="flex items-center justify-between">
-                  <Label className="text-xs uppercase tracking-widest text-muted-foreground font-bold">Minimum Qualifications</Label>
-                  <Button variant="ghost" size="sm" onClick={() => addArrayItem('requirements')} className="h-7 text-[10px] uppercase font-bold tracking-wider">
-                    <Plus className="size-3 mr-1" /> Add Item
-                  </Button>
-                </div>
-                <div className="flex flex-col gap-3">
-                  {formData.requirements.map((r, i) => (
-                    <div key={i} className="group relative">
-                      <Input value={r} onChange={(e) => handleArrayChange('requirements', i, e.target.value)} placeholder="Required skill or experience..." className="bg-background/50 pr-10" />
-                      {formData.requirements.length > 1 && (
-                        <Button variant="ghost" size="icon" className="absolute right-1 top-1/2 -translate-y-1/2 size-8 text-muted-foreground opacity-0 group-hover:opacity-100 transition-opacity" onClick={() => removeArrayItem('requirements', i)}>
-                          <Trash className="size-4" />
-                        </Button>
-                      )}
-                    </div>
-                  ))}
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-
-          <Card className="border-border/40 bg-card/50">
-            <CardHeader className="flex flex-row items-center gap-4">
-              <div className="size-10 rounded-xl bg-purple-500/10 flex items-center justify-center text-purple-500">
-                <Settings2 className="size-5" />
-              </div>
-              <div>
-                <CardTitle className="text-xl">Smart Automation Rules</CardTitle>
-                <CardDescription>Configure AI decision thresholds.</CardDescription>
-              </div>
-            </CardHeader>
-            <CardContent className="space-y-6 pt-2">
-              <div className="grid md:grid-cols-3 gap-6">
-                <div className="space-y-2">
-                  <Label htmlFor="autoShortlist" className="text-xs uppercase tracking-widest text-green-500 font-bold">Auto-Shortlist Score</Label>
-                  <Input
-                    type="number"
-                    id="autoShortlist"
-                    value={formData.cutOffSettings.autoShortlist}
-                    onChange={(e) => setFormData(p => ({ ...p, cutOffSettings: { ...p.cutOffSettings, autoShortlist: parseInt(e.target.value) } }))}
-                    className="bg-background/50 h-11 border-green-500/20 focus-visible:ring-green-500/20"
-                  />
-                  <p className="text-[10px] text-muted-foreground">Scores above this will be automatically shortlisted.</p>
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="manualReview" className="text-xs uppercase tracking-widest text-yellow-500 font-bold">Manual Review Range</Label>
-                  <Input
-                    type="number"
-                    id="manualReview"
-                    value={formData.cutOffSettings.manualReview}
-                    onChange={(e) => setFormData(p => ({ ...p, cutOffSettings: { ...p.cutOffSettings, manualReview: parseInt(e.target.value) } }))}
-                    className="bg-background/50 h-11 border-yellow-500/20 focus-visible:ring-yellow-500/20"
-                  />
-                  <p className="text-[10px] text-muted-foreground">Scores between Reject and Shortlist trigger review.</p>
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="autoReject" className="text-xs uppercase tracking-widest text-red-500 font-bold">Auto-Reject Score</Label>
-                  <Input
-                    type="number"
-                    id="autoReject"
-                    value={formData.cutOffSettings.autoReject}
-                    onChange={(e) => setFormData(p => ({ ...p, cutOffSettings: { ...p.cutOffSettings, autoReject: parseInt(e.target.value) } }))}
-                    className="bg-background/50 h-11 border-red-500/20 focus-visible:ring-red-500/20"
-                  />
-                  <p className="text-[10px] text-muted-foreground">Scores below this will be automatically disqualified.</p>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-
-
+        <div className="md:col-span-2">
           <FormBuilder
             initialStandardFields={formData.standardFields}
             initialCustomFields={formData.applyFormFields}
@@ -470,34 +461,25 @@ const HiringForm = () => {
           />
         </div>
 
-        <div className="lg:col-span-4 flex flex-col gap-6 sticky top-24 h-fit">
-          <Card className="border-border/40 bg-card/50">
-            <CardHeader>
-              <CardTitle className="text-base font-semibold">Actions</CardTitle>
-            </CardHeader>
-            <CardContent className="flex flex-col gap-3">
-              <Button
-                className="w-full h-11"
-                disabled={
-                  loading ||
-                  !formData.formName ||
-                  !formData.title ||
-                  !formData.industry ||
-                  !formData.description ||
-                  !formData.deadline
-                }
-                onClick={handleSave}
-              >
-                {loading ? <Loader2 className="size-4 animate-spin mr-2" /> : editingId ? 'Update Criteria' : 'Save Job Opening'}
-              </Button>
-              {editingId && (
-                <Button variant="ghost" className="w-full" onClick={handleCancelEdit}>Cancel Modification</Button>
-              )}
-            </CardContent>
-          </Card>
+        <div className="md:col-span-2 flex justify-end gap-4 mt-4">
+          {editingId && (
+            <Button variant="outline" className="h-11 px-8" onClick={handleCancelEdit}>Cancel Modification</Button>
+          )}
+          <Button
+            className="h-11 px-8"
+            disabled={
+              loading ||
+              !formData.formName ||
+              !formData.title ||
+              !formData.industry ||
+              !formData.description ||
+              !formData.deadline
+            }
+            onClick={handleSave}
+          >
+            {loading ? <Loader2 className="size-4 animate-spin mr-2" /> : editingId ? 'Update Criteria' : 'Save Job Opening'}
+          </Button>
         </div>
-
-
       </div>
 
       <div className="flex flex-col gap-6">

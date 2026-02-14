@@ -95,12 +95,12 @@ const FormBuilder = ({ initialStandardFields, initialCustomFields, onSave }) => 
     };
 
     return (
-        <div className="space-y-6">
-            <Card>
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <Card className="h-full">
                 <CardHeader>
                     <CardTitle>Standard Fields</CardTitle>
                 </CardHeader>
-                <CardContent className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                <CardContent className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                     {Object.keys(standardFields).map(key => (
                         <div key={key} className="flex items-center space-x-2">
                             <Checkbox
@@ -116,7 +116,7 @@ const FormBuilder = ({ initialStandardFields, initialCustomFields, onSave }) => 
                 </CardContent>
             </Card>
 
-            <Card>
+            <Card className="h-full">
                 <CardHeader className="flex flex-row items-center justify-between">
                     <CardTitle>Custom Fields</CardTitle>
                     <Button onClick={handleAddCustomField} size="sm">
