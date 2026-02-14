@@ -312,6 +312,38 @@ const DynamicApplyForm = ({ job }) => {
                             {errors.noticePeriod && <p className="text-xs text-red-500">{errors.noticePeriod}</p>}
                         </div>
                     )}
+                    {job.standardFields.workMode && (
+                        <div className="space-y-2">
+                            <label htmlFor="workMode" className={labelClasses}>Preferred Work Mode</label>
+                            <Select value={formData.workMode} onValueChange={(v) => handleChange('workMode', v)}>
+                                <SelectTrigger className={inputClasses}>
+                                    <SelectValue placeholder="Select Work Mode" />
+                                </SelectTrigger>
+                                <SelectContent>
+                                    <SelectItem value="Remote">Remote</SelectItem>
+                                    <SelectItem value="On-site">On-site</SelectItem>
+                                    <SelectItem value="Hybrid">Hybrid</SelectItem>
+                                </SelectContent>
+                            </Select>
+                            {errors.workMode && <p className="text-xs text-red-500">{errors.workMode}</p>}
+                        </div>
+                    )}
+                    {job.standardFields.relocate && (
+                        <div className="space-y-2">
+                            <label className={labelClasses}>Willing to Relocate?</label>
+                            <RadioGroup value={formData.relocate?.toString()} onValueChange={(v) => handleChange('relocate', v === 'true')} className="flex gap-6 pt-2">
+                                <div className="flex items-center space-x-2">
+                                    <RadioGroupItem value="true" id="relocate-yes" />
+                                    <Label htmlFor="relocate-yes" className="font-normal">Yes</Label>
+                                </div>
+                                <div className="flex items-center space-x-2">
+                                    <RadioGroupItem value="false" id="relocate-no" />
+                                    <Label htmlFor="relocate-no" className="font-normal">No</Label>
+                                </div>
+                            </RadioGroup>
+                            {errors.relocate && <p className="text-xs text-red-500">{errors.relocate}</p>}
+                        </div>
+                    )}
                 </div>
             )}
 

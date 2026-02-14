@@ -56,11 +56,12 @@ const Queue = () => {
         throw new Error('Failed to fetch hiring forms')
       }
 
-      // Fetch all applications by getting applications for each form
+      // Fetch all applications
       const applicationsResponse = await apiService.get('/queue/applications')
       if (applicationsResponse.ok) {
         const applicationsData = await applicationsResponse.json()
-        setApplications(applicationsData.data)
+        // Ensure we handle the data structure correctly
+        setApplications(applicationsData.data || [])
       } else {
         throw new Error('Failed to fetch applications')
       }
