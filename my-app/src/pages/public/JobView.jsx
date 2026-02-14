@@ -94,22 +94,7 @@ const JobView = () => {
 
     return (
         <div className="font-display bg-[#f6f7f8] dark:bg-[#101922] text-slate-800 dark:text-slate-200 min-h-screen flex flex-col antialiased">
-            {/* Navigation */}
-            <nav className="sticky top-0 z-50 bg-white/80 dark:bg-[#101922]/80 backdrop-blur-md border-b border-slate-200 dark:border-slate-800">
-                <div className="max-w-6xl mx-auto px-6 h-16 flex items-center justify-between">
-                    <div className="flex items-center gap-2">
-                        <div className="w-8 h-8 bg-[#137fec] rounded-lg flex items-center justify-center">
-                            <Zap className="text-white w-5 h-5" />
-                        </div>
-                        <span className="font-extrabold text-xl tracking-tight text-slate-900 dark:text-white">TalentFlow</span>
-                    </div>
-                    <div className="flex items-center gap-6 hidden sm:flex">
-                        <a href="#" className="text-sm font-medium text-slate-600 dark:text-slate-400 hover:text-[#137fec] transition-colors">Find Jobs</a>
-                        <a href="#" className="text-sm font-medium text-slate-600 dark:text-slate-400 hover:text-[#137fec] transition-colors">Companies</a>
-                        <button className="text-sm font-semibold bg-[#137fec] text-white px-4 py-2 rounded-lg hover:bg-[#137fec]/90 transition-all shadow-sm">Sign In</button>
-                    </div>
-                </div>
-            </nav>
+            {/* Navigation Removed */}
 
             <main className="flex-grow max-w-6xl mx-auto px-6 py-12 w-full">
                 {/* Hero Header */}
@@ -281,25 +266,7 @@ const JobView = () => {
                 </div>
             </main>
 
-            {/* Footer */}
-            <footer className="mt-24 border-t border-slate-200 dark:border-slate-800 bg-white dark:bg-[#101922] py-12">
-                <div className="max-w-6xl mx-auto px-6">
-                    <div className="flex flex-col md:flex-row justify-between items-center gap-6">
-                        <div className="flex items-center gap-2">
-                            <div className="w-6 h-6 bg-[#137fec]/20 rounded-md flex items-center justify-center">
-                                <Zap className="text-[#137fec] w-3 h-3" />
-                            </div>
-                            <span className="font-bold text-slate-900 dark:text-white">TalentFlow</span>
-                        </div>
-                        <div className="flex gap-8 text-sm text-slate-500 dark:text-slate-400">
-                            <a href="#" className="hover:text-[#137fec] transition-colors">Privacy Policy</a>
-                            <a href="#" className="hover:text-[#137fec] transition-colors">Terms of Service</a>
-                            <a href="#" className="hover:text-[#137fec] transition-colors">Contact Support</a>
-                        </div>
-                        <p className="text-sm text-slate-400">© 2024 TalentFlow Inc. All rights reserved.</p>
-                    </div>
-                </div>
-            </footer>
+            {/* Footer Removed */}
         </div>
     );
 };

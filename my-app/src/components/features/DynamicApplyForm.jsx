@@ -1,13 +1,11 @@
 import React, { useState, useEffect } from 'react';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Checkbox } from '@/components/ui/checkbox';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
-import { Check, Upload, Loader2, AlertCircle, FileText, CheckCircle } from 'lucide-react';
+import { CloudUpload, Loader2, AlertCircle, FileText, CheckCircle } from 'lucide-react';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import apiService from '@/services/api';
 
@@ -20,11 +18,10 @@ const DynamicApplyForm = ({ job }) => {
     const [submitSuccess, setSubmitSuccess] = useState(false);
     const [submitError, setSubmitError] = useState(null);
 
-    // Initialize Standard Fields
+    // Initialize Standard Fields logic
     useEffect(() => {
-        // Evaluate conditional logic whenever formData changes
         evaluateVisibility();
-    }, [formData, job]);
+    }, [formData, job]); // Re-evaluate when form data or job config changes
 
     const evaluateVisibility = () => {
         if (!job?.applyFormFields) return;
@@ -36,11 +33,9 @@ const DynamicApplyForm = ({ job }) => {
             const dependencyValue = formData[field.showIf.fieldId];
             if (!dependencyValue) return false;
 
-            // Simple equality check for now
             if (field.showIf.operator === 'equals') {
                 return dependencyValue === field.showIf.value;
             }
-            // Add more operators if needed
             return false;
         }).map(f => f.id);
 
@@ -49,7 +44,6 @@ const DynamicApplyForm = ({ job }) => {
 
     const handleChange = (id, value) => {
         setFormData(prev => ({ ...prev, [id]: value }));
-        // Clear error for this field
         if (errors[id]) {
             setErrors(prev => {
                 const newErrors = { ...prev };
@@ -75,19 +69,14 @@ const DynamicApplyForm = ({ job }) => {
     const validate = () => {
         const newErrors = {};
 
-        // 1. Standard Fields (Always Required: Name, Email, Phone, Resume)
+        // 1. Standard Fields
         if (!formData.name) newErrors.name = 'Full Name is required';
         if (!formData.email) newErrors.email = 'Email is required';
         else if (!/\S+@\S+\.\S+/.test(formData.email)) newErrors.email = 'Invalid email address';
         if (!formData.phone) newErrors.phone = 'Phone number is required';
         if (!resumeFile) newErrors.resume = 'Resume is required';
 
-        // 2. Toggleable Standard Fields (If enabled and required logic - assuming they are required if enabled for simplicity, or we can make them optional. 
-        // Requirement says "HR Can Toggle ON/OFF". Usually standard fields like LinkedIn might be optional. 
-        // Let's assume standard fields are optional unless we add a specific "required" config for them. 
-        // However, looking at the backend validation I wrote, I made them REQUIRED if enabled. 
-        // "if (standardFields.linkedIn && !req.body.linkedIn) missingStandardFields.push('LinkedIn Profile');"
-        // So I must enforce them here.
+        // 2. Toggleable Standard Fields
         if (job.standardFields) {
             if (job.standardFields.linkedIn && !formData.linkedIn) newErrors.linkedIn = 'LinkedIn Profile is required';
             if (job.standardFields.portfolio && !formData.portfolio) newErrors.portfolio = 'Portfolio URL is required';
@@ -102,7 +91,7 @@ const DynamicApplyForm = ({ job }) => {
             if (job.standardFields.relocate && formData.relocate === undefined) newErrors.relocate = 'Please select an option';
         }
 
-        // 3. Custom Fields (If visible and required)
+        // 3. Custom Fields
         if (job.applyFormFields) {
             job.applyFormFields.forEach(field => {
                 if (visibleFields.includes(field.id)) {
@@ -116,7 +105,7 @@ const DynamicApplyForm = ({ job }) => {
                                 newErrors[field.id] = `Invalid format`;
                             }
                         } catch (e) {
-                            // Ignore invalid regex from backend config
+                            // Ignore invalid regex
                         }
                     }
                 }
@@ -133,10 +122,8 @@ const DynamicApplyForm = ({ job }) => {
 
         if (validate()) {
             setIsSubmitting(true);
-
             const submitData = new FormData();
 
-            // Append basic fields
             submitData.append('name', formData.name);
             submitData.append('email', formData.email);
             submitData.append('phone', formData.phone);
@@ -152,10 +139,8 @@ const DynamicApplyForm = ({ job }) => {
             if (formData.workMode) submitData.append('workMode', formData.workMode);
             if (formData.relocate !== undefined) submitData.append('relocate', formData.relocate);
 
-            // Append Resume
             submitData.append('resume', resumeFile);
 
-            // Append Custom Fields Data
             const customData = {};
             if (job.applyFormFields) {
                 job.applyFormFields.forEach(field => {
@@ -183,7 +168,6 @@ const DynamicApplyForm = ({ job }) => {
                 setIsSubmitting(false);
             }
         } else {
-            // Scroll to top error
             const firstError = document.querySelector('.text-destructive');
             if (firstError) firstError.scrollIntoView({ behavior: 'smooth', block: 'center' });
         }
@@ -191,270 +175,229 @@ const DynamicApplyForm = ({ job }) => {
 
     if (submitSuccess) {
         return (
-            <Card className="border-border/40 bg-card/50">
-                <CardHeader className="bg-gradient-to-r from-blue-50 to-indigo-50 border-b">
-                    <CardTitle className="text-xl">Apply for this Position</CardTitle>
-                </CardHeader>
-                <CardContent className="p-6 text-center py-8">
-                    <div className="bg-green-50 border border-green-200 rounded-full w-16 h-16 flex items-center justify-center mx-auto mb-4">
-                        <CheckCircle className="h-8 w-8 text-green-600" />
-                    </div>
-                    <h3 className="text-xl font-semibold text-gray-900 mb-2">Application Submitted Successfully!</h3>
-                    <p className="text-gray-600 mb-6">
-                        Thank you for your interest in this position. We have received your application and will review it carefully.
-                        Our team will get back to you within 3-5 business days.
-                    </p>
-                    <Button onClick={() => setSubmitSuccess(false)} variant="outline">
-                        Submit Another Application
-                    </Button>
-                </CardContent>
-            </Card>
+            <div className="text-center py-10">
+                <div className="bg-green-100 rounded-full w-20 h-20 flex items-center justify-center mx-auto mb-6">
+                    <CheckCircle className="h-10 w-10 text-green-600" />
+                </div>
+                <h3 className="text-2xl font-bold text-slate-900 dark:text-white mb-4">Application Submitted!</h3>
+                <p className="text-lg text-slate-600 dark:text-slate-400 mb-8 max-w-lg mx-auto">
+                    Thank you for your interest. We have received your application and will review it carefully.
+                </p>
+                <button
+                    onClick={() => setSubmitSuccess(false)}
+                    className="bg-[#137fec] text-white font-bold py-3 px-8 rounded-xl hover:bg-[#137fec]/90 transition-all shadow-lg shadow-[#137fec]/20"
+                >
+                    Submit Another Application
+                </button>
+            </div>
         );
     }
 
+    const inputClasses = "w-full bg-slate-50 dark:bg-slate-900 border-slate-200 dark:border-slate-800 rounded-lg px-4 py-3 focus:ring-2 focus:ring-[#137fec] focus:border-[#137fec] outline-none transition-all";
+    const labelClasses = "text-sm font-semibold text-slate-700 dark:text-slate-300";
+
     return (
-        <Card className="border-border/40 bg-card/50">
-            <CardHeader className="bg-gradient-to-r from-blue-50 to-indigo-50 border-b">
-                <CardTitle className="text-xl">Apply for this Position</CardTitle>
-            </CardHeader>
-            <CardContent className="p-6">
-                <form onSubmit={handleSubmit} className="space-y-6">
-                    {submitError && (
-                        <Alert variant="destructive">
-                            <AlertCircle className="h-4 w-4" />
-                            <AlertTitle>Error</AlertTitle>
-                            <AlertDescription>{submitError}</AlertDescription>
-                        </Alert>
-                    )}
-                    {Object.keys(errors).length > 0 && (
-                        <Alert variant="destructive">
-                            <AlertCircle className="h-4 w-4" />
-                            <AlertTitle>Validation Error</AlertTitle>
-                            <AlertDescription>Please fix the errors below to submit your application.</AlertDescription>
-                        </Alert>
-                    )}
+        <form onSubmit={handleSubmit} className="space-y-6">
+            {submitError && (
+                <Alert variant="destructive">
+                    <AlertCircle className="h-4 w-4" />
+                    <AlertTitle>Error</AlertTitle>
+                    <AlertDescription>{submitError}</AlertDescription>
+                </Alert>
+            )}
 
-                    {/* Always Present Fields */}
-                    <div className="grid md:grid-cols-2 gap-6">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div className="space-y-2">
+                    <label htmlFor="name" className={labelClasses}>Full Name</label>
+                    <input
+                        id="name"
+                        type="text"
+                        placeholder="John Doe"
+                        className={`${inputClasses} ${errors.name ? 'border-red-500' : ''}`}
+                        value={formData.name || ''}
+                        onChange={(e) => handleChange('name', e.target.value)}
+                    />
+                    {errors.name && <p className="text-xs text-red-500">{errors.name}</p>}
+                </div>
+                <div className="space-y-2">
+                    <label htmlFor="email" className={labelClasses}>Email Address</label>
+                    <input
+                        id="email"
+                        type="email"
+                        placeholder="john@example.com"
+                        className={`${inputClasses} ${errors.email ? 'border-red-500' : ''}`}
+                        value={formData.email || ''}
+                        onChange={(e) => handleChange('email', e.target.value)}
+                    />
+                    {errors.email && <p className="text-xs text-red-500">{errors.email}</p>}
+                </div>
+            </div>
+
+            <div className="space-y-2">
+                <label htmlFor="phone" className={labelClasses}>Phone Number</label>
+                <input
+                    id="phone"
+                    type="tel"
+                    placeholder="+1 (555) 000-0000"
+                    className={`${inputClasses} ${errors.phone ? 'border-red-500' : ''}`}
+                    value={formData.phone || ''}
+                    onChange={(e) => handleChange('phone', e.target.value)}
+                />
+                {errors.phone && <p className="text-xs text-red-500">{errors.phone}</p>}
+            </div>
+
+            {/* Standard Fields */}
+            {job.standardFields && (
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    {job.standardFields.linkedIn && (
                         <div className="space-y-2">
-                            <Label htmlFor="name">Full Name <span className="text-destructive">*</span></Label>
-                            <Input id="name" value={formData.name || ''} onChange={(e) => handleChange('name', e.target.value)} className={errors.name ? 'border-destructive' : ''} />
-                            {errors.name && <p className="text-xs text-destructive">{errors.name}</p>}
+                            <label htmlFor="linkedIn" className={labelClasses}>LinkedIn Profile</label>
+                            <input id="linkedIn" type="url" className={`${inputClasses} ${errors.linkedIn ? 'border-red-500' : ''}`} value={formData.linkedIn || ''} onChange={(e) => handleChange('linkedIn', e.target.value)} />
+                            {errors.linkedIn && <p className="text-xs text-red-500">{errors.linkedIn}</p>}
                         </div>
+                    )}
+                    {job.standardFields.portfolio && (
                         <div className="space-y-2">
-                            <Label htmlFor="email">Email Address <span className="text-destructive">*</span></Label>
-                            <Input id="email" type="email" value={formData.email || ''} onChange={(e) => handleChange('email', e.target.value)} className={errors.email ? 'border-destructive' : ''} />
-                            {errors.email && <p className="text-xs text-destructive">{errors.email}</p>}
+                            <label htmlFor="portfolio" className={labelClasses}>Portfolio URL</label>
+                            <input id="portfolio" type="url" className={`${inputClasses} ${errors.portfolio ? 'border-red-500' : ''}`} value={formData.portfolio || ''} onChange={(e) => handleChange('portfolio', e.target.value)} />
+                            {errors.portfolio && <p className="text-xs text-red-500">{errors.portfolio}</p>}
                         </div>
+                    )}
+                    {job.standardFields.github && (
                         <div className="space-y-2">
-                            <Label htmlFor="phone">Phone Number <span className="text-destructive">*</span></Label>
-                            <Input id="phone" type="tel" value={formData.phone || ''} onChange={(e) => handleChange('phone', e.target.value)} className={errors.phone ? 'border-destructive' : ''} />
-                            {errors.phone && <p className="text-xs text-destructive">{errors.phone}</p>}
+                            <label htmlFor="github" className={labelClasses}>GitHub Profile</label>
+                            <input id="github" type="url" className={`${inputClasses} ${errors.github ? 'border-red-500' : ''}`} value={formData.github || ''} onChange={(e) => handleChange('github', e.target.value)} />
+                            {errors.github && <p className="text-xs text-red-500">{errors.github}</p>}
                         </div>
+                    )}
+                    {job.standardFields.currentCompany && (
                         <div className="space-y-2">
-                            <Label htmlFor="resume">Resume (PDF/DOCX) <span className="text-destructive">*</span></Label>
-                            <Input id="resume" type="file" accept=".pdf,.doc,.docx" onChange={handleFileChange} className={errors.resume ? 'border-destructive' : ''} />
-                            {errors.resume && <p className="text-xs text-destructive">{errors.resume}</p>}
-                            {resumeFile && (
-                                <div className="mt-4 p-3 bg-green-50 border border-green-200 rounded-md relative z-10 flex items-center gap-2">
-                                    <FileText className="h-4 w-4 text-green-800" />
-                                    <span className="text-sm font-medium text-green-800">{resumeFile.name}</span>
-                                    <span className="text-xs text-green-600">({(resumeFile.size / 1024 / 1024).toFixed(2)} MB)</span>
+                            <label htmlFor="currentCompany" className={labelClasses}>Current Company</label>
+                            <input id="currentCompany" type="text" className={`${inputClasses} ${errors.currentCompany ? 'border-red-500' : ''}`} value={formData.currentCompany || ''} onChange={(e) => handleChange('currentCompany', e.target.value)} />
+                            {errors.currentCompany && <p className="text-xs text-red-500">{errors.currentCompany}</p>}
+                        </div>
+                    )}
+                    {job.standardFields.currentDesignation && (
+                        <div className="space-y-2">
+                            <label htmlFor="currentDesignation" className={labelClasses}>Current Designation</label>
+                            <input id="currentDesignation" type="text" className={`${inputClasses} ${errors.currentDesignation ? 'border-red-500' : ''}`} value={formData.currentDesignation || ''} onChange={(e) => handleChange('currentDesignation', e.target.value)} />
+                            {errors.currentDesignation && <p className="text-xs text-red-500">{errors.currentDesignation}</p>}
+                        </div>
+                    )}
+                    {job.standardFields.experienceYears && (
+                        <div className="space-y-2">
+                            <label htmlFor="experienceYears" className={labelClasses}>Years of Experience</label>
+                            <input id="experienceYears" type="number" className={`${inputClasses} ${errors.experienceYears ? 'border-red-500' : ''}`} value={formData.experienceYears || ''} onChange={(e) => handleChange('experienceYears', e.target.value)} />
+                            {errors.experienceYears && <p className="text-xs text-red-500">{errors.experienceYears}</p>}
+                        </div>
+                    )}
+                    {job.standardFields.expectedSalary && (
+                        <div className="space-y-2">
+                            <label htmlFor="expectedSalary" className={labelClasses}>Expected Salary</label>
+                            <input id="expectedSalary" type="text" className={`${inputClasses} ${errors.expectedSalary ? 'border-red-500' : ''}`} value={formData.expectedSalary || ''} onChange={(e) => handleChange('expectedSalary', e.target.value)} />
+                            {errors.expectedSalary && <p className="text-xs text-red-500">{errors.expectedSalary}</p>}
+                        </div>
+                    )}
+                    {job.standardFields.currentSalary && (
+                        <div className="space-y-2">
+                            <label htmlFor="currentSalary" className={labelClasses}>Current Salary</label>
+                            <input id="currentSalary" type="text" className={`${inputClasses} ${errors.currentSalary ? 'border-red-500' : ''}`} value={formData.currentSalary || ''} onChange={(e) => handleChange('currentSalary', e.target.value)} />
+                            {errors.currentSalary && <p className="text-xs text-red-500">{errors.currentSalary}</p>}
+                        </div>
+                    )}
+                    {job.standardFields.noticePeriod && (
+                        <div className="space-y-2">
+                            <label htmlFor="noticePeriod" className={labelClasses}>Notice Period</label>
+                            <input id="noticePeriod" type="text" className={`${inputClasses} ${errors.noticePeriod ? 'border-red-500' : ''}`} value={formData.noticePeriod || ''} onChange={(e) => handleChange('noticePeriod', e.target.value)} />
+                            {errors.noticePeriod && <p className="text-xs text-red-500">{errors.noticePeriod}</p>}
+                        </div>
+                    )}
+                </div>
+            )}
+
+            {/* Custom Fields */}
+            {job.applyFormFields && job.applyFormFields.length > 0 && (
+                <div className="space-y-6 pt-6 border-t border-slate-200 dark:border-slate-800">
+                    <h3 className="text-lg font-bold text-slate-900 dark:text-white">Additional Questions</h3>
+                    <div className="space-y-6">
+                        {job.applyFormFields.map((field) => {
+                            if (!visibleFields.includes(field.id)) return null;
+                            return (
+                                <div key={field.id} className="space-y-2">
+                                    <label htmlFor={field.id} className={labelClasses}>
+                                        {field.label} {field.required && <span className="text-red-500">*</span>}
+                                    </label>
+
+                                    {field.type === 'textarea' ? (
+                                        <textarea
+                                            id={field.id}
+                                            placeholder={field.placeholder}
+                                            className={`${inputClasses} min-h-[100px] resize-y`}
+                                            value={formData[field.id] || ''}
+                                            onChange={(e) => handleChange(field.id, e.target.value)}
+                                        />
+                                    ) : (
+                                        <input
+                                            id={field.id}
+                                            type={field.type === 'number' ? 'number' : field.type === 'date' ? 'date' : 'text'}
+                                            placeholder={field.placeholder}
+                                            className={`${inputClasses} ${errors[field.id] ? 'border-red-500' : ''}`}
+                                            value={formData[field.id] || ''}
+                                            onChange={(e) => handleChange(field.id, e.target.value)}
+                                        />
+                                    )}
+                                    {errors[field.id] && <p className="text-xs text-red-500">{errors[field.id]}</p>}
                                 </div>
-                            )}
-                        </div>
+                            );
+                        })}
                     </div>
+                </div>
+            )}
 
-                    {/* Standard Configurable Fields */}
-                    {job.standardFields && (
-                        <div className="grid md:grid-cols-2 gap-6">
-                            {job.standardFields.linkedIn && (
-                                <div className="space-y-2">
-                                    <Label htmlFor="linkedIn">LinkedIn Profile <span className="text-destructive">*</span></Label>
-                                    <Input id="linkedIn" value={formData.linkedIn || ''} onChange={(e) => handleChange('linkedIn', e.target.value)} className={errors.linkedIn ? 'border-destructive' : ''} />
-                                    {errors.linkedIn && <p className="text-xs text-destructive">{errors.linkedIn}</p>}
-                                </div>
-                            )}
-                            {job.standardFields.portfolio && (
-                                <div className="space-y-2">
-                                    <Label htmlFor="portfolio">Portfolio URL <span className="text-destructive">*</span></Label>
-                                    <Input id="portfolio" value={formData.portfolio || ''} onChange={(e) => handleChange('portfolio', e.target.value)} className={errors.portfolio ? 'border-destructive' : ''} />
-                                    {errors.portfolio && <p className="text-xs text-destructive">{errors.portfolio}</p>}
-                                </div>
-                            )}
-                            {job.standardFields.github && (
-                                <div className="space-y-2">
-                                    <Label htmlFor="github">GitHub Profile <span className="text-destructive">*</span></Label>
-                                    <Input id="github" value={formData.github || ''} onChange={(e) => handleChange('github', e.target.value)} className={errors.github ? 'border-destructive' : ''} />
-                                    {errors.github && <p className="text-xs text-destructive">{errors.github}</p>}
-                                </div>
-                            )}
-                            {job.standardFields.currentCompany && (
-                                <div className="space-y-2">
-                                    <Label htmlFor="currentCompany">Current Company <span className="text-destructive">*</span></Label>
-                                    <Input id="currentCompany" value={formData.currentCompany || ''} onChange={(e) => handleChange('currentCompany', e.target.value)} className={errors.currentCompany ? 'border-destructive' : ''} />
-                                    {errors.currentCompany && <p className="text-xs text-destructive">{errors.currentCompany}</p>}
-                                </div>
-                            )}
-                            {job.standardFields.currentDesignation && (
-                                <div className="space-y-2">
-                                    <Label htmlFor="currentDesignation">Current Designation <span className="text-destructive">*</span></Label>
-                                    <Input id="currentDesignation" value={formData.currentDesignation || ''} onChange={(e) => handleChange('currentDesignation', e.target.value)} className={errors.currentDesignation ? 'border-destructive' : ''} />
-                                    {errors.currentDesignation && <p className="text-xs text-destructive">{errors.currentDesignation}</p>}
-                                </div>
-                            )}
-                            {job.standardFields.experienceYears && (
-                                <div className="space-y-2">
-                                    <Label htmlFor="experienceYears">Years of Experience <span className="text-destructive">*</span></Label>
-                                    <Input id="experienceYears" type="number" value={formData.experienceYears || ''} onChange={(e) => handleChange('experienceYears', e.target.value)} className={errors.experienceYears ? 'border-destructive' : ''} />
-                                    {errors.experienceYears && <p className="text-xs text-destructive">{errors.experienceYears}</p>}
-                                </div>
-                            )}
-                            {job.standardFields.expectedSalary && (
-                                <div className="space-y-2">
-                                    <Label htmlFor="expectedSalary">Expected Salary <span className="text-destructive">*</span></Label>
-                                    <Input id="expectedSalary" value={formData.expectedSalary || ''} onChange={(e) => handleChange('expectedSalary', e.target.value)} className={errors.expectedSalary ? 'border-destructive' : ''} />
-                                    {errors.expectedSalary && <p className="text-xs text-destructive">{errors.expectedSalary}</p>}
-                                </div>
-                            )}
-                            {job.standardFields.currentSalary && (
-                                <div className="space-y-2">
-                                    <Label htmlFor="currentSalary">Current Salary <span className="text-destructive">*</span></Label>
-                                    <Input id="currentSalary" value={formData.currentSalary || ''} onChange={(e) => handleChange('currentSalary', e.target.value)} className={errors.currentSalary ? 'border-destructive' : ''} />
-                                    {errors.currentSalary && <p className="text-xs text-destructive">{errors.currentSalary}</p>}
-                                </div>
-                            )}
-                            {job.standardFields.noticePeriod && (
-                                <div className="space-y-2">
-                                    <Label htmlFor="noticePeriod">Notice Period <span className="text-destructive">*</span></Label>
-                                    <Input id="noticePeriod" value={formData.noticePeriod || ''} onChange={(e) => handleChange('noticePeriod', e.target.value)} className={errors.noticePeriod ? 'border-destructive' : ''} />
-                                    {errors.noticePeriod && <p className="text-xs text-destructive">{errors.noticePeriod}</p>}
-                                </div>
-                            )}
-                            {job.standardFields.workMode && (
-                                <div className="space-y-2">
-                                    <Label htmlFor="workMode">Preferred Work Mode <span className="text-destructive">*</span></Label>
-                                    <Select value={formData.workMode} onValueChange={(v) => handleChange('workMode', v)}>
-                                        <SelectTrigger className={errors.workMode ? 'border-destructive' : ''}>
-                                            <SelectValue placeholder="Select Mode" />
-                                        </SelectTrigger>
-                                        <SelectContent>
-                                            <SelectItem value="Remote">Remote</SelectItem>
-                                            <SelectItem value="Onsite">Onsite</SelectItem>
-                                            <SelectItem value="Hybrid">Hybrid</SelectItem>
-                                        </SelectContent>
-                                    </Select>
-                                    {errors.workMode && <p className="text-xs text-destructive">{errors.workMode}</p>}
-                                </div>
-                            )}
-                            {job.standardFields.relocate && (
-                                <div className="space-y-2">
-                                    <Label>Willing to Relocate? <span className="text-destructive">*</span></Label>
-                                    <RadioGroup value={formData.relocate !== undefined ? String(formData.relocate) : undefined} onValueChange={(v) => handleChange('relocate', v === 'true')}>
-                                        <div className="flex items-center space-x-2">
-                                            <RadioGroupItem value="true" id="r1" />
-                                            <Label htmlFor="r1">Yes</Label>
-                                        </div>
-                                        <div className="flex items-center space-x-2">
-                                            <RadioGroupItem value="false" id="r2" />
-                                            <Label htmlFor="r2">No</Label>
-                                        </div>
-                                    </RadioGroup>
-                                    {errors.relocate && <p className="text-xs text-destructive">{errors.relocate}</p>}
-                                </div>
-                            )}
+            <div className="space-y-2">
+                <label className={labelClasses}>Resume / CV</label>
+                <div className={`border-2 border-dashed ${errors.resume ? 'border-red-500' : 'border-slate-200 dark:border-slate-800'} hover:border-[#137fec] dark:hover:border-[#137fec]/50 bg-slate-50 dark:bg-slate-900/50 rounded-xl p-10 transition-colors group cursor-pointer relative`}>
+                    <input
+                        type="file"
+                        id="resume"
+                        accept=".pdf,.doc,.docx"
+                        onChange={handleFileChange}
+                        className="absolute inset-0 w-full h-full opacity-0 cursor-pointer z-20"
+                    />
+                    <div className="flex flex-col items-center justify-center text-center">
+                        <div className="w-12 h-12 bg-[#137fec]/10 rounded-full flex items-center justify-center mb-4 group-hover:scale-110 transition-transform">
+                            <CloudUpload className="text-[#137fec]" />
                         </div>
-                    )}
-
-                    {/* Custom Fields */}
-                    {job.applyFormFields && job.applyFormFields.length > 0 && (
-                        <div className="space-y-6 pt-4 border-t">
-                            <h3 className="text-lg font-medium">Additional Questions</h3>
-                            <div className="grid gap-6">
-                                {job.applyFormFields.map((field) => {
-                                    if (!visibleFields.includes(field.id)) return null;
-
-                                    return (
-                                        <div key={field.id} className="space-y-2">
-                                            <Label htmlFor={field.id}>
-                                                {field.label} {field.required && <span className="text-destructive">*</span>}
-                                            </Label>
-
-                                            {field.type === 'text' && (
-                                                <Input
-                                                    id={field.id}
-                                                    placeholder={field.placeholder}
-                                                    value={formData[field.id] || ''}
-                                                    onChange={(e) => handleChange(field.id, e.target.value)}
-                                                    className={errors[field.id] ? 'border-destructive' : ''}
-                                                />
-                                            )}
-
-                                            {field.type === 'textarea' && (
-                                                <Textarea
-                                                    id={field.id}
-                                                    placeholder={field.placeholder}
-                                                    value={formData[field.id] || ''}
-                                                    onChange={(e) => handleChange(field.id, e.target.value)}
-                                                    className={errors[field.id] ? 'border-destructive' : ''}
-                                                />
-                                            )}
-
-                                            {field.type === 'number' && (
-                                                <Input
-                                                    id={field.id}
-                                                    type="number"
-                                                    placeholder={field.placeholder}
-                                                    value={formData[field.id] || ''}
-                                                    onChange={(e) => handleChange(field.id, e.target.value)}
-                                                    className={errors[field.id] ? 'border-destructive' : ''}
-                                                />
-                                            )}
-
-                                            {field.type === 'email' && (
-                                                <Input
-                                                    id={field.id}
-                                                    type="email"
-                                                    placeholder={field.placeholder}
-                                                    value={formData[field.id] || ''}
-                                                    onChange={(e) => handleChange(field.id, e.target.value)}
-                                                    className={errors[field.id] ? 'border-destructive' : ''}
-                                                />
-                                            )}
-
-                                            {field.type === 'url' && (
-                                                <Input
-                                                    id={field.id}
-                                                    type="url"
-                                                    placeholder={field.placeholder}
-                                                    value={formData[field.id] || ''}
-                                                    onChange={(e) => handleChange(field.id, e.target.value)}
-                                                    className={errors[field.id] ? 'border-destructive' : ''}
-                                                />
-                                            )}
-
-                                            {/* Add other types as needed: Select, Checkbox, Radio */}
-
-                                            {errors[field.id] && <p className="text-xs text-destructive">{errors[field.id]}</p>}
-                                        </div>
-                                    );
-                                })}
-                            </div>
-                        </div>
-                    )}
-
-                    <Button type="submit" className="w-full" size="lg" disabled={isSubmitting}>
-                        {isSubmitting ? (
+                        {resumeFile ? (
                             <>
-                                <Loader2 className="mr-2 h-4 w-4 animate-spin" /> Submitting Application...
+                                <p className="text-slate-900 dark:text-white font-medium">{resumeFile.name}</p>
+                                <p className="text-slate-500 dark:text-slate-400 text-sm mt-1">{(resumeFile.size / 1024 / 1024).toFixed(2)} MB</p>
                             </>
                         ) : (
-                            'Submit Application'
+                            <>
+                                <p className="text-slate-900 dark:text-white font-medium">Click to upload or drag and drop</p>
+                                <p className="text-slate-500 dark:text-slate-400 text-sm mt-1">PDF, DOCX (Max 10MB)</p>
+                            </>
                         )}
-                    </Button>
-                </form>
-            </CardContent>
-        </Card>
+                    </div>
+                </div>
+                {errors.resume && <p className="text-xs text-red-500">{errors.resume}</p>}
+            </div>
+
+            <button
+                type="submit"
+                disabled={isSubmitting}
+                className="w-full bg-[#137fec] text-white font-bold py-4 rounded-xl hover:bg-[#137fec]/90 shadow-lg shadow-[#137fec]/20 transition-all active:scale-[0.98] disabled:opacity-70 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+            >
+                {isSubmitting ? (
+                    <>
+                        <Loader2 className="animate-spin h-5 w-5" /> Submitting...
+                    </>
+                ) : (
+                    'Submit Application'
+                )}
+            </button>
+        </form>
     );
 };
 
