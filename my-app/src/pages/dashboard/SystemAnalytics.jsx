@@ -34,7 +34,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
-import { api } from '@/services/api' // Ensure api service is imported
+import apiService from '@/services/api'
 
 const SystemAnalytics = () => {
   const [metrics, setMetrics] = useState({})
@@ -48,8 +48,8 @@ const SystemAnalytics = () => {
       setLoading(true)
       // Fetch new Cost Analytics
       try {
-        // Assuming api.get handles full URL or base URL config
-        const costRes = await api.get('/system-analytics/cost')
+        // Assuming apiService.get handles full URL or base URL config
+        const costRes = await apiService.get('/system-analytics/cost')
         if (costRes.data && costRes.data.success) {
           setCostMetrics(costRes.data.data)
         }
