@@ -136,3 +136,69 @@ exports.getEvaluationResults = async (req, res) => {
         res.status(500).json({ success: false, message: 'Server Error' });
     }
 };
+
+// @desc    Evaluate All Pending Resumes in Queue
+// @route   POST /api/evaluation/queue/all
+// @access  Private (HR)
+exports.evaluateAllQueued = async (req, res) => {
+    try {
+        const userId = req.user?._id;
+
+        // Find all resumes that are Pending and have a jobId
+        const resumes = await Resume.find({
+            status: 'Pending',
+            jobId: { $exists: true }
+        }).populate('jobId');
+
+        if (resumes.length === 0) {
+            return res.status(200).json({
+                success: true,
+                message: 'No pending applications found in the queue',
+                count: 0
+            });
+        }
+
+        let queuedCount = 0;
+        const opts = { attempts: 3 };
+
+        for (const resume of resumes) {
+            // Check if job exists and has a prompt
+            if (resume.jobId && resume.jobId.promptId) {
+                await evaluationQueue.add({
+                    resumeId: resume._id,
+                    jobId: resume.jobId._id,
+                    promptId: resume.jobId.promptId,
+                    userId
+                }, opts);
+
+                // Update status to 'Under Process' immediately to prevent double-queuing
+                resume.status = 'Under Process';
+                await resume.save();
+
+                queuedCount++;
+            }
+        }
+
+        // Log Audit
+        if (AuditLog) {
+            await AuditLog.create({
+                action: 'QUEUE_EVALUATION_START',
+                performedBy: userId,
+                details: { count: queuedCount }
+            });
+        }
+
+        res.status(200).json({
+            success: true,
+            message: `Successfully queued ${queuedCount} applications for evaluation`,
+            data: {
+                total: resumes.length,
+                queued: queuedCount
+            }
+        });
+
+    } catch (error) {
+        console.error('Queue Evaluation Error:', error);
+        res.status(500).json({ success: false, message: 'Server Error', error: error.message });
+    }
+};

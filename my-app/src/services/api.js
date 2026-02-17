@@ -42,6 +42,9 @@ class ApiService {
     // Add authorization header if token exists
     if (this.token) {
       config.headers.Authorization = `Bearer ${this.token}`;
+      console.log(`Sending token for ${url}`, config.headers);
+    } else {
+      console.warn(`No token found for ${url}`);
     }
 
     try {
@@ -259,12 +262,20 @@ class ApiService {
     return this.post('/evaluation/bulk', { jobId, promptId, candidateIds });
   }
 
+  async bulkEvaluateResumes(jobId, promptId, candidateIds) {
+    return this.startBulkEvaluation(jobId, promptId, candidateIds);
+  }
+
   async getJobProgress(jobId) {
     return this.get(`/evaluation/progress/${jobId}`);
   }
 
   async getEvaluationResults(jobId) {
     return this.get(`/evaluation/results/${jobId}`);
+  }
+
+  async evaluateAllQueued() {
+    return this.post('/evaluation/queue/all');
   }
 
   async getPromptsByIndustry(industryId) {

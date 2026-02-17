@@ -9,6 +9,7 @@ const auth = async (req, res, next) => {
     const authHeader = req.header('Authorization');
 
     if (!authHeader) {
+      console.log(`Auth failed: No token for ${req.method} ${req.url}`);
       return res.status(401).json({
         error: {
           code: 'UNAUTHORIZED',
@@ -37,6 +38,7 @@ const auth = async (req, res, next) => {
     const user = await User.findById(decoded.id).lean();
 
     if (!user) {
+      console.log(`Auth failed: User ${decoded.id} not found in database`);
       return res.status(401).json({
         error: {
           code: 'UNAUTHORIZED',
@@ -60,6 +62,7 @@ const auth = async (req, res, next) => {
     next();
   } catch (error) {
     if (error.name === 'TokenExpiredError') {
+      console.log(`Auth failed: Token expired for ${req.method} ${req.originalUrl}`);
       return res.status(401).json({
         error: {
           code: 'TOKEN_EXPIRED',
@@ -69,6 +72,7 @@ const auth = async (req, res, next) => {
     }
 
     if (error.name === 'JsonWebTokenError') {
+      console.log(`Auth failed: Invalid token for ${req.method} ${req.originalUrl}`);
       return res.status(401).json({
         error: {
           code: 'UNAUTHORIZED',
