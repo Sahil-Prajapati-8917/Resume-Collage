@@ -15,10 +15,14 @@ exports.createContact = async (req, res) => {
             });
         }
 
+        // Basic sanitization to prevent XSS (if displayed in admin panel)
+        const sanitizedName = name.replace(/<[^>]*>?/gm, '');
+        const sanitizedMessage = message.replace(/<[^>]*>?/gm, '');
+
         const contact = await Contact.create({
-            name,
+            name: sanitizedName,
             email,
-            message
+            message: sanitizedMessage
         });
 
         res.status(201).json({

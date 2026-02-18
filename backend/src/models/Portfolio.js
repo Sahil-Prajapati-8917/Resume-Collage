@@ -58,7 +58,8 @@ const PortfolioSchema = new mongoose.Schema({
     }],
     lastUpdated: {
         type: Date,
-        default: Date.now
+        default: Date.now,
+        index: true
     }
 });
 

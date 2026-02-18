@@ -28,10 +28,18 @@ app.use(cors({
 // Rate limiting
 const limiter = rateLimit({
   windowMs: 15 * 60 * 1000, // 15 minutes
-  max: 1000, // limit each IP to 1000 requests per windowMs
+  max: 1000,
   message: 'Too many requests from this IP, please try again later.'
 });
 app.use('/api/', limiter);
+
+// Stricter limiter for public contact form (Prevent spam)
+const contactLimiter = rateLimit({
+  windowMs: 60 * 60 * 1000, // 1 hour
+  max: 5, // 5 messages per hour per IP
+  message: 'Too many messages sent from this IP, please try again after an hour.'
+});
+app.use('/api/public/contact', contactLimiter);
 
 // Body parsing middleware
 app.use(compression());
@@ -68,6 +76,8 @@ app.get('/api/health', async (req, res) => {
 // Public Routes
 app.use('/api/auth', authRoutes);
 app.use('/api/public/jobs', require('./src/routes/publicJob'));
+app.use('/api/public/contact', require('./src/routes/publicContact'));
+app.use('/api/public/portfolio', require('./src/routes/publicPortfolio'));
 
 // Protected Routes Middleware
 app.use(authenticateToken);
@@ -88,12 +98,8 @@ app.use('/api/system-settings', require('./src/routes/systemSettings'));
 app.use('/api/queue', require('./src/routes/queue'));
 app.use('/api/evaluation', require('./src/routes/evaluationRoutes'));
 
-// Contact Routes
-app.use('/api/public/contact', require('./src/routes/publicContact'));
+// Protected Contact & Portfolio Routes
 app.use('/api/contact', require('./src/routes/contact'));
-
-// Portfolio Routes
-app.use('/api/public/portfolio', require('./src/routes/publicPortfolio'));
 app.use('/api/portfolio', require('./src/routes/portfolio'));
 
 
