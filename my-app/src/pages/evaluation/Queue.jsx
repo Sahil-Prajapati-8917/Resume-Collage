@@ -112,13 +112,9 @@ const Queue = () => {
   const getStatusColor = (status) => {
     switch (status) {
       case 'Pending':
-<<<<<<< HEAD
         return 'bg-yellow-100 text-yellow-800 hover:bg-yellow-100/80 border-transparent dark:bg-yellow-900/30 dark:text-yellow-400'
-=======
-        return 'bg-yellow-100 text-yellow-800 border-yellow-200'
       case 'Under Process':
         return 'bg-purple-100 text-purple-800 border-purple-200'
->>>>>>> 277103120a1c6ac7e07e6960b9eb566a640b1ef8
       case 'Reviewed':
         return 'bg-blue-100 text-blue-800 hover:bg-blue-100/80 border-transparent dark:bg-blue-900/30 dark:text-blue-400'
       case 'Shortlisted':
@@ -468,13 +464,8 @@ const Queue = () => {
             </div>
           </div>
         </CardContent>
-<<<<<<< HEAD
-        {selectedForm !== 'all' && (
-          <CardContent className="border-t pt-4">
-=======
         {selectedForm !== 'all' ? (
           <CardContent className="border-t border-border/20 pt-4">
->>>>>>> 277103120a1c6ac7e07e6960b9eb566a640b1ef8
             <div className="flex flex-col md:flex-row gap-4 items-end">
               <div className="flex-1 space-y-2">
                 <label className="text-sm font-medium">Select Evaluation Prompt</label>

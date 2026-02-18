@@ -88,6 +88,14 @@ app.use('/api/system-settings', require('./src/routes/systemSettings'));
 app.use('/api/queue', require('./src/routes/queue'));
 app.use('/api/evaluation', require('./src/routes/evaluationRoutes'));
 
+// Contact Routes
+app.use('/api/public/contact', require('./src/routes/publicContact'));
+app.use('/api/contact', require('./src/routes/contact'));
+
+// Portfolio Routes
+app.use('/api/public/portfolio', require('./src/routes/publicPortfolio'));
+app.use('/api/portfolio', require('./src/routes/portfolio'));
+
 
 
 // Error handling middleware

@@ -39,6 +39,7 @@ import {
   Area,
   AreaChart
 } from 'recharts'
+import ContactMessages from '../../components/dashboard/ContactMessages'
 
 const Dashboard = () => {
   const [loading, setLoading] = useState(true);
@@ -298,6 +299,11 @@ const Dashboard = () => {
             </Button>
           </div>
         </Card>
+      </div>
+
+      {/* Contact Messages Section */}
+      <div className="grid grid-cols-1 gap-4">
+        <ContactMessages />
       </div>
     </div>
   )

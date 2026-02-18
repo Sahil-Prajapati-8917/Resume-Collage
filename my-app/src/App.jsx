@@ -23,6 +23,8 @@ import SystemAnalytics from './pages/dashboard/SystemAnalytics'
 import SystemSettings from './pages/admin/SystemSettings'
 import FairnessDashboard from './pages/admin/FairnessDashboard'
 import JobView from './pages/public/JobView'
+import Contact from './pages/public/Contact'
+import Portfolio from './pages/public/Portfolio'
 import JobApplications from './pages/dashboard/JobApplications'
 import JobHistory from './pages/evaluation/JobHistory'
 import Queue from './pages/evaluation/Queue'
@@ -39,6 +41,8 @@ function App() {
         <Route path="/create-account" element={<ProtectedCreateAccount />} />
 
         {/* Public Routes */}
+        <Route path="/contact" element={<Contact />} />
+        <Route path="/portfolio" element={<Portfolio />} />
         <Route path="/apply/:id" element={<JobView />} />
 
         {/* Protected main app routes with layout */}

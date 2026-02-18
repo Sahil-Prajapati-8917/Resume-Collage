@@ -299,6 +299,28 @@ class ApiService {
     return this.get('/system-analytics/dashboard');
   }
 
+  // Contact APIs
+  async sendContactMessage(data) {
+    return this.post('/public/contact', data);
+  }
+
+  async getAllContacts() {
+    return this.get('/contact');
+  }
+
+  async deleteContact(id) {
+    return this.delete(`/contact/${id}`);
+  }
+
+  // Portfolio APIs
+  async getPortfolioData() {
+    return this.get('/public/portfolio');
+  }
+
+  async updatePortfolioData(data) {
+    return this.put('/portfolio', data);
+  }
+
   // Verification method to check API connectivity
   async verifyApiConnection() {
     try {
