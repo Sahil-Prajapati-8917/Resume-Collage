@@ -279,6 +279,15 @@ class ApiService {
     return this.get('/industries');
   }
 
+  // Analytics APIs
+  async getEmployerDashboardStats() {
+    return this.get('/system-analytics/employer');
+  }
+
+  async getSystemStats() {
+    return this.get('/system-analytics/dashboard');
+  }
+
   // Verification method to check API connectivity
   async verifyApiConnection() {
     try {

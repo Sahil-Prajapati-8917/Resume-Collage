@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react'
+import apiService from '@/services/api'
 import {
   TrendingUp,
   Users,
@@ -9,7 +10,8 @@ import {
   BarChart3,
   Globe,
   Database,
-  Activity
+  Activity,
+  Loader2
 } from 'lucide-react'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
@@ -30,45 +32,39 @@ const MasterAdminDashboard = () => {
   // eslint-disable-next-line no-unused-vars
   const [timeRange, setTimeRange] = useState('30d')
   const [loading, setLoading] = useState(true)
-
-  // Mock data for charts
-  const dailyData = [
-    { date: 'Jan 1', resumes: 24, evaluations: 22 },
-    { date: 'Jan 2', resumes: 18, evaluations: 17 },
-    { date: 'Jan 3', resumes: 32, evaluations: 30 },
-    { date: 'Jan 4', resumes: 28, evaluations: 26 },
-    { date: 'Jan 5', resumes: 45, evaluations: 42 },
-    { date: 'Jan 6', resumes: 38, evaluations: 35 },
-    { date: 'Jan 7', resumes: 52, evaluations: 48 }
-  ]
-
-  const industryData = [
-    { name: 'IT', value: 45, color: '#3b82f6' },
-    { name: 'Healthcare', value: 25, color: '#10b981' },
-    { name: 'Finance', value: 18, color: '#f59e0b' },
-    { name: 'Manufacturing', value: 12, color: '#ef4444' }
-  ]
-
-  const overrideData = [
-    { name: 'IT', overrides: 15, total: 120 },
-    { name: 'Healthcare', overrides: 8, total: 85 },
-    { name: 'Finance', overrides: 12, total: 95 },
-    { name: 'Manufacturing', overrides: 5, total: 60 }
-  ]
+  const [dailyData, setDailyData] = useState([])
+  const [industryData, setIndustryData] = useState([])
+  const [overrideData, setOverrideData] = useState([])
 
   useEffect(() => {
-    // Simulate API call
-    setTimeout(() => {
-      setStats({
-        totalCompanies: 156,
-        totalUsers: 1248,
-        resumesProcessed: 8947,
-        evaluationsCount: 8723,
-        humanOverrides: 224,
-        failedEvaluations: 15
-      })
-      setLoading(false)
-    }, 1000)
+    const fetchData = async () => {
+      try {
+        const response = await apiService.getSystemStats();
+        if (response.ok) {
+          const { data } = await response.json();
+          setStats(data.metrics);
+          setDailyData(data.trends);
+          setIndustryData(data.performance.industryStats || []);
+          // setOverrideData(data.performance.overrideStats || []); // Assuming these exist in response structure or need mapping
+          // Mapping for demo structure if not direct match:
+
+          // For now, let's just map trends to dailyData format if needed
+          const mappedDaily = data.trends.map(t => ({
+            date: t._id,
+            resumes: t.resumes,
+            evaluations: t.evaluations
+          }));
+          setDailyData(mappedDaily);
+
+        }
+      } catch (error) {
+        console.error("Failed to load admin stats", error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchData();
   }, [])
 
   const getOverridePercentage = (overrides, total) => {

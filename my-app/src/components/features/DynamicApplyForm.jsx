@@ -5,8 +5,9 @@ import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
-import { CloudUpload, Loader2, AlertCircle, FileText, CheckCircle } from 'lucide-react';
+import { CloudUpload, Loader2, AlertCircle, CheckCircle } from 'lucide-react';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import apiService from '@/services/api';
 
 const DynamicApplyForm = ({ job }) => {
@@ -168,320 +169,335 @@ const DynamicApplyForm = ({ job }) => {
                 setIsSubmitting(false);
             }
         } else {
-            const firstError = document.querySelector('.text-destructive');
+            const firstError = document.querySelector('[data-error="true"]');
             if (firstError) firstError.scrollIntoView({ behavior: 'smooth', block: 'center' });
         }
     };
 
     if (submitSuccess) {
         return (
-            <div className="text-center py-10">
-                <div className="bg-green-100 rounded-full w-20 h-20 flex items-center justify-center mx-auto mb-6">
-                    <CheckCircle className="h-10 w-10 text-green-600" />
-                </div>
-                <h3 className="text-2xl font-bold text-slate-900 dark:text-white mb-4">Application Submitted!</h3>
-                <p className="text-lg text-slate-600 dark:text-slate-400 mb-8 max-w-lg mx-auto">
-                    Thank you for your interest. We have received your application and will review it carefully.
-                </p>
-                <button
-                    onClick={() => setSubmitSuccess(false)}
-                    className="bg-[#137fec] text-white font-bold py-3 px-8 rounded-xl hover:bg-[#137fec]/90 transition-all shadow-lg shadow-[#137fec]/20"
-                >
-                    Submit Another Application
-                </button>
-            </div>
+            <Card className="w-full max-w-2xl mx-auto mt-8">
+                <CardContent className="pt-6">
+                    <div className="text-center py-10">
+                        <div className="bg-primary/10 rounded-full w-20 h-20 flex items-center justify-center mx-auto mb-6">
+                            <CheckCircle className="h-10 w-10 text-primary" />
+                        </div>
+                        <h3 className="text-2xl font-bold mb-4">Application Submitted!</h3>
+                        <p className="text-muted-foreground mb-8 max-w-lg mx-auto">
+                            Thank you for your interest. We have received your application and will review it carefully.
+                        </p>
+                        <Button
+                            onClick={() => setSubmitSuccess(false)}
+                            size="lg"
+                            className="font-semibold"
+                        >
+                            Submit Another Application
+                        </Button>
+                    </div>
+                </CardContent>
+            </Card>
         );
     }
 
-    const inputClasses = "w-full bg-slate-50 dark:bg-slate-900 border-slate-200 dark:border-slate-800 rounded-lg px-4 py-3 focus:ring-2 focus:ring-[#137fec] focus:border-[#137fec] outline-none transition-all";
-    const labelClasses = "text-sm font-semibold text-slate-700 dark:text-slate-300";
-
     return (
-        <form onSubmit={handleSubmit} className="space-y-6">
-            {submitError && (
-                <Alert variant="destructive">
-                    <AlertCircle className="h-4 w-4" />
-                    <AlertTitle>Error</AlertTitle>
-                    <AlertDescription>{submitError}</AlertDescription>
-                </Alert>
-            )}
+        <Card className="w-full mx-auto border-border/50 bg-card">
+            <CardHeader className="space-y-1">
+                <CardTitle className="text-2xl">Apply Now</CardTitle>
+                <CardDescription>
+                    Please fill out the form below to apply for this position.
+                </CardDescription>
+            </CardHeader>
+            <CardContent>
+                <form onSubmit={handleSubmit} className="space-y-6">
+                    {submitError && (
+                        <Alert variant="destructive">
+                            <AlertCircle className="h-4 w-4" />
+                            <AlertTitle>Error</AlertTitle>
+                            <AlertDescription>{submitError}</AlertDescription>
+                        </Alert>
+                    )}
 
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <div className="space-y-2">
-                    <label htmlFor="name" className={labelClasses}>Full Name</label>
-                    <input
-                        id="name"
-                        type="text"
-                        placeholder="John Doe"
-                        className={`${inputClasses} ${errors.name ? 'border-red-500' : ''}`}
-                        value={formData.name || ''}
-                        onChange={(e) => handleChange('name', e.target.value)}
-                    />
-                    {errors.name && <p className="text-xs text-red-500">{errors.name}</p>}
-                </div>
-                <div className="space-y-2">
-                    <label htmlFor="email" className={labelClasses}>Email Address</label>
-                    <input
-                        id="email"
-                        type="email"
-                        placeholder="john@example.com"
-                        className={`${inputClasses} ${errors.email ? 'border-red-500' : ''}`}
-                        value={formData.email || ''}
-                        onChange={(e) => handleChange('email', e.target.value)}
-                    />
-                    {errors.email && <p className="text-xs text-red-500">{errors.email}</p>}
-                </div>
-            </div>
-
-            <div className="space-y-2">
-                <label htmlFor="phone" className={labelClasses}>Phone Number</label>
-                <input
-                    id="phone"
-                    type="tel"
-                    placeholder="+1 (555) 000-0000"
-                    className={`${inputClasses} ${errors.phone ? 'border-red-500' : ''}`}
-                    value={formData.phone || ''}
-                    onChange={(e) => handleChange('phone', e.target.value)}
-                />
-                {errors.phone && <p className="text-xs text-red-500">{errors.phone}</p>}
-            </div>
-
-            {/* Standard Fields */}
-            {job.standardFields && (
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                    {job.standardFields.linkedIn && (
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                         <div className="space-y-2">
-                            <label htmlFor="linkedIn" className={labelClasses}>LinkedIn Profile</label>
-                            <input id="linkedIn" type="url" className={`${inputClasses} ${errors.linkedIn ? 'border-red-500' : ''}`} value={formData.linkedIn || ''} onChange={(e) => handleChange('linkedIn', e.target.value)} />
-                            {errors.linkedIn && <p className="text-xs text-red-500">{errors.linkedIn}</p>}
+                            <Label htmlFor="name">Full Name</Label>
+                            <Input
+                                id="name"
+                                placeholder="John Doe"
+                                value={formData.name || ''}
+                                onChange={(e) => handleChange('name', e.target.value)}
+                                className={errors.name ? 'border-destructive' : ''}
+                                data-error={errors.name ? "true" : "false"}
+                            />
+                            {errors.name && <p className="text-xs text-destructive">{errors.name}</p>}
                         </div>
-                    )}
-                    {job.standardFields.portfolio && (
                         <div className="space-y-2">
-                            <label htmlFor="portfolio" className={labelClasses}>Portfolio URL</label>
-                            <input id="portfolio" type="url" className={`${inputClasses} ${errors.portfolio ? 'border-red-500' : ''}`} value={formData.portfolio || ''} onChange={(e) => handleChange('portfolio', e.target.value)} />
-                            {errors.portfolio && <p className="text-xs text-red-500">{errors.portfolio}</p>}
+                            <Label htmlFor="email">Email Address</Label>
+                            <Input
+                                id="email"
+                                type="email"
+                                placeholder="john@example.com"
+                                value={formData.email || ''}
+                                onChange={(e) => handleChange('email', e.target.value)}
+                                className={errors.email ? 'border-destructive' : ''}
+                                data-error={errors.email ? "true" : "false"}
+                            />
+                            {errors.email && <p className="text-xs text-destructive">{errors.email}</p>}
                         </div>
-                    )}
-                    {job.standardFields.github && (
-                        <div className="space-y-2">
-                            <label htmlFor="github" className={labelClasses}>GitHub Profile</label>
-                            <input id="github" type="url" className={`${inputClasses} ${errors.github ? 'border-red-500' : ''}`} value={formData.github || ''} onChange={(e) => handleChange('github', e.target.value)} />
-                            {errors.github && <p className="text-xs text-red-500">{errors.github}</p>}
-                        </div>
-                    )}
-                    {job.standardFields.currentCompany && (
-                        <div className="space-y-2">
-                            <label htmlFor="currentCompany" className={labelClasses}>Current Company</label>
-                            <input id="currentCompany" type="text" className={`${inputClasses} ${errors.currentCompany ? 'border-red-500' : ''}`} value={formData.currentCompany || ''} onChange={(e) => handleChange('currentCompany', e.target.value)} />
-                            {errors.currentCompany && <p className="text-xs text-red-500">{errors.currentCompany}</p>}
-                        </div>
-                    )}
-                    {job.standardFields.currentDesignation && (
-                        <div className="space-y-2">
-                            <label htmlFor="currentDesignation" className={labelClasses}>Current Designation</label>
-                            <input id="currentDesignation" type="text" className={`${inputClasses} ${errors.currentDesignation ? 'border-red-500' : ''}`} value={formData.currentDesignation || ''} onChange={(e) => handleChange('currentDesignation', e.target.value)} />
-                            {errors.currentDesignation && <p className="text-xs text-red-500">{errors.currentDesignation}</p>}
-                        </div>
-                    )}
-                    {job.standardFields.experienceYears && (
-                        <div className="space-y-2">
-                            <label htmlFor="experienceYears" className={labelClasses}>Years of Experience</label>
-                            <input id="experienceYears" type="number" className={`${inputClasses} ${errors.experienceYears ? 'border-red-500' : ''}`} value={formData.experienceYears || ''} onChange={(e) => handleChange('experienceYears', e.target.value)} />
-                            {errors.experienceYears && <p className="text-xs text-red-500">{errors.experienceYears}</p>}
-                        </div>
-                    )}
-                    {job.standardFields.expectedSalary && (
-                        <div className="space-y-2">
-                            <label htmlFor="expectedSalary" className={labelClasses}>Expected Salary</label>
-                            <input id="expectedSalary" type="text" className={`${inputClasses} ${errors.expectedSalary ? 'border-red-500' : ''}`} value={formData.expectedSalary || ''} onChange={(e) => handleChange('expectedSalary', e.target.value)} />
-                            {errors.expectedSalary && <p className="text-xs text-red-500">{errors.expectedSalary}</p>}
-                        </div>
-                    )}
-                    {job.standardFields.currentSalary && (
-                        <div className="space-y-2">
-                            <label htmlFor="currentSalary" className={labelClasses}>Current Salary</label>
-                            <input id="currentSalary" type="text" className={`${inputClasses} ${errors.currentSalary ? 'border-red-500' : ''}`} value={formData.currentSalary || ''} onChange={(e) => handleChange('currentSalary', e.target.value)} />
-                            {errors.currentSalary && <p className="text-xs text-red-500">{errors.currentSalary}</p>}
-                        </div>
-                    )}
-                    {job.standardFields.noticePeriod && (
-                        <div className="space-y-2">
-                            <label htmlFor="noticePeriod" className={labelClasses}>Notice Period</label>
-                            <input id="noticePeriod" type="text" className={`${inputClasses} ${errors.noticePeriod ? 'border-red-500' : ''}`} value={formData.noticePeriod || ''} onChange={(e) => handleChange('noticePeriod', e.target.value)} />
-                            {errors.noticePeriod && <p className="text-xs text-red-500">{errors.noticePeriod}</p>}
-                        </div>
-                    )}
-                    {job.standardFields.workMode && (
-                        <div className="space-y-2">
-                            <label htmlFor="workMode" className={labelClasses}>Preferred Work Mode</label>
-                            <Select value={formData.workMode} onValueChange={(v) => handleChange('workMode', v)}>
-                                <SelectTrigger className={inputClasses}>
-                                    <SelectValue placeholder="Select Work Mode" />
-                                </SelectTrigger>
-                                <SelectContent>
-                                    <SelectItem value="Remote">Remote</SelectItem>
-                                    <SelectItem value="On-site">On-site</SelectItem>
-                                    <SelectItem value="Hybrid">Hybrid</SelectItem>
-                                </SelectContent>
-                            </Select>
-                            {errors.workMode && <p className="text-xs text-red-500">{errors.workMode}</p>}
-                        </div>
-                    )}
-                    {job.standardFields.relocate && (
-                        <div className="space-y-2">
-                            <label className={labelClasses}>Willing to Relocate?</label>
-                            <RadioGroup value={formData.relocate?.toString()} onValueChange={(v) => handleChange('relocate', v === 'true')} className="flex gap-6 pt-2">
-                                <div className="flex items-center space-x-2">
-                                    <RadioGroupItem value="true" id="relocate-yes" />
-                                    <Label htmlFor="relocate-yes" className="font-normal">Yes</Label>
-                                </div>
-                                <div className="flex items-center space-x-2">
-                                    <RadioGroupItem value="false" id="relocate-no" />
-                                    <Label htmlFor="relocate-no" className="font-normal">No</Label>
-                                </div>
-                            </RadioGroup>
-                            {errors.relocate && <p className="text-xs text-red-500">{errors.relocate}</p>}
-                        </div>
-                    )}
-                </div>
-            )}
-
-            {/* Custom Fields */}
-            {job.applyFormFields && job.applyFormFields.length > 0 && (
-                <div className="space-y-6 pt-6 border-t border-slate-200 dark:border-slate-800">
-                    <h3 className="text-lg font-bold text-slate-900 dark:text-white">Additional Questions</h3>
-                    <div className="space-y-6">
-                        {job.applyFormFields.map((field) => {
-                            if (!visibleFields.includes(field.id)) return null;
-                            return (
-                                <div key={field.id} className="space-y-2">
-                                    <label htmlFor={field.id} className={labelClasses}>
-                                        {field.label} {field.required && <span className="text-red-500">*</span>}
-                                    </label>
-
-                                    {field.type === 'textarea' ? (
-                                        <textarea
-                                            id={field.id}
-                                            placeholder={field.placeholder}
-                                            className={`${inputClasses} min-h-[100px] resize-y`}
-                                            value={formData[field.id] || ''}
-                                            onChange={(e) => handleChange(field.id, e.target.value)}
-                                        />
-                                    ) : field.type === 'select' ? (
-                                        <Select value={formData[field.id]} onValueChange={(v) => handleChange(field.id, v)}>
-                                            <SelectTrigger className={inputClasses}>
-                                                <SelectValue placeholder={field.placeholder || "Select option"} />
-                                            </SelectTrigger>
-                                            <SelectContent>
-                                                {field.options?.map(opt => (
-                                                    <SelectItem key={opt} value={opt}>{opt}</SelectItem>
-                                                ))}
-                                            </SelectContent>
-                                        </Select>
-                                    ) : field.type === 'radio' ? (
-                                        <RadioGroup value={formData[field.id]} onValueChange={(v) => handleChange(field.id, v)} className="flex flex-wrap gap-4 pt-2">
-                                            {field.options?.map(opt => (
-                                                <div key={opt} className="flex items-center space-x-2">
-                                                    <RadioGroupItem value={opt} id={`${field.id}-${opt}`} />
-                                                    <Label htmlFor={`${field.id}-${opt}`} className="font-normal">{opt}</Label>
-                                                </div>
-                                            ))}
-                                        </RadioGroup>
-                                    ) : field.type === 'checkbox' ? (
-                                        <div className="flex flex-wrap gap-4 pt-2">
-                                            {field.options?.map(opt => (
-                                                <div key={opt} className="flex items-center space-x-2">
-                                                    <input
-                                                        type="checkbox"
-                                                        id={`${field.id}-${opt}`}
-                                                        checked={(formData[field.id] || []).includes(opt)}
-                                                        onChange={(e) => {
-                                                            const current = formData[field.id] || [];
-                                                            const next = e.target.checked
-                                                                ? [...current, opt]
-                                                                : current.filter(o => o !== opt);
-                                                            handleChange(field.id, next);
-                                                        }}
-                                                        className="size-4 rounded border-slate-300 text-[#137fec] focus:ring-[#137fec]"
-                                                    />
-                                                    <Label htmlFor={`${field.id}-${opt}`} className="font-normal">{opt}</Label>
-                                                </div>
-                                            ))}
-                                        </div>
-                                    ) : field.type === 'yesno' ? (
-                                        <RadioGroup value={formData[field.id]} onValueChange={(v) => handleChange(field.id, v === 'true')} className="flex gap-6 pt-2">
-                                            <div className="flex items-center space-x-2">
-                                                <RadioGroupItem value="true" id={`${field.id}-yes`} />
-                                                <Label htmlFor={`${field.id}-yes`} className="font-normal">Yes</Label>
-                                            </div>
-                                            <div className="flex items-center space-x-2">
-                                                <RadioGroupItem value="false" id={`${field.id}-no`} />
-                                                <Label htmlFor={`${field.id}-no`} className="font-normal">No</Label>
-                                            </div>
-                                        </RadioGroup>
-                                    ) : (
-                                        <input
-                                            id={field.id}
-                                            type={field.type === 'number' ? 'number' : field.type === 'date' ? 'date' : 'text'}
-                                            placeholder={field.placeholder}
-                                            className={`${inputClasses} ${errors[field.id] ? 'border-red-500' : ''}`}
-                                            value={formData[field.id] || ''}
-                                            onChange={(e) => handleChange(field.id, e.target.value)}
-                                        />
-                                    )}
-                                    {errors[field.id] && <p className="text-xs text-red-500">{errors[field.id]}</p>}
-                                </div>
-                            );
-                        })}
                     </div>
-                </div>
-            )}
 
-            <div className="space-y-2">
-                <label className={labelClasses}>Resume / CV</label>
-                <div className={`border-2 border-dashed ${errors.resume ? 'border-red-500' : 'border-slate-200 dark:border-slate-800'} hover:border-[#137fec] dark:hover:border-[#137fec]/50 bg-slate-50 dark:bg-slate-900/50 rounded-xl p-10 transition-colors group cursor-pointer relative`}>
-                    <input
-                        type="file"
-                        id="resume"
-                        accept=".pdf,.doc,.docx"
-                        onChange={handleFileChange}
-                        className="absolute inset-0 w-full h-full opacity-0 cursor-pointer z-20"
-                    />
-                    <div className="flex flex-col items-center justify-center text-center">
-                        <div className="w-12 h-12 bg-[#137fec]/10 rounded-full flex items-center justify-center mb-4 group-hover:scale-110 transition-transform">
-                            <CloudUpload className="text-[#137fec]" />
+                    <div className="space-y-2">
+                        <Label htmlFor="phone">Phone Number</Label>
+                        <Input
+                            id="phone"
+                            type="tel"
+                            placeholder="+1 (555) 000-0000"
+                            value={formData.phone || ''}
+                            onChange={(e) => handleChange('phone', e.target.value)}
+                            className={errors.phone ? 'border-destructive' : ''}
+                            data-error={errors.phone ? "true" : "false"}
+                        />
+                        {errors.phone && <p className="text-xs text-destructive">{errors.phone}</p>}
+                    </div>
+
+                    {/* Standard Fields */}
+                    {job.standardFields && (
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                            {job.standardFields.linkedIn && (
+                                <div className="space-y-2">
+                                    <Label htmlFor="linkedIn">LinkedIn Profile</Label>
+                                    <Input id="linkedIn" type="url" value={formData.linkedIn || ''} onChange={(e) => handleChange('linkedIn', e.target.value)} className={errors.linkedIn ? 'border-destructive' : ''} />
+                                    {errors.linkedIn && <p className="text-xs text-destructive">{errors.linkedIn}</p>}
+                                </div>
+                            )}
+                            {job.standardFields.portfolio && (
+                                <div className="space-y-2">
+                                    <Label htmlFor="portfolio">Portfolio URL</Label>
+                                    <Input id="portfolio" type="url" value={formData.portfolio || ''} onChange={(e) => handleChange('portfolio', e.target.value)} className={errors.portfolio ? 'border-destructive' : ''} />
+                                    {errors.portfolio && <p className="text-xs text-destructive">{errors.portfolio}</p>}
+                                </div>
+                            )}
+                            {job.standardFields.github && (
+                                <div className="space-y-2">
+                                    <Label htmlFor="github">GitHub Profile</Label>
+                                    <Input id="github" type="url" value={formData.github || ''} onChange={(e) => handleChange('github', e.target.value)} className={errors.github ? 'border-destructive' : ''} />
+                                    {errors.github && <p className="text-xs text-destructive">{errors.github}</p>}
+                                </div>
+                            )}
+                            {job.standardFields.currentCompany && (
+                                <div className="space-y-2">
+                                    <Label htmlFor="currentCompany">Current Company</Label>
+                                    <Input id="currentCompany" value={formData.currentCompany || ''} onChange={(e) => handleChange('currentCompany', e.target.value)} className={errors.currentCompany ? 'border-destructive' : ''} />
+                                    {errors.currentCompany && <p className="text-xs text-destructive">{errors.currentCompany}</p>}
+                                </div>
+                            )}
+                            {job.standardFields.currentDesignation && (
+                                <div className="space-y-2">
+                                    <Label htmlFor="currentDesignation">Current Designation</Label>
+                                    <Input id="currentDesignation" value={formData.currentDesignation || ''} onChange={(e) => handleChange('currentDesignation', e.target.value)} className={errors.currentDesignation ? 'border-destructive' : ''} />
+                                    {errors.currentDesignation && <p className="text-xs text-destructive">{errors.currentDesignation}</p>}
+                                </div>
+                            )}
+                            {job.standardFields.experienceYears && (
+                                <div className="space-y-2">
+                                    <Label htmlFor="experienceYears">Years of Experience</Label>
+                                    <Input id="experienceYears" type="number" value={formData.experienceYears || ''} onChange={(e) => handleChange('experienceYears', e.target.value)} className={errors.experienceYears ? 'border-destructive' : ''} />
+                                    {errors.experienceYears && <p className="text-xs text-destructive">{errors.experienceYears}</p>}
+                                </div>
+                            )}
+                            {job.standardFields.expectedSalary && (
+                                <div className="space-y-2">
+                                    <Label htmlFor="expectedSalary">Expected Salary</Label>
+                                    <Input id="expectedSalary" value={formData.expectedSalary || ''} onChange={(e) => handleChange('expectedSalary', e.target.value)} className={errors.expectedSalary ? 'border-destructive' : ''} />
+                                    {errors.expectedSalary && <p className="text-xs text-destructive">{errors.expectedSalary}</p>}
+                                </div>
+                            )}
+                            {job.standardFields.currentSalary && (
+                                <div className="space-y-2">
+                                    <Label htmlFor="currentSalary">Current Salary</Label>
+                                    <Input id="currentSalary" value={formData.currentSalary || ''} onChange={(e) => handleChange('currentSalary', e.target.value)} className={errors.currentSalary ? 'border-destructive' : ''} />
+                                    {errors.currentSalary && <p className="text-xs text-destructive">{errors.currentSalary}</p>}
+                                </div>
+                            )}
+                            {job.standardFields.noticePeriod && (
+                                <div className="space-y-2">
+                                    <Label htmlFor="noticePeriod">Notice Period</Label>
+                                    <Input id="noticePeriod" value={formData.noticePeriod || ''} onChange={(e) => handleChange('noticePeriod', e.target.value)} className={errors.noticePeriod ? 'border-destructive' : ''} />
+                                    {errors.noticePeriod && <p className="text-xs text-destructive">{errors.noticePeriod}</p>}
+                                </div>
+                            )}
+                            {job.standardFields.workMode && (
+                                <div className="space-y-2">
+                                    <Label htmlFor="workMode">Preferred Work Mode</Label>
+                                    <Select value={formData.workMode} onValueChange={(v) => handleChange('workMode', v)}>
+                                        <SelectTrigger className={errors.workMode ? 'border-destructive' : ''}>
+                                            <SelectValue placeholder="Select Work Mode" />
+                                        </SelectTrigger>
+                                        <SelectContent>
+                                            <SelectItem value="Remote">Remote</SelectItem>
+                                            <SelectItem value="On-site">On-site</SelectItem>
+                                            <SelectItem value="Hybrid">Hybrid</SelectItem>
+                                        </SelectContent>
+                                    </Select>
+                                    {errors.workMode && <p className="text-xs text-destructive">{errors.workMode}</p>}
+                                </div>
+                            )}
+                            {job.standardFields.relocate && (
+                                <div className="space-y-2">
+                                    <Label>Willing to Relocate?</Label>
+                                    <RadioGroup value={formData.relocate?.toString()} onValueChange={(v) => handleChange('relocate', v === 'true')} className="flex gap-6 pt-2">
+                                        <div className="flex items-center space-x-2">
+                                            <RadioGroupItem value="true" id="relocate-yes" />
+                                            <Label htmlFor="relocate-yes" className="font-normal">Yes</Label>
+                                        </div>
+                                        <div className="flex items-center space-x-2">
+                                            <RadioGroupItem value="false" id="relocate-no" />
+                                            <Label htmlFor="relocate-no" className="font-normal">No</Label>
+                                        </div>
+                                    </RadioGroup>
+                                    {errors.relocate && <p className="text-xs text-destructive">{errors.relocate}</p>}
+                                </div>
+                            )}
                         </div>
-                        {resumeFile ? (
+                    )}
+
+                    {/* Custom Fields */}
+                    {job.applyFormFields && job.applyFormFields.length > 0 && (
+                        <div className="space-y-6 pt-6 border-t border-border/50">
+                            <h3 className="text-lg font-semibold">Additional Questions</h3>
+                            <div className="space-y-6">
+                                {job.applyFormFields.map((field) => {
+                                    if (!visibleFields.includes(field.id)) return null;
+                                    return (
+                                        <div key={field.id} className="space-y-2">
+                                            <Label htmlFor={field.id}>
+                                                {field.label} {field.required && <span className="text-destructive">*</span>}
+                                            </Label>
+
+                                            {field.type === 'textarea' ? (
+                                                <Textarea
+                                                    id={field.id}
+                                                    placeholder={field.placeholder}
+                                                    className={`min-h-[100px] resize-y ${errors[field.id] ? 'border-destructive' : ''}`}
+                                                    value={formData[field.id] || ''}
+                                                    onChange={(e) => handleChange(field.id, e.target.value)}
+                                                />
+                                            ) : field.type === 'select' ? (
+                                                <Select value={formData[field.id]} onValueChange={(v) => handleChange(field.id, v)}>
+                                                    <SelectTrigger className={errors[field.id] ? 'border-destructive' : ''}>
+                                                        <SelectValue placeholder={field.placeholder || "Select option"} />
+                                                    </SelectTrigger>
+                                                    <SelectContent>
+                                                        {field.options?.map(opt => (
+                                                            <SelectItem key={opt} value={opt}>{opt}</SelectItem>
+                                                        ))}
+                                                    </SelectContent>
+                                                </Select>
+                                            ) : field.type === 'radio' ? (
+                                                <RadioGroup value={formData[field.id]} onValueChange={(v) => handleChange(field.id, v)} className="flex flex-wrap gap-4 pt-2">
+                                                    {field.options?.map(opt => (
+                                                        <div key={opt} className="flex items-center space-x-2">
+                                                            <RadioGroupItem value={opt} id={`${field.id}-${opt}`} />
+                                                            <Label htmlFor={`${field.id}-${opt}`} className="font-normal">{opt}</Label>
+                                                        </div>
+                                                    ))}
+                                                </RadioGroup>
+                                            ) : field.type === 'checkbox' ? (
+                                                <div className="flex flex-wrap gap-4 pt-2">
+                                                    {field.options?.map(opt => (
+                                                        <div key={opt} className="flex items-center space-x-2">
+                                                            <input
+                                                                type="checkbox"
+                                                                id={`${field.id}-${opt}`}
+                                                                checked={(formData[field.id] || []).includes(opt)}
+                                                                onChange={(e) => {
+                                                                    const current = formData[field.id] || [];
+                                                                    const next = e.target.checked
+                                                                        ? [...current, opt]
+                                                                        : current.filter(o => o !== opt);
+                                                                    handleChange(field.id, next);
+                                                                }}
+                                                                className="size-4 rounded border-primary text-primary focus:ring-primary"
+                                                            />
+                                                            <Label htmlFor={`${field.id}-${opt}`} className="font-normal">{opt}</Label>
+                                                        </div>
+                                                    ))}
+                                                </div>
+                                            ) : field.type === 'yesno' ? (
+                                                <RadioGroup value={formData[field.id]} onValueChange={(v) => handleChange(field.id, v === 'true')} className="flex gap-6 pt-2">
+                                                    <div className="flex items-center space-x-2">
+                                                        <RadioGroupItem value="true" id={`${field.id}-yes`} />
+                                                        <Label htmlFor={`${field.id}-yes`} className="font-normal">Yes</Label>
+                                                    </div>
+                                                    <div className="flex items-center space-x-2">
+                                                        <RadioGroupItem value="false" id={`${field.id}-no`} />
+                                                        <Label htmlFor={`${field.id}-no`} className="font-normal">No</Label>
+                                                    </div>
+                                                </RadioGroup>
+                                            ) : (
+                                                <Input
+                                                    id={field.id}
+                                                    type={field.type === 'number' ? 'number' : field.type === 'date' ? 'date' : 'text'}
+                                                    placeholder={field.placeholder}
+                                                    className={errors[field.id] ? 'border-destructive' : ''}
+                                                    value={formData[field.id] || ''}
+                                                    onChange={(e) => handleChange(field.id, e.target.value)}
+                                                />
+                                            )}
+                                            {errors[field.id] && <p className="text-xs text-destructive">{errors[field.id]}</p>}
+                                        </div>
+                                    );
+                                })}
+                            </div>
+                        </div>
+                    )}
+
+                    <div className="space-y-2">
+                        <Label>Resume / CV</Label>
+                        <div className={`border-2 border-dashed ${errors.resume ? 'border-destructive' : 'border-border'} hover:border-primary/50 bg-muted/30 rounded-xl p-10 transition-colors group cursor-pointer relative`}>
+                            <input
+                                type="file"
+                                id="resume"
+                                accept=".pdf,.doc,.docx"
+                                onChange={handleFileChange}
+                                className="absolute inset-0 w-full h-full opacity-0 cursor-pointer z-20"
+                            />
+                            <div className="flex flex-col items-center justify-center text-center">
+                                <div className="w-12 h-12 bg-primary/10 rounded-full flex items-center justify-center mb-4 group-hover:scale-110 transition-transform">
+                                    <CloudUpload className="text-primary" />
+                                </div>
+                                {resumeFile ? (
+                                    <>
+                                        <p className="font-medium">{resumeFile.name}</p>
+                                        <p className="text-muted-foreground text-sm mt-1">{(resumeFile.size / 1024 / 1024).toFixed(2)} MB</p>
+                                    </>
+                                ) : (
+                                    <>
+                                        <p className="font-medium">Click to upload or drag and drop</p>
+                                        <p className="text-muted-foreground text-sm mt-1">PDF, DOCX (Max 10MB)</p>
+                                    </>
+                                )}
+                            </div>
+                        </div>
+                        {errors.resume && <p className="text-xs text-destructive">{errors.resume}</p>}
+                    </div>
+
+                    <Button
+                        type="submit"
+                        disabled={isSubmitting}
+                        className="w-full"
+                        size="lg"
+                    >
+                        {isSubmitting ? (
                             <>
-                                <p className="text-slate-900 dark:text-white font-medium">{resumeFile.name}</p>
-                                <p className="text-slate-500 dark:text-slate-400 text-sm mt-1">{(resumeFile.size / 1024 / 1024).toFixed(2)} MB</p>
+                                <Loader2 className="animate-spin h-5 w-5 mr-2" /> Submitting...
                             </>
                         ) : (
-                            <>
-                                <p className="text-slate-900 dark:text-white font-medium">Click to upload or drag and drop</p>
-                                <p className="text-slate-500 dark:text-slate-400 text-sm mt-1">PDF, DOCX (Max 10MB)</p>
-                            </>
+                            'Submit Application'
                         )}
-                    </div>
-                </div>
-                {errors.resume && <p className="text-xs text-red-500">{errors.resume}</p>}
-            </div>
-
-            <button
-                type="submit"
-                disabled={isSubmitting}
-                className="w-full bg-[#137fec] text-white font-bold py-4 rounded-xl hover:bg-[#137fec]/90 shadow-lg shadow-[#137fec]/20 transition-all active:scale-[0.98] disabled:opacity-70 disabled:cursor-not-allowed flex items-center justify-center gap-2"
-            >
-                {isSubmitting ? (
-                    <>
-                        <Loader2 className="animate-spin h-5 w-5" /> Submitting...
-                    </>
-                ) : (
-                    'Submit Application'
-                )}
-            </button>
-        </form>
+                    </Button>
+                </form>
+            </CardContent>
+        </Card>
     );
 };
 

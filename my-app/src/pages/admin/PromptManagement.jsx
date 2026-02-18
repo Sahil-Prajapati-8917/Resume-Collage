@@ -51,10 +51,21 @@ const PromptManagement = () => {
   const [newIndustryName, setNewIndustryName] = useState('')
 
   const [industries, setIndustries] = useState(() => {
-    const cached = localStorage.getItem('cached_industries')
-    return cached ? JSON.parse(cached) : []
+    try {
+      const cached = localStorage.getItem('cached_industries')
+      if (cached) {
+        const parsed = JSON.parse(cached)
+        // Validate cache structure
+        if (Array.isArray(parsed) && parsed.length > 0 && parsed[0]._id) {
+          return parsed
+        }
+      }
+    } catch (e) {
+      console.warn('Failed to parse cached industries', e)
+    }
+    localStorage.removeItem('cached_industries')
+    return []
   })
-
 
   const [prompts, setPrompts] = useState([])
   const [loadingPrompts, setLoadingPrompts] = useState(false)

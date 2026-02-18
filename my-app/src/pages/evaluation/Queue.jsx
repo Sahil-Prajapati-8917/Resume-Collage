@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react'
+import React, { useState, useEffect, useRef } from 'react'
 import { useNavigate } from 'react-router-dom'
 import apiService from '@/services/api'
 import {
@@ -9,9 +9,7 @@ import {
   Mail,
   Phone,
   Briefcase,
-  Filter,
   Search,
-  ChevronDown,
   Loader2,
   AlertCircle,
   CheckCircle,
@@ -22,7 +20,6 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Input } from '@/components/ui/input'
 import { Badge } from '@/components/ui/badge'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
-import { Separator } from '@/components/ui/separator'
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert'
 import { Progress } from '@/components/ui/progress'
 
@@ -115,15 +112,15 @@ const Queue = () => {
   const getStatusColor = (status) => {
     switch (status) {
       case 'Pending':
-        return 'bg-yellow-100 text-yellow-800 border-yellow-200'
+        return 'bg-yellow-100 text-yellow-800 hover:bg-yellow-100/80 border-transparent dark:bg-yellow-900/30 dark:text-yellow-400'
       case 'Reviewed':
-        return 'bg-blue-100 text-blue-800 border-blue-200'
+        return 'bg-blue-100 text-blue-800 hover:bg-blue-100/80 border-transparent dark:bg-blue-900/30 dark:text-blue-400'
       case 'Shortlisted':
-        return 'bg-green-100 text-green-800 border-green-200'
+        return 'bg-green-100 text-green-800 hover:bg-green-100/80 border-transparent dark:bg-green-900/30 dark:text-green-400'
       case 'Rejected':
-        return 'bg-red-100 text-red-800 border-red-200'
+        return 'bg-red-100 text-red-800 hover:bg-red-100/80 border-transparent dark:bg-red-900/30 dark:text-red-400'
       default:
-        return 'bg-gray-100 text-gray-800 border-gray-200'
+        return 'bg-secondary text-secondary-foreground hover:bg-secondary/80 border-transparent'
     }
   }
 
@@ -256,7 +253,7 @@ const Queue = () => {
   }, [selectedForm, industries, fetchJobPrompts])
 
 
-  const intervalRef = React.useRef(null)
+  const intervalRef = useRef(null)
 
   useEffect(() => {
     return () => {
@@ -322,22 +319,22 @@ const Queue = () => {
 
   if (loading) {
     return (
-      <div className="flex flex-col gap-10 pb-20">
+      <div className="flex flex-col gap-8 pb-20">
         <div className="flex flex-col gap-1">
-          <h1 className="text-3xl font-semibold tracking-tight">Application Queue</h1>
+          <h1 className="text-3xl font-bold tracking-tight">Application Queue</h1>
           <p className="text-muted-foreground">Manage and review candidate applications.</p>
         </div>
         <div className="flex items-center justify-center py-20">
-          <Loader2 className="size-8 animate-spin" />
+          <Loader2 className="size-8 animate-spin text-primary" />
         </div>
       </div>
     )
   }
 
   return (
-    <div className="flex flex-col gap-10 pb-20">
+    <div className="flex flex-col gap-8 pb-20">
       <div className="flex flex-col gap-1">
-        <h1 className="text-3xl font-semibold tracking-tight">Application Queue</h1>
+        <h1 className="text-3xl font-bold tracking-tight">Application Queue</h1>
         <p className="text-muted-foreground">Manage and review candidate applications across all job postings.</p>
       </div>
 
@@ -350,8 +347,8 @@ const Queue = () => {
       )}
 
       {/* Statistics Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
-        <Card className="border-border/40 bg-card/50">
+      <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+        <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium">Total Applications</CardTitle>
             <Users className="h-4 w-4 text-muted-foreground" />
@@ -362,7 +359,7 @@ const Queue = () => {
           </CardContent>
         </Card>
 
-        <Card className="border-border/40 bg-card/50">
+        <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium">Pending Review</CardTitle>
             <AlertCircle className="h-4 w-4 text-muted-foreground" />
@@ -375,7 +372,7 @@ const Queue = () => {
           </CardContent>
         </Card>
 
-        <Card className="border-border/40 bg-card/50">
+        <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium">Shortlisted</CardTitle>
             <CheckCircle className="h-4 w-4 text-muted-foreground" />
@@ -388,7 +385,7 @@ const Queue = () => {
           </CardContent>
         </Card>
 
-        <Card className="border-border/40 bg-card/50">
+        <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium">Active Jobs</CardTitle>
             <Briefcase className="h-4 w-4 text-muted-foreground" />
@@ -401,9 +398,9 @@ const Queue = () => {
       </div>
 
       {/* Filters and Search */}
-      <Card className="border-border/40 bg-card/50">
+      <Card>
         <CardHeader>
-          <CardTitle className="text-lg">Filters & Search</CardTitle>
+          <CardTitle>Filters & Search</CardTitle>
         </CardHeader>
         <CardContent className="space-y-4">
           <div className="flex flex-col lg:flex-row gap-4">
@@ -414,14 +411,14 @@ const Queue = () => {
                   placeholder="Search by name, email, or file..."
                   value={searchTerm}
                   onChange={(e) => setSearchTerm(e.target.value)}
-                  className="pl-10 bg-background/50"
+                  className="pl-10"
                 />
               </div>
             </div>
 
             <div className="flex gap-2">
               <Select value={selectedForm} onValueChange={setSelectedForm}>
-                <SelectTrigger className="w-48 bg-background/50">
+                <SelectTrigger className="w-48">
                   <SelectValue placeholder="Filter by job" />
                 </SelectTrigger>
                 <SelectContent>
@@ -435,7 +432,7 @@ const Queue = () => {
               </Select>
 
               <Select value={statusFilter} onValueChange={setStatusFilter}>
-                <SelectTrigger className="w-32 bg-background/50">
+                <SelectTrigger className="w-32">
                   <SelectValue placeholder="Status" />
                 </SelectTrigger>
                 <SelectContent>
@@ -452,7 +449,7 @@ const Queue = () => {
                 setSortBy(field)
                 setSortOrder(order)
               }}>
-                <SelectTrigger className="w-40 bg-background/50">
+                <SelectTrigger className="w-40">
                   <SelectValue placeholder="Sort by" />
                 </SelectTrigger>
                 <SelectContent>
@@ -466,12 +463,12 @@ const Queue = () => {
           </div>
         </CardContent>
         {selectedForm !== 'all' && (
-          <CardContent className="border-t border-border/20 pt-4">
+          <CardContent className="border-t pt-4">
             <div className="flex flex-col md:flex-row gap-4 items-end">
               <div className="flex-1 space-y-2">
                 <label className="text-sm font-medium">Select Evaluation Prompt</label>
                 <Select value={selectedPrompt} onValueChange={setSelectedPrompt} disabled={loadingPrompts}>
-                  <SelectTrigger className="bg-background/50">
+                  <SelectTrigger>
                     <SelectValue placeholder={loadingPrompts ? "Loading prompts..." : "Choose a prompt"} />
                   </SelectTrigger>
                   <SelectContent>
@@ -517,7 +514,7 @@ const Queue = () => {
                   </div>
                 )}
 
-                <Alert className={(evaluationStats.pending === 0 && (evaluationStats.completed + evaluationStats.failed > 0)) ? "bg-green-500/10 border-green-500/20 text-green-700" : "bg-blue-500/10 border-blue-500/20 text-blue-700"}>
+                <Alert className={(evaluationStats.pending === 0 && (evaluationStats.completed + evaluationStats.failed > 0)) ? "bg-green-50 text-green-700 border-green-200" : "bg-blue-50 text-blue-700 border-blue-200"}>
                   <CheckCircle className="h-4 w-4" />
                   <AlertTitle>{isBulkEvaluating ? 'Processing...' : 'Evaluation Status'}</AlertTitle>
                   <AlertDescription>
@@ -534,7 +531,7 @@ const Queue = () => {
       </Card>
 
       {/* Applications List */}
-      <Card className="border-border/40 bg-card/50">
+      <Card>
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
             <Users className="size-5" />
@@ -547,7 +544,7 @@ const Queue = () => {
         <CardContent>
           {sortedApplications.length === 0 ? (
             <div className="text-center py-12">
-              <FileText className="mx-auto h-12 w-12 text-muted-foreground opacity-20" />
+              <FileText className="mx-auto h-12 w-12 text-muted-foreground/20" />
               <h3 className="mt-2 text-sm font-semibold text-muted-foreground">No applications found</h3>
               <p className="mt-1 text-sm text-muted-foreground">
                 {searchTerm || selectedForm !== 'all' || statusFilter !== 'all'
@@ -558,7 +555,7 @@ const Queue = () => {
           ) : (
             <div className="space-y-4">
               {sortedApplications.map((application) => (
-                <div key={application._id} className="border border-border/20 rounded-lg p-4 hover:bg-background/50 transition-colors">
+                <div key={application._id} className="border rounded-lg p-4 hover:bg-muted/50 transition-colors">
                   <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4">
                     <div className="flex-1 space-y-2">
                       <div className="flex items-center gap-3">
@@ -592,7 +589,9 @@ const Queue = () => {
                       <div className="text-sm">
                         <span className="text-muted-foreground">Form:</span> {getFormName(application.jobId)}
                         {application.fileName && (
-                          <><span className="ml-4 text-muted-foreground">Resume:</span> {application.fileName}</>
+                          <div className="inline-flex ml-2">
+                            <span className="text-muted-foreground mr-1">Resume:</span> {application.fileName}
+                          </div>
                         )}
                       </div>
                     </div>

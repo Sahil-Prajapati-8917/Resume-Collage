@@ -52,9 +52,13 @@ const EvaluationResults = () => {
   const [showComparisonModal, setShowComparisonModal] = useState(false)
   const [selectedForComparison, setSelectedForComparison] = useState([])
 
-  const fetchResumes = async () => {
+  const fetchResumes = async (params = {}) => {
     try {
-      const response = await apiService.get('/resume');
+      const queryParams = { ...params };
+      if (selectedJob !== 'all') queryParams.jobId = selectedJob;
+      if (filterStatus !== 'all') queryParams.status = filterStatus;
+
+      const response = await apiService.get('/resume', queryParams);
       if (response.ok) {
         const result = await response.json();
         setEvaluations(result.data || []);
@@ -69,7 +73,7 @@ const EvaluationResults = () => {
   useEffect(() => {
     fetchResumes()
     fetchHiringForms()
-  }, [])
+  }, [selectedJob, filterStatus])
 
   const fetchHiringForms = async () => {
     try {
@@ -112,15 +116,8 @@ const EvaluationResults = () => {
     }
   }, [location.state])
 
-  const filteredEvaluations = evaluations.filter(evaluation => {
-    const matchesStatus = filterStatus === 'all' || evaluation.status.toLowerCase() === filterStatus.toLowerCase()
-
-    // Check if evaluation.jobId matches (it can be an object or a string ID)
-    const evalJobId = evaluation.jobId?._id || evaluation.jobId
-    const matchesJob = selectedJob === 'all' || evalJobId === selectedJob
-
-    return matchesStatus && matchesJob
-  })
+  // Client-side filtering removed, now handled by backend
+  const filteredEvaluations = evaluations
 
   const getStatusBadge = (status) => {
     switch (status) {

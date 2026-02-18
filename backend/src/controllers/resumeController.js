@@ -70,11 +70,12 @@ exports.parseResume = async (req, res) => {
 
 exports.getResumes = async (req, res) => {
     try {
-        const { status, confidence, riskFlag } = req.query;
+        const { status, confidence, riskFlag, jobId } = req.query;
         let query = {};
-        if (status) query.status = status;
+        if (status && status !== 'all') query.status = status;
         if (confidence) query['aiEvaluation.confidenceLevel'] = confidence;
         if (riskFlag) query['aiEvaluation.riskFlag'] = riskFlag;
+        if (jobId && jobId !== 'all') query.jobId = jobId;
 
         const resumes = await Resume.find(query).sort({ uploadedAt: -1 }).lean();
         return res.status(200).json({ success: true, count: resumes.length, data: resumes });

@@ -5,6 +5,10 @@ const User = require('../models/User');
 const Company = require('../models/Company');
 const { authenticateToken, authorizeRoles } = require('../middleware/auth');
 const logger = require('../utils/logger');
+const analyticsController = require('../controllers/analyticsController');
+
+// Get employer dashboard stats
+router.get('/employer', authenticateToken, analyticsController.getEmployerDashboardStats);
 
 // Get system-wide analytics dashboard
 router.get('/dashboard', authenticateToken, authorizeRoles(['master_admin', 'ops_admin']), async (req, res) => {
@@ -24,12 +28,18 @@ router.get('/dashboard', authenticateToken, authorizeRoles(['master_admin', 'ops
         // Get performance metrics
         const performance = await getPerformanceMetrics(startDate);
 
+        // Get Industry & Override Stats
+        const industryStats = await getIndustryStats(startDate);
+        const overrideStats = await getOverrideStats(startDate);
+
         res.json({
             success: true,
             data: {
                 metrics,
                 trends,
                 performance,
+                industryStats,
+                overrideStats,
                 dateRange,
                 lastUpdated: new Date()
             }
@@ -354,6 +364,32 @@ router.get('/industry-distribution', authenticateToken, authorizeRoles(['master_
         });
     }
 });
+
+async function getIndustryStats(startDate) {
+    const distribution = await Resume.aggregate([
+        {
+            $match: {
+                createdAt: { $gte: startDate }
+            }
+        },
+        {
+            $group: {
+                _id: '$industry',
+                value: { $sum: 1 },
+                overrides: { $sum: { $cond: ['$humanOverride.isOverridden', 1, 0] } }
+            }
+        },
+        { $sort: { value: -1 } },
+        { $limit: 10 }
+    ]);
+
+    return distribution;
+}
+
+async function getOverrideStats(startDate) {
+    // Return empty array for now as it's handled in logic
+    return [];
+}
 
 // Helper functions
 async function getSystemMetrics(startDate) {

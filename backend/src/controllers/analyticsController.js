@@ -148,3 +148,121 @@ exports.getSystemStats = async (req, res) => {
     }
 };
 exports.getFairnessStats = exports.getSystemStats;
+
+const HiringForm = require('../models/HiringForm');
+
+exports.getEmployerDashboardStats = async (req, res) => {
+    try {
+        // 1. KPI Cards
+        const totalResumes = await Resume.countDocuments();
+        const totalEvaluations = await Evaluation.countDocuments();
+
+        // Avg Score
+        const scoreAgg = await Evaluation.aggregate([
+            {
+                $group: {
+                    _id: null,
+                    avgScore: { $avg: "$result.totalScore" }
+                }
+            }
+        ]);
+        const avgMatchScore = scoreAgg[0] ? Math.round(scoreAgg[0].avgScore) : 0;
+
+        const activeOpenings = await HiringForm.countDocuments({ status: 'Open' });
+
+        // 2. Recruitment Velocity (Last 6 months)
+        const sixMonthsAgo = new Date();
+        sixMonthsAgo.setMonth(sixMonthsAgo.getMonth() - 5);
+        sixMonthsAgo.setDate(1); // Start of month
+
+        const velocityAgg = await Evaluation.aggregate([
+            {
+                $match: {
+                    evaluatedAt: { $gte: sixMonthsAgo }
+                }
+            },
+            {
+                $group: {
+                    _id: {
+                        month: { $month: "$evaluatedAt" },
+                        year: { $year: "$evaluatedAt" }
+                    },
+                    evaluations: { $sum: 1 },
+                    avgAccuracy: { $avg: "$result.confidence" }
+                }
+            },
+            { $sort: { "_id.year": 1, "_id.month": 1 } }
+        ]);
+
+        const chartData = velocityAgg.map(item => {
+            const date = new Date(item._id.year, item._id.month - 1);
+            return {
+                month: date.toLocaleString('default', { month: 'short' }),
+                evaluations: item.evaluations,
+                accuracy: Math.round(item.avgAccuracy || 0)
+            };
+        });
+
+        // 3. Sector Distribution (Industry)
+        const industryAgg = await Resume.aggregate([
+            {
+                $group: {
+                    _id: "$industry",
+                    value: { $sum: 1 }
+                }
+            },
+            { $sort: { value: -1 } },
+            { $limit: 4 }
+        ]);
+
+        const colors = ['#6366f1', '#10b981', '#f59e0b', '#ef4444', '#8b5cf6'];
+        const industryData = industryAgg.map((item, index) => ({
+            name: item._id || 'Unspecified',
+            value: item.value,
+            color: colors[index % colors.length]
+        }));
+
+
+        // 4. Recent Activity
+        const recentEvaluations = await Evaluation.find()
+            .sort({ evaluatedAt: -1 })
+            .limit(5)
+            .populate('resumeId', 'candidateName roleType status')
+            .lean();
+
+        const recentActivity = recentEvaluations.map(ev => {
+            // Calculate time ago
+            const diff = Date.now() - new Date(ev.evaluatedAt).getTime();
+            const hours = Math.floor(diff / (1000 * 60 * 60));
+            const timeStr = hours < 1 ? 'Just now' : hours < 24 ? `${hours}h ago` : `${Math.floor(hours / 24)}d ago`;
+
+            return {
+                id: ev._id,
+                candidate: ev.resumeId?.candidateName || 'Unknown Candidate',
+                position: ev.resumeId?.roleType || 'Unknown Position',
+                score: ev.result?.totalScore || 0,
+                status: ev.resumeId?.status || 'Pending',
+                time: timeStr
+            };
+        });
+
+        res.status(200).json({
+            success: true,
+            data: {
+                stats: {
+                    totalResumes,
+                    totalEvaluations,
+                    avgMatchScore,
+                    activeOpenings
+                },
+                chartData,
+                industryData,
+                recentActivity
+            }
+        });
+
+    } catch (error) {
+        console.error('Error fetching employer dashboard stats:', error);
+        res.status(500).json({ success: false, message: 'Server Error', error: error.message });
+    }
+};

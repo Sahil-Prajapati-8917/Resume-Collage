@@ -1,4 +1,5 @@
-import React from 'react'
+import { useEffect, useState } from 'react'
+import apiService from '@/services/api'
 import { Link } from 'react-router-dom'
 import {
   FileText,
@@ -12,7 +13,8 @@ import {
   Zap,
   Target,
   Users,
-  Brain
+  Brain,
+  Loader2
 } from 'lucide-react'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
@@ -39,35 +41,53 @@ import {
 } from 'recharts'
 
 const Dashboard = () => {
-  const stats = [
-    { name: 'Total Resumes', value: '1,284', icon: FileText, change: '+12.5%', trend: 'up', color: 'blue' },
-    { name: 'AI Evaluations', value: '432', icon: Brain, change: '+18.2%', trend: 'up', color: 'purple' },
-    { name: 'Avg. Match Score', value: '74%', icon: Target, change: '+4.3%', trend: 'up', color: 'green' },
-    { name: 'Active Openings', value: '24', icon: Users, change: '-1.1%', trend: 'down', color: 'orange' },
-  ]
+  const [loading, setLoading] = useState(true);
+  const [stats, setStats] = useState([
+    { name: 'Total Resumes', value: '0', icon: FileText, change: '+0%', trend: 'up', color: 'blue' },
+    { name: 'AI Evaluations', value: '0', icon: Brain, change: '+0%', trend: 'up', color: 'purple' },
+    { name: 'Avg. Match Score', value: '0%', icon: Target, change: '+0%', trend: 'up', color: 'green' },
+    { name: 'Active Openings', value: '0', icon: Users, change: '0%', trend: 'neutral', color: 'orange' },
+  ]);
+  const [chartData, setChartData] = useState([]);
+  const [industryData, setIndustryData] = useState([]);
+  const [recentActivity, setRecentActivity] = useState([]);
 
-  const chartData = [
-    { month: 'Jan', evaluations: 45, accuracy: 82 },
-    { month: 'Feb', evaluations: 52, accuracy: 85 },
-    { month: 'Mar', evaluations: 48, accuracy: 84 },
-    { month: 'Apr', evaluations: 61, accuracy: 88 },
-    { month: 'May', evaluations: 55, accuracy: 87 },
-    { month: 'Jun', evaluations: 67, accuracy: 91 },
-  ]
+  useEffect(() => {
+    const fetchData = async () => {
+      try {
+        const response = await apiService.getEmployerDashboardStats();
+        if (response.ok) {
+          const { data } = await response.json();
 
-  const industryData = [
-    { name: 'Information Tech', value: 45, color: '#6366f1' },
-    { name: 'Healthcare', value: 30, color: '#10b981' },
-    { name: 'Banking & Finance', value: 25, color: '#f59e0b' },
-    { name: 'Manufacturing', value: 20, color: '#ef4444' },
-  ]
+          // Update Stats
+          setStats([
+            { name: 'Total Resumes', value: data.stats.totalResumes.toLocaleString(), icon: FileText, change: '+12%', trend: 'up', color: 'blue' },
+            { name: 'AI Evaluations', value: data.stats.totalEvaluations.toLocaleString(), icon: Brain, change: '+18%', trend: 'up', color: 'purple' },
+            { name: 'Avg. Match Score', value: `${data.stats.avgMatchScore}%`, icon: Target, change: '+4%', trend: 'up', color: 'green' },
+            { name: 'Active Openings', value: data.stats.activeOpenings.toLocaleString(), icon: Users, change: '0%', trend: 'neutral', color: 'orange' },
+          ]);
 
-  const recentActivity = [
-    { id: 1, candidate: 'John Smith', position: 'Senior Developer', score: 88, status: 'Qualified', time: '2h ago' },
-    { id: 2, candidate: 'Sarah Johnson', position: 'Product Lead', score: 72, status: 'Review', time: '4h ago' },
-    { id: 3, candidate: 'Michael Chen', position: 'Data Scientist', score: 91, status: 'Qualified', time: '6h ago' },
-    { id: 4, candidate: 'Emily Davis', position: 'UX Designer', score: 65, status: 'Rejected', time: '8h ago' },
-  ]
+          setChartData(data.chartData);
+          setIndustryData(data.industryData);
+          setRecentActivity(data.recentActivity);
+        }
+      } catch (error) {
+        console.error("Failed to load dashboard data", error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchData();
+  }, []);
+
+  if (loading) {
+    return (
+      <div className="flex h-[80vh] items-center justify-center">
+        <Loader2 className="h-10 w-10 animate-spin text-primary" />
+      </div>
+    );
+  }
 
   return (
     <div className="flex flex-col gap-10 pb-20">

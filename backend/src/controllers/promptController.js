@@ -24,7 +24,24 @@ exports.getPromptsByIndustry = async (req, res) => {
         const { industryId } = req.params;
         const { page = 1, limit = 10, all = false } = req.query;
 
-        const query = { industryId };
+        let query = { industryId };
+
+        // If industryId is not a valid ObjectId, try to find it by name
+        const mongoose = require('mongoose');
+        if (!mongoose.Types.ObjectId.isValid(industryId)) {
+            const industry = await Industry.findOne({ name: industryId });
+            if (industry) {
+                query = { industryId: industry._id };
+            } else {
+                // Return empty if industry not found by name
+                return res.status(200).json({
+                    success: true,
+                    count: 0,
+                    total: 0,
+                    data: []
+                });
+            }
+        }
 
         let mongoQuery = Prompt.find(query).sort({ isDefault: -1, createdAt: -1 }).lean();
 
