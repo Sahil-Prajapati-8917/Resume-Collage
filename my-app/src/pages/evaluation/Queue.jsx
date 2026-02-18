@@ -112,7 +112,13 @@ const Queue = () => {
   const getStatusColor = (status) => {
     switch (status) {
       case 'Pending':
+<<<<<<< HEAD
         return 'bg-yellow-100 text-yellow-800 hover:bg-yellow-100/80 border-transparent dark:bg-yellow-900/30 dark:text-yellow-400'
+=======
+        return 'bg-yellow-100 text-yellow-800 border-yellow-200'
+      case 'Under Process':
+        return 'bg-purple-100 text-purple-800 border-purple-200'
+>>>>>>> 277103120a1c6ac7e07e6960b9eb566a640b1ef8
       case 'Reviewed':
         return 'bg-blue-100 text-blue-800 hover:bg-blue-100/80 border-transparent dark:bg-blue-900/30 dark:text-blue-400'
       case 'Shortlisted':
@@ -462,8 +468,13 @@ const Queue = () => {
             </div>
           </div>
         </CardContent>
+<<<<<<< HEAD
         {selectedForm !== 'all' && (
           <CardContent className="border-t pt-4">
+=======
+        {selectedForm !== 'all' ? (
+          <CardContent className="border-t border-border/20 pt-4">
+>>>>>>> 277103120a1c6ac7e07e6960b9eb566a640b1ef8
             <div className="flex flex-col md:flex-row gap-4 items-end">
               <div className="flex-1 space-y-2">
                 <label className="text-sm font-medium">Select Evaluation Prompt</label>
@@ -526,6 +537,46 @@ const Queue = () => {
                 </Alert>
               </div>
             )}
+          </CardContent>
+        ) : (
+          <CardContent className="border-t border-border/20 pt-4 flex items-center justify-between">
+            <div className="flex items-center gap-3">
+              <div className="p-2 bg-primary/10 rounded-full">
+                <FileText className="size-5 text-primary" />
+              </div>
+              <div>
+                <h3 className="font-semibold">Fast Track Evaluation</h3>
+                <p className="text-sm text-muted-foreground">Start evaluation for all pending resumes in the queue using their specific job prompts.</p>
+              </div>
+            </div>
+            <Button
+              onClick={async () => {
+                setIsBulkEvaluating(true);
+                try {
+                  const response = await apiService.evaluateAllQueued();
+                  if (response.ok) {
+                    const data = await response.json();
+                    alert(data.message);
+                    fetchQueueData(); // Refresh to see "Under Process" status
+                  } else {
+                    alert("Failed to start global evaluation");
+                  }
+                } catch (err) {
+                  console.error(err);
+                  alert("Error starting evaluation");
+                } finally {
+                  setIsBulkEvaluating(false);
+                }
+              }}
+              disabled={isBulkEvaluating || applications.filter(a => a.status === 'Pending').length === 0}
+              className="bg-primary hover:bg-primary/90"
+            >
+              {isBulkEvaluating ? (
+                <><Loader2 className="mr-2 size-4 animate-spin" /> Queuing...</>
+              ) : (
+                <>Run All Pending Evaluations</>
+              )}
+            </Button>
           </CardContent>
         )}
       </Card>

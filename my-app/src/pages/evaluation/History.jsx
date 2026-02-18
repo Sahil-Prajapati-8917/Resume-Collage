@@ -1,4 +1,5 @@
-import React, { useState } from 'react'
+import React, { useState, useEffect } from 'react'
+import apiService from '@/services/api'
 import {
   Search,
   Filter,
@@ -33,78 +34,63 @@ const History = () => {
   const [searchTerm, setSearchTerm] = useState('')
   const [statusFilter, setStatusFilter] = useState('all')
   const [dateFilter, setDateFilter] = useState('all')
+  const [evaluationHistory, setEvaluationHistory] = useState([])
+  const [loading, setLoading] = useState(true)
 
-  const evaluationHistory = [
-    {
-      id: 1,
-      candidateName: 'John Doe',
-      jobTitle: 'Senior Software Engineer',
-      industry: 'Information Technology',
-      submittedDate: '2024-12-20',
-      evaluatedDate: '2024-12-20',
-      status: 'completed',
-      score: 85,
-      recommendation: 'shortlist',
-      resumeFile: 'john_doe_resume.pdf'
-    },
-    {
-      id: 2,
-      candidateName: 'Jane Smith',
-      jobTitle: 'Product Manager',
-      industry: 'Healthcare',
-      submittedDate: '2024-12-19',
-      evaluatedDate: '2024-12-19',
-      status: 'completed',
-      score: 92,
-      recommendation: 'shortlist',
-      resumeFile: 'jane_smith_resume.pdf'
-    },
-    {
-      id: 3,
-      candidateName: 'Mike Johnson',
-      jobTitle: 'Financial Analyst',
-      industry: 'Banking & Finance',
-      submittedDate: '2024-12-18',
-      evaluatedDate: '2024-12-18',
-      status: 'completed',
-      score: 45,
-      recommendation: 'reject',
-      resumeFile: 'mike_johnson_resume.pdf'
-    },
-    {
-      id: 4,
-      candidateName: 'Sarah Williams',
-      jobTitle: 'UX Designer',
-      industry: 'Retail',
-      submittedDate: '2024-12-17',
-      evaluatedDate: null,
-      status: 'pending',
-      score: null,
-      recommendation: null,
-      resumeFile: 'sarah_williams_resume.pdf'
-    },
-    {
-      id: 5,
-      candidateName: 'David Brown',
-      jobTitle: 'Manufacturing Engineer',
-      industry: 'Manufacturing',
-      submittedDate: '2024-12-16',
-      evaluatedDate: '2024-12-16',
-      status: 'completed',
-      score: 78,
-      recommendation: 'review',
-      resumeFile: 'david_brown_resume.pdf'
+  useEffect(() => {
+    const fetchHistory = async () => {
+      try {
+        const response = await apiService.get('/resume')
+        if (response.ok) {
+          const result = await response.json()
+          const mappedData = (result.data || []).map(item => ({
+            id: item._id,
+            candidateName: item.candidateName || item.fileName || 'Candidate',
+            jobTitle: item.roleType || 'Unknown Position',
+            industry: item.industry || 'N/A',
+            submittedDate: item.uploadedAt ? new Date(item.uploadedAt).toISOString().split('T')[0] : 'N/A',
+            evaluatedDate: item.aiEvaluation?.metadata?.timestamp ? new Date(item.aiEvaluation.metadata.timestamp).toISOString().split('T')[0] : null,
+            status: item.status,
+            score: item.aiEvaluation?.totalScore || null,
+            recommendation: mapStatusToRecommendation(item.status),
+            resumeFile: item.fileName
+          }))
+          setEvaluationHistory(mappedData)
+        }
+      } catch (error) {
+        console.error('Failed to fetch evaluation history:', error)
+      } finally {
+        setLoading(false)
+      }
     }
-  ]
+
+    fetchHistory()
+  }, [])
+
+  const mapStatusToRecommendation = (status) => {
+    switch (status) {
+      case 'Shortlisted': return 'shortlist'
+      case 'Manual Review Required': return 'review'
+      case 'Disqualified':
+      case 'Rejected': return 'reject'
+      case 'Hired': return 'shortlist'
+      default: return null
+    }
+  }
 
   const getStatusBadge = (status) => {
     switch (status) {
-      case 'completed':
-        return <Badge variant="secondary" className="bg-green-500/10 text-green-500 border-green-500/20 text-[10px] h-5 uppercase font-black px-1.5">Completed</Badge>
-      case 'pending':
-        return <Badge variant="secondary" className="bg-orange-500/10 text-orange-500 border-orange-500/20 text-[10px] h-5 uppercase font-black px-1.5">Pending</Badge>
-      case 'error':
-        return <Badge variant="secondary" className="bg-red-500/10 text-red-500 border-red-500/20 text-[10px] h-5 uppercase font-black px-1.5">Error</Badge>
+      case 'Shortlisted':
+      case 'Hired':
+        return <Badge variant="secondary" className="bg-green-500/10 text-green-500 border-green-500/20 text-[10px] h-5 uppercase font-black px-1.5">{status}</Badge>
+      case 'Pending':
+      case 'Under Process':
+        return <Badge variant="secondary" className="bg-orange-500/10 text-orange-500 border-orange-500/20 text-[10px] h-5 uppercase font-black px-1.5">{status}</Badge>
+      case 'Manual Review Required':
+        return <Badge variant="secondary" className="bg-yellow-500/10 text-yellow-500 border-yellow-500/20 text-[10px] h-5 uppercase font-black px-1.5">Review</Badge>
+      case 'Disqualified':
+      case 'Rejected':
+        return <Badge variant="secondary" className="bg-red-500/10 text-red-500 border-red-500/20 text-[10px] h-5 uppercase font-black px-1.5">{status}</Badge>
       default:
         return <Badge variant="secondary" className="text-[10px] h-5 uppercase font-black px-1.5">{status}</Badge>
     }
@@ -181,9 +167,10 @@ const History = () => {
               </SelectTrigger>
               <SelectContent>
                 <SelectItem value="all">All States</SelectItem>
-                <SelectItem value="completed">Completed</SelectItem>
-                <SelectItem value="pending">Pending</SelectItem>
-                <SelectItem value="error">Error</SelectItem>
+                <SelectItem value="Shortlisted">Shortlisted</SelectItem>
+                <SelectItem value="Pending">Pending</SelectItem>
+                <SelectItem value="Disqualified">Disqualified</SelectItem>
+                <SelectItem value="Manual Review Required">Review Required</SelectItem>
               </SelectContent>
             </Select>
             <Select value={dateFilter} onValueChange={setDateFilter}>
