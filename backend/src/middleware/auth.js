@@ -93,6 +93,9 @@ const auth = async (req, res, next) => {
 
 // Role-based authorization middleware
 const authorizeRoles = (...roles) => {
+  // Flatten roles in case an array was passed as the first argument
+  const allowedRoles = roles.flat();
+
   return (req, res, next) => {
     if (!req.user) {
       return res.status(401).json({
@@ -103,7 +106,7 @@ const authorizeRoles = (...roles) => {
       });
     }
 
-    if (!roles.includes(req.user.role)) {
+    if (!allowedRoles.includes(req.user.role)) {
       return res.status(403).json({
         error: {
           code: 'FORBIDDEN',

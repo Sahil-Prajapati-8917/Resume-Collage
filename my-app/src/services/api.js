@@ -295,8 +295,79 @@ class ApiService {
     return this.get('/system-analytics/employer');
   }
 
-  async getSystemStats() {
-    return this.get('/system-analytics/dashboard');
+  async getSystemStats(params) {
+    return this.get('/system-analytics/dashboard', params);
+  }
+
+  async getResumeProcessingMetrics(params) {
+    return this.get('/system-analytics/resume-processing', params);
+  }
+
+  async getAIUsageAnalytics(params) {
+    return this.get('/system-analytics/ai-usage', params);
+  }
+
+  async getEvaluationQualityMetrics(params) {
+    return this.get('/system-analytics/evaluation-quality', params);
+  }
+
+  async getRecruiterPatterns(params) {
+    return this.get('/system-analytics/recruiter-patterns', params);
+  }
+
+  async getIndustryDistribution(params) {
+    return this.get('/system-analytics/industry-distribution', params);
+  }
+
+  async getCostAnalytics(params) {
+    return this.get('/system-analytics/cost', params);
+  }
+
+  async getEvaluationsList(params) {
+    return this.get('/system-analytics/evaluations', params);
+  }
+
+  // Company Management APIs
+  async getCompanies(params) {
+    return this.get('/company', params);
+  }
+
+  async createCompany(data) {
+    return this.post('/company', data);
+  }
+
+  async updateCompany(id, data) {
+    return this.put(`/company/${id}`, data);
+  }
+
+  async deactivateCompany(id) {
+    return this.delete(`/company/${id}`);
+  }
+
+  // HR User Management APIs
+  async getHRUsers(params) {
+    return this.get('/hr-user', params);
+  }
+
+  async createHRUser(data) {
+    return this.post('/hr-user', data);
+  }
+
+  async updateHRUser(id, data) {
+    return this.put(`/hr-user/${id}`, data);
+  }
+
+  async deleteHRUser(id) {
+    return this.delete(`/hr-user/${id}`);
+  }
+
+  // System Settings APIs
+  async getSystemSettings() {
+    return this.get('/system-settings');
+  }
+
+  async updateSystemSettings(data) {
+    return this.put('/system-settings', data);
   }
 
   // Contact APIs

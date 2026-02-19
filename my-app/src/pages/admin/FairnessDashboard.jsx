@@ -1,9 +1,9 @@
 import React, { useState, useEffect } from 'react'
-import axios from 'axios'
+import apiService from '@/services/api'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, PieChart, Pie, Cell } from 'recharts'
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert'
-import { Info, AlertTriangle, CheckCircle } from 'lucide-react'
+import { Info, AlertTriangle, CheckCircle, Loader2 } from 'lucide-react'
 
 const FairnessDashboard = () => {
     const [stats, setStats] = useState(null)
@@ -12,25 +12,17 @@ const FairnessDashboard = () => {
     useEffect(() => {
         const fetchStats = async () => {
             try {
-                const token = localStorage.getItem('token');
-                const config = { headers: { Authorization: `Bearer ${token}` } };
-                // Using the new analytical endpoint
-                const response = await axios.get('http://localhost:5000/api/resume/analytics/fairness', config);
-                setStats(response.data.data);
+                const response = await apiService.getSystemStats();
+                if (response.ok) {
+                    const result = await response.json();
+                    setStats(result.data);
+                } else {
+                    throw new Error('Failed to fetch stats');
+                }
             } catch (error) {
                 console.error("Failed to fetch fairness stats", error);
-                // Fallback mock data if API fails or is not yet live
-                setStats({
-                    totalCandidates: 120,
-                    disqualificationRate: 15.5,
-                    hiredCount: 12,
-                    disagreementCount: 8,
-                    industryStats: [
-                        { industry: 'IT', total: 50, disqualified: 5, disagreementRate: 2 },
-                        { industry: 'Healthcare', total: 40, disqualified: 8, disagreementRate: 5 },
-                        { industry: 'Finance', total: 30, disqualified: 6, disagreementRate: 3 },
-                    ]
-                })
+                // The backend getSystemStats returns:
+                // { totalCandidates, disqualificationRate, hiredCount, disagreementCount, industryStats }
             } finally {
                 setLoading(false);
             }

@@ -54,95 +54,31 @@ const CompanyManagement = () => {
     status: ''
   })
 
-  // Mock data
+  const [loading, setLoading] = useState(true)
+
+  const fetchCompanies = async () => {
+    setLoading(true)
+    try {
+      const params = {
+        searchTerm,
+        industry: industryFilter,
+        status: statusFilter
+      }
+      const response = await apiService.getCompanies(params)
+      if (response.ok) {
+        const result = await response.json()
+        setCompanies(result.data)
+      }
+    } catch (error) {
+      console.error("Failed to fetch companies", error)
+    } finally {
+      setLoading(false)
+    }
+  }
+
   useEffect(() => {
-    const mockCompanies = [
-      {
-        id: '1',
-        name: 'TechCorp Inc.',
-        industry: 'IT',
-        companySize: '201-1000',
-        primaryHR: 'sarah.johnson@techcorp.com',
-        subscriptionPlan: 'enterprise',
-        status: 'active',
-        users: 156,
-        resumes: 2345,
-        evaluations: 2289,
-        lastActivity: '2024-01-15',
-        createdAt: '2024-01-10'
-      },
-      {
-        id: '2',
-        name: 'HealthPlus Medical',
-        industry: 'Healthcare',
-        companySize: '51-200',
-        primaryHR: 'mike.chen@healthplus.com',
-        subscriptionPlan: 'pro',
-        status: 'active',
-        users: 89,
-        resumes: 1123,
-        evaluations: 1098,
-        lastActivity: '2024-01-14',
-        createdAt: '2024-01-08'
-      },
-      {
-        id: '3',
-        name: 'FinSecure Bank',
-        industry: 'Finance',
-        companySize: '1000+',
-        primaryHR: 'emma.rodriguez@finsecure.com',
-        subscriptionPlan: 'enterprise',
-        status: 'suspended',
-        users: 452,
-        resumes: 5678,
-        evaluations: 5543,
-        lastActivity: '2024-01-10',
-        createdAt: '2024-01-05'
-      },
-      {
-        id: '4',
-        name: 'ManufacturePro',
-        industry: 'Manufacturing',
-        companySize: '11-50',
-        primaryHR: 'alex.smith@manufacturepro.com',
-        subscriptionPlan: 'basic',
-        status: 'active',
-        users: 23,
-        resumes: 156,
-        evaluations: 152,
-        lastActivity: '2024-01-13',
-        createdAt: '2024-01-12'
-      }
-    ]
-
-    setTimeout(() => {
-      setCompanies(mockCompanies)
-    }, 1000)
-  }, [])
-
-  const filteredCompanies = companies
-    .filter(company =>
-      company.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      company.industry.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      company.primaryHR.toLowerCase().includes(searchTerm.toLowerCase())
-    )
-    .filter(company => industryFilter === 'all' || company.industry === industryFilter)
-    .filter(company => statusFilter === 'all' || company.status === statusFilter)
-    .sort((a, b) => {
-      let aValue = a[sortBy]
-      let bValue = b[sortBy]
-
-      if (sortBy === 'users' || sortBy === 'resumes' || sortBy === 'evaluations') {
-        aValue = parseInt(aValue)
-        bValue = parseInt(bValue)
-      }
-
-      if (sortOrder === 'asc') {
-        return aValue > bValue ? 1 : -1
-      } else {
-        return aValue < bValue ? 1 : -1
-      }
-    })
+    fetchCompanies()
+  }, [searchTerm, industryFilter, statusFilter])
 
   const getStatusColor = (status) => {
     switch (status) {
@@ -163,43 +99,46 @@ const CompanyManagement = () => {
   }
 
   const handleCreateCompany = async () => {
-    // Mock API call
-    const newComp = {
-      ...newCompany,
-      id: Date.now().toString(),
-      users: 0,
-      resumes: 0,
-      evaluations: 0,
-      lastActivity: new Date().toISOString().split('T')[0],
-      createdAt: new Date().toISOString().split('T')[0],
-      status: 'active'
+    try {
+      const response = await apiService.createCompany(newCompany)
+      if (response.ok) {
+        fetchCompanies()
+        setShowCreateDialog(false)
+        setNewCompany({
+          name: '',
+          industry: '',
+          companySize: '',
+          primaryHR: '',
+          subscriptionPlan: 'basic'
+        })
+      }
+    } catch (error) {
+      console.error("Failed to create company", error)
     }
-
-    setCompanies([...companies, newComp])
-    setShowCreateDialog(false)
-    setNewCompany({
-      name: '',
-      industry: '',
-      companySize: '',
-      primaryHR: '',
-      subscriptionPlan: 'basic'
-    })
   }
 
   const handleEditCompany = async () => {
-    const updatedCompanies = companies.map(comp =>
-      comp.id === selectedCompany.id ? { ...comp, ...editCompany } : comp
-    )
-    setCompanies(updatedCompanies)
-    setShowEditDialog(false)
+    try {
+      const response = await apiService.updateCompany(selectedCompany.id, editCompany)
+      if (response.ok) {
+        fetchCompanies()
+        setShowEditDialog(false)
+      }
+    } catch (error) {
+      console.error("Failed to update company", error)
+    }
   }
 
-  const handleDeleteCompany = (companyId) => {
-    if (confirm('Are you sure you want to deactivate this company? This will also deactivate all users in this company.')) {
-      const updatedCompanies = companies.map(comp =>
-        comp.id === companyId ? { ...comp, status: 'inactive' } : comp
-      )
-      setCompanies(updatedCompanies)
+  const handleDeleteCompany = async (companyId) => {
+    if (confirm('Are you sure you want to change this company\'s status?')) {
+      try {
+        const response = await apiService.deactivateCompany(companyId)
+        if (response.ok) {
+          fetchCompanies()
+        }
+      } catch (error) {
+        console.error("Failed to toggle company status", error)
+      }
     }
   }
 

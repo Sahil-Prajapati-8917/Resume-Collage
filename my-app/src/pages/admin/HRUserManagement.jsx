@@ -67,141 +67,42 @@ const HRUserManagement = () => {
 
   const [bulkUsers, setBulkUsers] = useState('')
 
-  // Mock data
+  const [loading, setLoading] = useState(true)
+
+  const fetchData = async () => {
+    setLoading(true)
+    try {
+      const userParams = {
+        searchTerm,
+        role: roleFilter,
+        status: statusFilter,
+        companyId: companyFilter !== 'all' ? companyFilter : undefined
+      }
+
+      const [usersRes, companiesRes] = await Promise.all([
+        apiService.getHRUsers(userParams),
+        apiService.getCompanies()
+      ])
+
+      if (usersRes.ok) {
+        const result = await usersRes.json()
+        setUsers(result.data)
+      }
+
+      if (companiesRes.ok) {
+        const result = await companiesRes.json()
+        setCompanies(result.data)
+      }
+    } catch (error) {
+      console.error("Failed to fetch user management data", error)
+    } finally {
+      setLoading(false)
+    }
+  }
+
   useEffect(() => {
-    const mockCompanies = [
-      { id: '1', name: 'TechCorp Inc.', industry: 'IT' },
-      { id: '2', name: 'HealthPlus Medical', industry: 'Healthcare' },
-      { id: '3', name: 'FinSecure Bank', industry: 'Finance' },
-      { id: '4', name: 'ManufacturePro', industry: 'Manufacturing' }
-    ]
-
-    const mockUsers = [
-      {
-        id: '1',
-        email: 'sarah.johnson@techcorp.com',
-        firstName: 'Sarah',
-        lastName: 'Johnson',
-        phone: '+1 (555) 123-4567',
-        department: 'Talent Acquisition',
-        position: 'HR Manager',
-        role: 'hr_manager',
-        company: { id: '1', name: 'TechCorp Inc.' },
-        isActive: true,
-        lastLogin: '2024-01-15 14:30:00',
-        createdAt: '2024-01-10',
-        permissions: ['canCreateHiringForms', 'canManageUsers', 'canViewAnalytics', 'canAccessAudit']
-      },
-      {
-        id: '2',
-        email: 'mike.chen@healthplus.com',
-        firstName: 'Mike',
-        lastName: 'Chen',
-        phone: '+1 (555) 234-5678',
-        department: 'Recruitment',
-        position: 'Senior Recruiter',
-        role: 'recruiter',
-        company: { id: '2', name: 'HealthPlus Medical' },
-        isActive: true,
-        lastLogin: '2024-01-15 10:15:00',
-        createdAt: '2024-01-08',
-        permissions: ['canCreateHiringForms', 'canViewAnalytics']
-      },
-      {
-        id: '3',
-        email: 'emma.rodriguez@finsecure.com',
-        firstName: 'Emma',
-        lastName: 'Rodriguez',
-        phone: '+1 (555) 345-6789',
-        department: 'Human Resources',
-        position: 'Company Admin',
-        role: 'company_admin',
-        company: { id: '3', name: 'FinSecure Bank' },
-        isActive: false,
-        lastLogin: '2024-01-10 16:45:00',
-        createdAt: '2024-01-05',
-        permissions: ['canCreateHiringForms', 'canManageUsers', 'canViewAnalytics', 'canAccessAudit']
-      },
-      {
-        id: '4',
-        email: 'alex.smith@manufacturepro.com',
-        firstName: 'Alex',
-        lastName: 'Smith',
-        phone: '+1 (555) 456-7890',
-        department: 'Talent Acquisition',
-        position: 'Recruiter',
-        role: 'recruiter',
-        company: { id: '4', name: 'ManufacturePro' },
-        isActive: true,
-        lastLogin: '2024-01-14 09:20:00',
-        createdAt: '2024-01-12',
-        permissions: ['canCreateHiringForms', 'canViewAnalytics']
-      },
-      {
-        id: '5',
-        email: 'david.wilson@techcorp.com',
-        firstName: 'David',
-        lastName: 'Wilson',
-        phone: '+1 (555) 567-8901',
-        department: 'Talent Acquisition',
-        position: 'Recruiter',
-        role: 'recruiter',
-        company: { id: '1', name: 'TechCorp Inc.' },
-        isActive: true,
-        lastLogin: '2024-01-15 11:45:00',
-        createdAt: '2024-01-11',
-        permissions: ['canCreateHiringForms', 'canViewAnalytics']
-      }
-    ]
-
-    setTimeout(() => {
-      setCompanies(mockCompanies)
-      setUsers(mockUsers)
-
-    }, 1000)
-  }, [])
-
-  const filteredUsers = users
-    .filter(user =>
-      user.firstName.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      user.lastName.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      user.email.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      user.company.name.toLowerCase().includes(searchTerm.toLowerCase())
-    )
-    .filter(user => roleFilter === 'all' || user.role === roleFilter)
-    .filter(user => statusFilter === 'all' || (user.isActive && statusFilter === 'active') || (!user.isActive && statusFilter === 'inactive'))
-    .filter(user => companyFilter === 'all' || user.company.id === companyFilter)
-    .sort((a, b) => {
-      let aValue, bValue
-
-      switch (sortBy) {
-        case 'name':
-          aValue = `${a.firstName} ${a.lastName}`
-          bValue = `${b.firstName} ${b.lastName}`
-          break
-        case 'email':
-          aValue = a.email
-          bValue = b.email
-          break
-        case 'company':
-          aValue = a.company.name
-          bValue = b.company.name
-          break
-        case 'role':
-          aValue = a.role
-          bValue = b.role
-          break
-        default:
-          aValue = a[sortBy]
-          bValue = b[sortBy]
-      }
-
-      if (sortOrder === 'asc') {
-        return aValue > bValue ? 1 : -1
-      } else {
-        return aValue < bValue ? 1 : -1
-      }
-    })
+    fetchData()
+  }, [searchTerm, roleFilter, statusFilter, companyFilter])
 
   const getRoleColor = (role) => {
     switch (role) {
@@ -231,86 +132,93 @@ const HRUserManagement = () => {
   }
 
   const handleCreateUser = async () => {
-    const company = companies.find(c => c.id === newUser.company)
-    const newUserObj = {
-      id: Date.now().toString(),
-      email: newUser.email,
-      firstName: newUser.firstName,
-      lastName: newUser.lastName,
-      phone: newUser.phone,
-      department: newUser.department,
-      position: newUser.position,
-      role: newUser.role,
-      company: company,
-      isActive: true,
-      lastLogin: null,
-      createdAt: new Date().toISOString().split('T')[0],
-      permissions: getPermissionsForRole(newUser.role)
+    try {
+      const response = await apiService.createHRUser(newUser)
+      if (response.ok) {
+        fetchData()
+        setShowCreateDialog(false)
+        setNewUser({
+          email: '',
+          firstName: '',
+          lastName: '',
+          phone: '',
+          department: '',
+          position: '',
+          role: 'recruiter',
+          company: '',
+          sendInvite: true
+        })
+      }
+    } catch (error) {
+      console.error("Failed to create HR user", error)
     }
-
-    setUsers([...users, newUserObj])
-    setShowCreateDialog(false)
-    setNewUser({
-      email: '',
-      firstName: '',
-      lastName: '',
-      phone: '',
-      department: '',
-      position: '',
-      role: 'recruiter',
-      company: '',
-      sendInvite: true
-    })
   }
 
   const handleEditUser = async () => {
-    const updatedUsers = users.map(user =>
-      user.id === selectedUser.id ? {
-        ...user,
-        ...editUser,
-        permissions: getPermissionsForRole(editUser.role)
-      } : user
-    )
-    setUsers(updatedUsers)
-    setShowEditDialog(false)
+    try {
+      const response = await apiService.updateHRUser(selectedUser.id || selectedUser._id, editUser)
+      if (response.ok) {
+        fetchData()
+        setShowEditDialog(false)
+      }
+    } catch (error) {
+      console.error("Failed to update HR user", error)
+    }
   }
 
-  const handleToggleUserStatus = (userId) => {
-    const updatedUsers = users.map(user =>
-      user.id === userId ? { ...user, isActive: !user.isActive } : user
-    )
-    setUsers(updatedUsers)
+  const handleToggleUserStatus = async (userId) => {
+    try {
+      const response = await apiService.deleteHRUser(userId)
+      if (response.ok) {
+        fetchData()
+      }
+    } catch (error) {
+      console.error("Failed to toggle user status", error)
+    }
   }
 
-  const handleBulkImport = () => {
+  const handleBulkImport = async () => {
     const lines = bulkUsers.trim().split('\n')
-    const importedUsers = []
+    const usersToImport = []
 
     lines.forEach(line => {
       const [email, firstName, lastName, role] = line.split(',')
       if (email && firstName && lastName && role) {
-        const company = companies[Math.floor(Math.random() * companies.length)]
-        importedUsers.push({
-          id: Date.now().toString() + Math.random().toString(),
+        usersToImport.push({
           email: email.trim(),
           firstName: firstName.trim(),
           lastName: lastName.trim(),
-          phone: '',
-          department: '',
-          position: '',
-          role: role.trim(),
-          company: company,
-          isActive: true,
-          lastLogin: null,
-          createdAt: new Date().toISOString().split('T')[0],
-          permissions: getPermissionsForRole(role.trim())
+          role: role.trim()
         })
       }
     })
 
-    setUsers([...users, ...importedUsers])
-    setShowBulkImportDialog(false)
-    setBulkUsers('')
+    try {
+      // Assuming companyFilter is set to a specific company for bulk import, 
+      // or we just use the first company available if not specified
+      const targetCompanyId = companyFilter !== 'all' ? companyFilter : (companies[0]?.id || companies[0]?._id)
+
+      const response = await apiService.post('/hr-user/bulk-import', {
+        companyId: targetCompanyId,
+        users: usersToImport
+      })
+
+      if (response.ok) {
+        fetchData()
+        setShowBulkImportDialog(false)
+        setBulkUsers('')
+      }
+    } catch (error) {
+      console.error("Failed to bulk import users", error)
+    }
+  }
+
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center min-h-[400px]">
+        <Loader2 className="h-8 w-8 animate-spin text-primary" />
+      </div>
+    )
   }
 
   return (
@@ -461,17 +369,17 @@ const HRUserManagement = () => {
               </TableHeader>
               <TableBody>
                 {filteredUsers.map((user) => (
-                  <TableRow key={user.id}>
+                  <TableRow key={user.id || user._id}>
                     <TableCell>
                       <div className="flex items-center space-x-3">
                         <div className="h-10 w-10 rounded-full bg-primary/10 flex items-center justify-center">
                           <span className="text-sm font-semibold text-primary">
-                            {user.firstName[0]}{user.lastName[0]}
+                            {user.personalInfo?.firstName?.[0]}{user.personalInfo?.lastName?.[0]}
                           </span>
                         </div>
                         <div>
-                          <div className="font-medium">{user.firstName} {user.lastName}</div>
-                          <div className="text-sm text-muted-foreground">{user.position}</div>
+                          <div className="font-medium">{user.personalInfo?.firstName} {user.personalInfo?.lastName}</div>
+                          <div className="text-sm text-muted-foreground">{user.personalInfo?.position}</div>
                         </div>
                       </div>
                     </TableCell>
@@ -484,7 +392,7 @@ const HRUserManagement = () => {
                     <TableCell>
                       <div className="flex items-center space-x-2">
                         <Building2 className="h-4 w-4 text-muted-foreground" />
-                        <span>{user.company.name}</span>
+                        <span>{user.company?.name || 'N/A'}</span>
                       </div>
                     </TableCell>
                     <TableCell>
@@ -492,7 +400,7 @@ const HRUserManagement = () => {
                         {getRoleLabel(user.role)}
                       </Badge>
                     </TableCell>
-                    <TableCell>{user.department}</TableCell>
+                    <TableCell>{user.personalInfo?.department}</TableCell>
                     <TableCell>
                       <div className="flex items-center space-x-2">
                         <div className={`h-2 w-2 rounded-full ${user.isActive ? 'bg-green-500' : 'bg-red-500'}`} />
@@ -502,7 +410,7 @@ const HRUserManagement = () => {
                       </div>
                     </TableCell>
                     <TableCell>
-                      {user.lastLogin ? user.lastLogin : 'Never'}
+                      {user.lastLogin ? new Date(user.lastLogin).toLocaleString() : 'Never'}
                     </TableCell>
                     <TableCell>
                       <div className="flex space-x-1">
@@ -512,11 +420,11 @@ const HRUserManagement = () => {
                         <Button variant="ghost" size="sm" onClick={() => {
                           setSelectedUser(user)
                           setEditUser({
-                            firstName: user.firstName,
-                            lastName: user.lastName,
-                            phone: user.phone,
-                            department: user.department,
-                            position: user.position,
+                            firstName: user.personalInfo?.firstName || '',
+                            lastName: user.personalInfo?.lastName || '',
+                            phone: user.personalInfo?.phone || '',
+                            department: user.personalInfo?.department || '',
+                            position: user.personalInfo?.position || '',
                             role: user.role,
                             isActive: user.isActive
                           })
@@ -527,7 +435,7 @@ const HRUserManagement = () => {
                         <Button
                           variant="ghost"
                           size="sm"
-                          onClick={() => handleToggleUserStatus(user.id)}
+                          onClick={() => handleToggleUserStatus(user.id || user._id)}
                           className={user.isActive ? 'text-red-600 hover:text-red-700' : 'text-green-600 hover:text-green-700'}
                         >
                           {user.isActive ? (

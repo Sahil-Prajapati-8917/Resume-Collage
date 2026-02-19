@@ -31,6 +31,7 @@ const ResumeUpload = () => {
   const [holisticEvaluation, setHolisticEvaluation] = useState(true)
   const [evidenceHighlighting, setEvidenceHighlighting] = useState(true)
   const [strictMode, setStrictMode] = useState(false)
+  const [errorMessage, setErrorMessage] = useState('')
   const fileInputRef = useRef(null)
   const navigate = useNavigate()
 
@@ -52,6 +53,7 @@ const ResumeUpload = () => {
   }, []);
 
   const handleFileSelect = (event) => {
+    setErrorMessage('')
     const files = Array.from(event.target.files)
     const acceptedTypes = ['application/pdf', 'application/msword', 'application/vnd.openxmlformats-officedocument.wordprocessingml.document']
     const maxSize = 10 * 1024 * 1024 // 10MB
@@ -76,17 +78,24 @@ const ResumeUpload = () => {
 
   const removeFile = (fileId) => {
     setUploadedFiles(prev => prev.filter(f => f.id !== fileId))
-    if (uploadedFiles.length === 1) setUploadStatus('idle')
+    if (uploadedFiles.length === 1) {
+      setUploadStatus('idle')
+      setErrorMessage('')
+    }
   }
 
   const handleParse = async (fileData) => {
     setUploadStatus('uploading');
+    setErrorMessage('');
     try {
       const formData = new FormData();
       formData.append('resume', fileData.file);
       const response = await apiService.postFormData('/resume/parse', formData);
-      if (!response.ok) throw new Error('Failed to parse resume');
+
       const result = await response.json();
+      if (!response.ok) {
+        throw new Error(result.message || 'Failed to parse resume');
+      }
 
       setParsedContent({
         ...result.data,
@@ -97,6 +106,7 @@ const ResumeUpload = () => {
       return result.data;
     } catch (error) {
       setUploadStatus('error');
+      setErrorMessage(error.message);
       throw error;
     }
   };
@@ -112,10 +122,15 @@ const ResumeUpload = () => {
           });
           if (response.ok) {
             navigate('/results', { state: { resumeId: parseResult.resumeId } });
+          } else {
+            const result = await response.json();
+            setErrorMessage(result.message || 'Evaluation failed. Please try again.');
+            setUploadStatus('error');
           }
         }
       } catch (error) {
         console.error("Evaluation process failed", error);
+        // Error already handled in handleParse
       }
     }
   }
@@ -172,6 +187,27 @@ const ResumeUpload = () => {
               />
             </CardContent>
           </Card>
+
+          {/* Error Message */}
+          {errorMessage && (
+            <div className="p-4 rounded-xl border border-destructive/20 bg-destructive/5 flex gap-3 animate-in fade-in slide-in-from-top-2 duration-300">
+              <AlertCircle className="size-5 text-destructive shrink-0 mt-0.5" />
+              <div className="space-y-1">
+                <p className="text-sm font-medium text-destructive">Process Error</p>
+                <p className="text-xs text-muted-foreground leading-relaxed">
+                  {errorMessage}
+                </p>
+              </div>
+              <Button
+                variant="ghost"
+                size="icon"
+                className="ml-auto -mr-2 -mt-2 text-muted-foreground hover:text-foreground"
+                onClick={() => setErrorMessage('')}
+              >
+                <X className="size-4" />
+              </Button>
+            </div>
+          )}
 
           {/* Uploaded List */}
           {uploadedFiles.length > 0 && (

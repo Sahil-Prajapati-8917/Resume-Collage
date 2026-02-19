@@ -9,6 +9,10 @@ const rateLimit = require('express-rate-limit');
 
 // Import routes
 const authRoutes = require('./src/routes/auth');
+const companyRoutes = require('./src/routes/company');
+const hrUserRoutes = require('./src/routes/hrUser');
+const settingsRoutes = require('./src/routes/settings');
+const systemAnalyticsRoutes = require('./src/routes/systemAnalytics');
 
 // Import middleware
 const { authenticateToken } = require('./src/middleware/auth');
@@ -89,12 +93,12 @@ app.use('/api/industries', require('./src/routes/industry'));
 app.use('/api/prompts', require('./src/routes/prompt'));
 app.use('/api/prompt-management', require('./src/routes/promptManagement'));
 app.use('/api/resume', require('./src/routes/resume'));
-app.use('/api/company', require('./src/routes/company'));
-app.use('/api/hr-user', require('./src/routes/hrUser'));
+app.use('/api/company', companyRoutes);
+app.use('/api/hr-user', hrUserRoutes);
 app.use('/api/audit-trail', require('./src/routes/auditTrail'));
 app.use('/api/evaluation-oversight', require('./src/routes/evaluationOversight'));
-app.use('/api/system-analytics', require('./src/routes/systemAnalytics'));
-app.use('/api/system-settings', require('./src/routes/systemSettings'));
+app.use('/api/system-analytics', systemAnalyticsRoutes);
+app.use('/api/system-settings', settingsRoutes);
 app.use('/api/queue', require('./src/routes/queue'));
 app.use('/api/evaluation', require('./src/routes/evaluationRoutes'));
 

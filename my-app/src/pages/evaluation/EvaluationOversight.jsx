@@ -13,8 +13,9 @@ import {
   CheckCircle,
   XCircle,
   BarChart3,
-  PieChart,
-  LineChart
+  PieChart as PieChartIcon,
+  LineChart as LineChartIcon,
+  Loader2
 } from 'lucide-react'
 import {
   Line,
@@ -57,151 +58,59 @@ const EvaluationOversight = () => {
     severity: 'medium'
   })
 
-  // Mock data
+  const [loading, setLoading] = useState(true)
+  const [trends, setTrends] = useState([])
+  const [industryStats, setIndustryStats] = useState([])
+
   useEffect(() => {
-    const mockEvaluations = [
-      {
-        id: '1',
-        candidateName: 'John Smith',
-        email: 'john.smith@example.com',
-        company: { name: 'TechCorp Inc.', industry: 'IT' },
-        industry: 'IT',
-        roleType: 'Senior Developer',
-        aiScore: 82.5,
-        aiConfidence: 89.2,
-        humanScore: null,
-        isOverridden: false,
-        overrideReason: null,
-        overrideTime: null,
-        flags: [],
-        createdAt: '2024-01-15 14:30:00',
-        processingTime: 2.3,
-        aiModel: 'GPT-4'
-      },
-      {
-        id: '2',
-        candidateName: 'Sarah Johnson',
-        email: 'sarah.johnson@healthplus.com',
-        company: { name: 'HealthPlus Medical', industry: 'Healthcare' },
-        industry: 'Healthcare',
-        roleType: 'Registered Nurse',
-        aiScore: 76.8,
-        aiConfidence: 72.5,
-        humanScore: 85.0,
-        isOverridden: true,
-        overrideReason: 'Candidate has specialized certifications not captured in resume',
-        overrideTime: 45,
-        flags: [{ reason: 'High override time', severity: 'medium', flaggedAt: '2024-01-15 15:00:00' }],
-        createdAt: '2024-01-15 10:15:00',
-        processingTime: 2.8,
-        aiModel: 'Claude 3'
-      },
-      {
-        id: '3',
-        candidateName: 'Mike Chen',
-        email: 'mike.chen@finsecure.com',
-        company: { name: 'FinSecure Bank', industry: 'Finance' },
-        industry: 'Finance',
-        roleType: 'Financial Analyst',
-        aiScore: 68.2,
-        aiConfidence: 65.8,
-        humanScore: 72.0,
-        isOverridden: true,
-        overrideReason: 'Resume formatting issues affected parsing accuracy',
-        overrideTime: 120,
-        flags: [],
-        createdAt: '2024-01-14 16:45:00',
-        processingTime: 3.1,
-        aiModel: 'GPT-4'
-      },
-      {
-        id: '4',
-        candidateName: 'Emma Rodriguez',
-        email: 'emma.rodriguez@manufacturepro.com',
-        company: { name: 'ManufacturePro', industry: 'Manufacturing' },
-        industry: 'Manufacturing',
-        roleType: 'Production Manager',
-        aiScore: 91.3,
-        aiConfidence: 94.1,
-        humanScore: null,
-        isOverridden: false,
-        overrideReason: null,
-        overrideTime: null,
-        flags: [],
-        createdAt: '2024-01-14 09:20:00',
-        processingTime: 2.1,
-        aiModel: 'GPT-4'
-      },
-      {
-        id: '5',
-        candidateName: 'Alex Wilson',
-        email: 'alex.wilson@techcorp.com',
-        company: { name: 'TechCorp Inc.', industry: 'IT' },
-        industry: 'IT',
-        roleType: 'DevOps Engineer',
-        aiScore: 54.7,
-        aiConfidence: 48.3,
-        humanScore: 62.0,
-        isOverridden: true,
-        overrideReason: 'AI underestimated candidate experience with newer technologies',
-        overrideTime: 78,
-        flags: [{ reason: 'Low AI confidence', severity: 'high', flaggedAt: '2024-01-13 11:45:00' }],
-        createdAt: '2024-01-13 11:45:00',
-        processingTime: 2.6,
-        aiModel: 'Claude 3'
+    const fetchData = async () => {
+      setLoading(true)
+      try {
+        const params = {
+          industry: industryFilter,
+          roleType: roleTypeFilter,
+          isOverridden: overrideFilter === 'overridden' ? 'true' : overrideFilter === 'not_overridden' ? 'false' : undefined,
+          searchTerm: searchTerm,
+          dateRange: dateRange
+        }
+
+        const [evalsRes, processingRes, industryRes] = await Promise.all([
+          apiService.getEvaluationsList(params),
+          apiService.getResumeProcessingMetrics({ dateRange }),
+          apiService.getIndustryDistribution({ dateRange })
+        ])
+
+        if (evalsRes.ok) {
+          const result = await evalsRes.json()
+          setEvaluations(result.data)
+        }
+
+        if (processingRes.ok) {
+          const result = await processingRes.json()
+          // Map processing metrics to trend data format
+          // Backend returns: { date, processed, failed, total }
+          setTrends(result.data.dailyUsage || [])
+        }
+
+        if (industryRes.ok) {
+          const result = await industryRes.json()
+          // Backend returns: { industry, count, avgScore, overrideRate }
+          const colors = ['#3b82f6', '#10b981', '#f59e0b', '#ef4444', '#8b5cf6']
+          setIndustryStats(result.data.map((item, idx) => ({
+            name: item.industry,
+            value: item.count,
+            color: colors[idx % colors.length]
+          })))
+        }
+      } catch (error) {
+        console.error("Failed to fetch oversight data", error)
+      } finally {
+        setLoading(false)
       }
-    ]
+    }
 
-    setTimeout(() => {
-      setEvaluations(mockEvaluations)
-    }, 1000)
-  }, [])
-
-  const filteredEvaluations = evaluations
-    .filter(evaluation =>
-      evaluation.candidateName.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      evaluation.email.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      evaluation.company.name.toLowerCase().includes(searchTerm.toLowerCase())
-    )
-    .filter(evaluation => industryFilter === 'all' || evaluation.industry === industryFilter)
-    .filter(evaluation => roleTypeFilter === 'all' || evaluation.roleType === roleTypeFilter)
-    .filter(evaluation => {
-      if (overrideFilter === 'all') return true
-      if (overrideFilter === 'overridden') return evaluation.isOverridden
-      if (overrideFilter === 'not_overridden') return !evaluation.isOverridden
-      return true
-    })
-    .sort((a, b) => {
-      let aValue, bValue
-
-      switch (sortBy) {
-        case 'candidateName':
-          aValue = a.candidateName
-          bValue = b.candidateName
-          break
-        case 'aiScore':
-          aValue = a.aiScore
-          bValue = b.aiScore
-          break
-        case 'aiConfidence':
-          aValue = a.aiConfidence
-          bValue = b.aiConfidence
-          break
-        case 'processingTime':
-          aValue = a.processingTime
-          bValue = b.processingTime
-          break
-        default:
-          aValue = new Date(a.createdAt).getTime()
-          bValue = new Date(b.createdAt).getTime()
-      }
-
-      if (sortOrder === 'asc') {
-        return aValue > bValue ? 1 : -1
-      } else {
-        return aValue < bValue ? 1 : -1
-      }
-    })
+    fetchData()
+  }, [industryFilter, roleTypeFilter, overrideFilter, searchTerm, dateRange])
 
   const getIndustryColor = (industry) => {
     switch (industry) {
@@ -247,8 +156,6 @@ const EvaluationOversight = () => {
     setFlagData({ reason: '', severity: 'medium' })
   }
 
-
-
   // Calculate summary statistics
   const summaryStats = {
     total: evaluations.length,
@@ -260,23 +167,13 @@ const EvaluationOversight = () => {
       : 0
   }
 
-  // Mock chart data
-  const trendData = [
-    { date: 'Jan 1', evaluations: 24, overrides: 2 },
-    { date: 'Jan 2', evaluations: 18, overrides: 3 },
-    { date: 'Jan 3', evaluations: 32, overrides: 4 },
-    { date: 'Jan 4', evaluations: 28, overrides: 2 },
-    { date: 'Jan 5', evaluations: 45, overrides: 6 },
-    { date: 'Jan 6', evaluations: 38, overrides: 3 },
-    { date: 'Jan 7', evaluations: 52, overrides: 5 }
-  ]
-
-  const industryDistribution = [
-    { name: 'IT', value: 40, color: '#3b82f6' },
-    { name: 'Healthcare', value: 25, color: '#10b981' },
-    { name: 'Finance', value: 20, color: '#f59e0b' },
-    { name: 'Manufacturing', value: 15, color: '#ef4444' }
-  ]
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center min-h-[400px]">
+        <Loader2 className="h-8 w-8 animate-spin text-primary" />
+      </div>
+    )
+  }
 
   return (
     <div className="space-y-6">
@@ -412,18 +309,18 @@ const EvaluationOversight = () => {
         <Card>
           <CardHeader>
             <CardTitle>Evaluation Trends</CardTitle>
-            <CardDescription>AI evaluations vs human overrides over time</CardDescription>
+            <CardDescription>AI evaluations and score trends over time</CardDescription>
           </CardHeader>
           <CardContent>
             <div className="h-64">
               <ResponsiveContainer width="100%" height="100%">
-                <LineChart data={trendData}>
+                <LineChart data={trends}>
                   <CartesianGrid strokeDasharray="3 3" />
                   <XAxis dataKey="date" />
                   <YAxis />
                   <Tooltip />
-                  <Line type="monotone" dataKey="evaluations" stroke="#3b82f6" strokeWidth={2} />
-                  <Line type="monotone" dataKey="overrides" stroke="#f59e0b" strokeWidth={2} />
+                  <Line type="monotone" dataKey="calls" name="Evaluations" stroke="#3b82f6" strokeWidth={2} />
+                  <Line type="monotone" dataKey="avgScore" name="Avg Score" stroke="#10b981" strokeWidth={2} />
                 </LineChart>
               </ResponsiveContainer>
             </div>
@@ -441,7 +338,7 @@ const EvaluationOversight = () => {
               <ResponsiveContainer width="100%" height="100%">
                 <PieChart>
                   <Pie
-                    data={industryDistribution}
+                    data={industryStats}
                     cx="50%"
                     cy="50%"
                     labelLine={false}
@@ -450,7 +347,7 @@ const EvaluationOversight = () => {
                     fill="#8884d8"
                     dataKey="value"
                   >
-                    {industryDistribution.map((entry, index) => (
+                    {industryStats.map((entry, index) => (
                       <Cell key={`cell-${index}`} fill={entry.color} />
                     ))}
                   </Pie>
@@ -496,7 +393,7 @@ const EvaluationOversight = () => {
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {filteredEvaluations.map((evaluation) => (
+                {evaluations.map((evaluation) => (
                   <TableRow key={evaluation.id}>
                     <TableCell>
                       <div>

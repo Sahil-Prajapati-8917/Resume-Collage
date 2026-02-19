@@ -37,6 +37,18 @@ exports.parseResume = async (req, res) => {
         // Clean up text (optional but recommended)
         extractedText = extractedText.replace(/\s+/g, ' ').trim();
 
+        if (!extractedText) {
+            console.error('Resume parsing failed: No text extracted from file', {
+                fileName: originalname,
+                fileType: mimetype,
+                bufferLength: buffer.length
+            });
+            return res.status(400).json({
+                success: false,
+                message: 'Failed to extract text from the file. Please ensure the file is not empty or a scanned image/protected PDF.'
+            });
+        }
+
         const resume = new Resume({
             userId: req.user?._id || 'anonymous',
             fileName: originalname,

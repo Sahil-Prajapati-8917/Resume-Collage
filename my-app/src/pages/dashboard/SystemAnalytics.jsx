@@ -46,101 +46,72 @@ const SystemAnalytics = () => {
   useEffect(() => {
     const fetchAnalytics = async () => {
       setLoading(true)
-      // Fetch new Cost Analytics
       try {
-        // Assuming apiService.get handles full URL or base URL config
-        const costRes = await apiService.get('/system-analytics/cost')
-        if (costRes.data && costRes.data.success) {
-          setCostMetrics(costRes.data.data)
+        const [
+          costRes,
+          overviewRes,
+          processingRes,
+          aiRes,
+          qualityRes,
+          recruiterRes,
+          industryRes
+        ] = await Promise.allSettled([
+          apiService.getCostAnalytics(),
+          apiService.getSystemStats(),
+          apiService.getResumeProcessingMetrics({ dateRange: timeRange }),
+          apiService.getAIUsageAnalytics({ dateRange: timeRange }),
+          apiService.getEvaluationQualityMetrics({ dateRange: timeRange }),
+          apiService.getRecruiterPatterns({ dateRange: timeRange }),
+          apiService.getIndustryDistribution({ dateRange: timeRange })
+        ]);
+
+        if (costRes.status === 'fulfilled' && costRes.value.ok) {
+          const data = await costRes.value.json();
+          setCostMetrics(data.data);
         }
+
+        const newMetrics = {};
+
+        if (overviewRes.status === 'fulfilled' && overviewRes.value.ok) {
+          const data = await overviewRes.value.json();
+          newMetrics.overview = data.data;
+        }
+
+        if (processingRes.status === 'fulfilled' && processingRes.value.ok) {
+          const data = await processingRes.value.json();
+          newMetrics.resumeProcessing = data.data;
+        }
+
+        if (aiRes.status === 'fulfilled' && aiRes.value.ok) {
+          const data = await aiRes.value.json();
+          newMetrics.aiUsage = data.data;
+        }
+
+        if (qualityRes.status === 'fulfilled' && qualityRes.value.ok) {
+          const data = await qualityRes.value.json();
+          newMetrics.evaluationQuality = data.data;
+        }
+
+        if (recruiterRes.status === 'fulfilled' && recruiterRes.value.ok) {
+          const data = await recruiterRes.value.json();
+          newMetrics.recruiterPatterns = data.data;
+        }
+
+        if (industryRes.status === 'fulfilled' && industryRes.value.ok) {
+          const data = await industryRes.value.json();
+          newMetrics.industryDistribution = data.data;
+        }
+
+        setMetrics(newMetrics);
       } catch (err) {
-        console.error("Failed to fetch cost analytics", err)
+        console.error("Failed to fetch analytics", err);
+      } finally {
+        setLoading(false);
       }
-
-      // Mock data logic remains as fallback or for other tabs not yet hooked up
-
-      const mockMetrics = {
-        overview: {
-          totalCompanies: 156,
-          totalUsers: 1248,
-          totalResumes: 8947,
-          totalEvaluations: 8723,
-          processingSuccessRate: 98.3,
-          avgProcessingTime: 2.3,
-          aiModelAccuracy: 94.2,
-          queueHealth: 25
-        },
-        resumeProcessing: {
-          totalResumes: 8947,
-          processedResumes: 8723,
-          failedResumes: 224,
-          avgProcessingTime: 2.3,
-          byStatus: [
-            { status: 'evaluated', count: 8723 },
-            { status: 'human_reviewed', count: 224 },
-            { status: 'failed', count: 15 }
-          ],
-          byFileType: [
-            { type: 'PDF', count: 6250 },
-            { type: 'DOCX', count: 2100 },
-            { type: 'DOC', count: 450 },
-            { type: 'TXT', count: 147 }
-          ]
-        },
-        aiUsage: {
-          totalCalls: 8723,
-          byModel: [
-            { model: 'GPT-4', calls: 6100, avgScore: 78.5, avgConfidence: 89.2 },
-            { model: 'Claude 3', calls: 2100, avgScore: 72.3, avgConfidence: 84.7 },
-            { model: 'Gemini Pro', calls: 523, avgScore: 75.1, avgConfidence: 86.4 }
-          ],
-          dailyUsage: [
-            { date: 'Jan 1', calls: 240, avgScore: 76.2 },
-            { date: 'Jan 2', calls: 180, avgScore: 74.8 },
-            { date: 'Jan 3', calls: 320, avgScore: 77.1 },
-            { date: 'Jan 4', calls: 280, avgScore: 75.9 },
-            { date: 'Jan 5', calls: 450, avgScore: 78.3 },
-            { date: 'Jan 6', calls: 380, avgScore: 77.6 },
-            { date: 'Jan 7', calls: 520, avgScore: 79.1 }
-          ]
-        },
-        evaluationQuality: {
-          totalEvaluations: 8723,
-          avgAiScore: 76.8,
-          avgConfidence: 86.4,
-          totalOverrides: 224,
-          avgOverrideTime: 45.2,
-          avgOverrideScore: 79.1,
-          overrideTrends: [
-            { date: 'Jan 1', overrides: 8, avgAiScore: 74.2, avgOverrideScore: 78.1 },
-            { date: 'Jan 2', overrides: 12, avgAiScore: 73.8, avgOverrideScore: 77.5 },
-            { date: 'Jan 3', overrides: 15, avgAiScore: 75.1, avgOverrideScore: 78.9 },
-            { date: 'Jan 4', overrides: 9, avgAiScore: 74.6, avgOverrideScore: 77.8 },
-            { date: 'Jan 5', overrides: 22, avgAiScore: 76.3, avgOverrideScore: 79.4 },
-            { date: 'Jan 6', overrides: 14, avgAiScore: 75.7, avgOverrideScore: 78.6 },
-            { date: 'Jan 7', overrides: 24, avgAiScore: 77.2, avgOverrideScore: 80.1 }
-          ]
-        },
-        recruiterPatterns: [
-          { recruiter: 'Sarah Johnson', company: 'TechCorp', overrides: 15, avgOverrideTime: 32, avgAiScore: 74.5, avgOverrideScore: 78.2 },
-          { recruiter: 'Mike Chen', company: 'HealthPlus', overrides: 8, avgOverrideTime: 58, avgAiScore: 72.1, avgOverrideScore: 76.8 },
-          { recruiter: 'Emma Rodriguez', company: 'FinSecure', overrides: 12, avgOverrideTime: 45, avgAiScore: 73.8, avgOverrideScore: 77.9 },
-          { recruiter: 'Alex Smith', company: 'ManufacturePro', overrides: 5, avgOverrideTime: 67, avgAiScore: 71.2, avgOverrideScore: 75.4 }
-        ],
-        industryDistribution: [
-          { industry: 'IT', count: 3560, avgScore: 78.2, overrideRate: 6.2 },
-          { industry: 'Healthcare', count: 2240, avgScore: 74.1, overrideRate: 11.8 },
-          { industry: 'Finance', count: 1780, avgScore: 79.5, overrideRate: 4.8 },
-          { industry: 'Manufacturing', count: 1363, avgScore: 72.8, overrideRate: 14.2 }
-        ]
-      }
-
-      setMetrics(mockMetrics)
-      setLoading(false)
-    }
+    };
 
     fetchAnalytics()
-  }, [])
+  }, [timeRange])
 
   const getSeverityColor = (rate) => {
     if (rate > 10) return 'bg-red-500'

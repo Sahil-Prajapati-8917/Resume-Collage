@@ -1,9 +1,9 @@
 import React, { useState, useEffect } from 'react'
-import { 
-  Settings, 
-  Shield, 
-  Database, 
-  Clock, 
+import {
+  Settings,
+  Shield,
+  Database,
+  Clock,
   AlertTriangle,
   CheckCircle,
   XCircle,
@@ -18,7 +18,8 @@ import {
   Globe,
   Zap,
   Wifi,
-  WifiOff
+  WifiOff,
+  Loader2
 } from 'lucide-react'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
@@ -28,99 +29,93 @@ import { Label } from '@/components/ui/label'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { Input } from '@/components/ui/input'
 import { Textarea } from '@/components/ui/textarea'
+import apiService from '@/services/api'
 
 const SystemSettings = () => {
-  const [settings, setSettings] = useState({})
+  const [settings, setSettings] = useState({
+    general: {
+      fileUpload: { maxFileSize: 10485760, allowedTypes: ['pdf', 'doc', 'docx', 'txt'], maxFilesPerUpload: 10 },
+      aiProviders: { google: { enabled: true, rateLimit: 200 } },
+      rateLimits: { api: { windowMs: 900000, max: 1000 } }
+    },
+    features: {},
+    maintenance: {},
+    security: { ipWhitelist: [] },
+    notifications: {}
+  })
   const [loading, setLoading] = useState(true)
   const [activeTab, setActiveTab] = useState('general')
   const [saving, setSaving] = useState(false)
+  const [hasChanges, setHasChanges] = useState(false)
 
-  // Mock configuration data
-  useEffect(() => {
-    const mockSettings = {
-      general: {
-        fileUpload: {
-          maxFileSize: 10485760, // 10MB
-          allowedTypes: ['pdf', 'doc', 'docx', 'txt'],
-          maxFilesPerUpload: 10
-        },
-        aiProviders: {
-          openai: { enabled: true, rateLimit: 1000 },
-          anthropic: { enabled: true, rateLimit: 500 },
-          google: { enabled: false, rateLimit: 200 }
-        },
-        rateLimits: {
-          resumeUpload: { windowMs: 900000, max: 100 }, // 15 minutes, 100 requests
-          evaluation: { windowMs: 60000, max: 50 }, // 1 minute, 50 requests
-          api: { windowMs: 900000, max: 1000 } // 15 minutes, 1000 requests
-        }
-      },
-      features: {
-        customPrompts: true,
-        advancedAnalytics: true,
-        apiAccess: true,
-        bulkImport: true,
-        emailNotifications: true,
-        auditLogging: true
-      },
-      maintenance: {
-        mode: false,
-        message: 'System is undergoing maintenance. Please try again later.',
-        scheduled: null
-      },
-      security: {
-        passwordPolicy: {
-          minLength: 8,
-          requireUppercase: true,
-          requireLowercase: true,
-          requireNumbers: true,
-          requireSpecialChars: true
-        },
-        sessionTimeout: 3600000, // 1 hour in milliseconds
-        twoFactorAuth: true,
-        ipWhitelist: []
-      },
-      notifications: {
-        emailAlerts: true,
-        criticalAlerts: true,
-        aiProviderFailures: true,
-        queueBacklog: true,
-        highOverrideRates: true,
-        securityEvents: true
+  const fetchSettings = async () => {
+    setLoading(true)
+    try {
+      const response = await apiService.getSystemSettings()
+      if (response.ok) {
+        const result = await response.json()
+        setSettings(result.data || settings)
       }
-    }
-
-    setTimeout(() => {
-      setSettings(mockSettings)
+    } catch (error) {
+      console.error("Failed to fetch system settings", error)
+    } finally {
       setLoading(false)
-    }, 1000)
+    }
+  }
+
+  useEffect(() => {
+    fetchSettings()
   }, [])
 
   const handleSave = async () => {
     setSaving(true)
-    // Simulate API call
-    await new Promise(resolve => setTimeout(resolve, 1000))
-    setSaving(false)
+    try {
+      const response = await apiService.updateSystemSettings(settings)
+      if (response.ok) {
+        setHasChanges(false)
+      }
+    } catch (error) {
+      console.error("Failed to save settings", error)
+    } finally {
+      setSaving(false)
+    }
   }
 
   const handleToggleFeature = (feature, enabled) => {
-    setSettings({
-      ...settings,
+    setSettings(prev => ({
+      ...prev,
       features: {
-        ...settings.features,
+        ...prev.features,
         [feature]: enabled
       }
-    })
+    }))
+    setHasChanges(true)
   }
 
   const handleToggleMaintenance = (enabled) => {
-    setSettings({
-      ...settings,
+    setSettings(prev => ({
+      ...prev,
       maintenance: {
-        ...settings.maintenance,
+        ...prev.maintenance,
         mode: enabled
       }
-    })
+    }))
+    setHasChanges(true)
+  }
+
+  const handleSaveAudit = async () => {
+    setSaving(true)
+    try {
+      const response = await apiService.updateSystemSettings({ notifications: settings.notifications })
+      if (response.ok) {
+        setHasChanges(false)
+        console.log("Audit settings saved")
+      }
+    } catch (error) {
+      console.error("Failed to save audit settings", error)
+    } finally {
+      setSaving(false)
+    }
   }
 
   const tabs = [
@@ -152,8 +147,12 @@ const SystemSettings = () => {
             <RefreshCw className="mr-2 h-4 w-4" />
             Reset to Defaults
           </Button>
-          <Button onClick={handleSave} disabled={saving}>
-            <Save className="mr-2 h-4 w-4" />
+          <Button onClick={handleSave} disabled={saving || !hasChanges}>
+            {saving ? (
+              <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+            ) : (
+              <Save className="mr-2 h-4 w-4" />
+            )}
             {saving ? 'Saving...' : 'Save Changes'}
           </Button>
         </div>
@@ -448,7 +447,7 @@ const SystemSettings = () => {
                   </CardHeader>
                   <CardContent>
                     <div className="text-sm">
-                      {settings.maintenance?.mode 
+                      {settings.maintenance?.mode
                         ? 'Users will see maintenance message and limited functionality'
                         : 'All features available to users'
                       }
@@ -465,7 +464,7 @@ const SystemSettings = () => {
                   </CardHeader>
                   <CardContent>
                     <div className="text-sm">
-                      {settings.maintenance?.scheduled 
+                      {settings.maintenance?.scheduled
                         ? new Date(settings.maintenance.scheduled).toLocaleString()
                         : 'No scheduled maintenance'
                       }
