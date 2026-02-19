@@ -4,38 +4,110 @@ const Resume = require('../models/Resume');
 const HiringForm = require('../models/HiringForm');
 const Prompt = require('../models/Prompt');
 const { GoogleGenerativeAI } = require('@google/generative-ai');
+const fs = require('fs');
+const path = require('path');
+
+const debugLog = (msg) => {
+    const timestamp = new Date().toISOString();
+    const logLine = `[${timestamp}] ${msg}\n`;
+    fs.appendFileSync(path.join(process.cwd(), 'debug.log'), logLine);
+    console.log(msg);
+};
 
 exports.parseResume = async (req, res) => {
+    debugLog('--- START RESUME PARSING ---');
+    if (req.file) {
+        debugLog(`File: ${req.file.originalname}, Type: ${req.file.mimetype}, Size: ${req.file.size} bytes`);
+    } else {
+        debugLog('MISSING FILE');
+    }
+
     try {
         if (!req.file) {
+            debugLog('Error: No file in request');
             return res.status(400).json({ success: false, message: 'No file uploaded' });
         }
         const { buffer, mimetype, originalname } = req.file;
+
+        if (!buffer || buffer.length === 0) {
+            debugLog(`Error: Buffer is empty for ${originalname}`);
+            return res.status(400).json({ success: false, message: 'Uploaded file is empty.' });
+        }
+
         let extractedText = '';
         let isResume = true;
         let anomalies = [];
 
-        if (mimetype === 'application/pdf') {
-            const data = await pdf(buffer);
-            extractedText = data.text;
-        } else if (
-            mimetype === 'application/vnd.openxmlformats-officedocument.wordprocessingml.document' ||
-            mimetype === 'application/msword'
-        ) {
-            const result = await mammoth.extractRawText({ buffer });
-            extractedText = result.value;
-        } else if (mimetype === 'text/plain') {
-            extractedText = buffer.toString('utf8');
-        } else {
-            return res.status(400).json({ success: false, message: 'Unsupported file type.' });
+        try {
+            debugLog(`Attempting local extraction for type: ${mimetype}`);
+            if (mimetype === 'application/pdf') {
+                const data = await pdf(buffer);
+                extractedText = data.text;
+                debugLog(`PDF Extraction done. Text length: ${extractedText ? extractedText.length : 0}`);
+                if (!extractedText || extractedText.trim().length < 10) {
+                    debugLog('PDF extraction returned very little or no text.');
+                    extractedText = ''; // Trigger Gemini fallback
+                }
+            } else if (
+                mimetype === 'application/vnd.openxmlformats-officedocument.wordprocessingml.document' ||
+                mimetype === 'application/msword'
+            ) {
+                const result = await mammoth.extractRawText({ buffer });
+                extractedText = result.value;
+                debugLog(`DOC/DOCX Extraction done. Text length: ${extractedText ? extractedText.length : 0}`);
+            } else if (mimetype === 'text/plain') {
+                extractedText = buffer.toString('utf8');
+                debugLog(`TXT Extraction done. Text length: ${extractedText ? extractedText.length : 0}`);
+            } else {
+                debugLog(`Error: Unsupported mimetype ${mimetype}`);
+                return res.status(400).json({ success: false, message: 'Unsupported file type.' });
+            }
+        } catch (parseError) {
+            debugLog(`Local parsing failed for ${originalname} (${mimetype}): ${parseError.message}`);
         }
 
-        const validationResult = validateResumeContent(extractedText);
-        isResume = validationResult.isResume;
-        anomalies = validationResult.anomalies;
+        // Clean up text
+        if (extractedText) {
+            extractedText = extractedText.replace(/\s+/g, ' ').trim();
+        }
 
-        // Clean up text (optional but recommended)
-        extractedText = extractedText.replace(/\s+/g, ' ').trim();
+        if (!extractedText) {
+            debugLog('Standard parsing failed or yielded no text. Attempting Gemini OCR fallback...');
+            const apiKey = process.env.GOOGLE_API_KEY;
+
+            if (apiKey && mimetype === 'application/pdf') {
+                try {
+                    const genAI = new GoogleGenerativeAI(apiKey);
+                    const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
+
+                    const prompt = "Extract all text from this resume PDF. Maintain the structure as much as possible. If it's a scanned image, perform OCR. Return ONLY the extracted text.";
+
+                    const result = await model.generateContent([
+                        prompt,
+                        {
+                            inlineData: {
+                                data: buffer.toString('base64'),
+                                mimeType: mimetype
+                            }
+                        }
+                    ]);
+
+                    const response = await result.response;
+                    extractedText = response.text();
+                    debugLog(`Gemini OCR successful. Text length: ${extractedText.length}`);
+
+                    extractedText = extractedText.replace(/```[a-z]*\n/g, '').replace(/```/g, '').trim();
+                } catch (ocrError) {
+                    debugLog(`Gemini OCR fallback failed: ${ocrError.message}`);
+                    if (ocrError.message.includes('404')) {
+                        debugLog('Gemini 1.5 Flash model not found. Check API key permissions and model availability.');
+                    }
+                }
+            } else {
+                if (!apiKey) debugLog('Skipping Gemini: No API Key');
+                if (mimetype !== 'application/pdf') debugLog(`Skipping Gemini: Unsupported mimetype ${mimetype}`);
+            }
+        }
 
         if (!extractedText) {
             console.error('Resume parsing failed: No text extracted from file', {
@@ -43,11 +115,24 @@ exports.parseResume = async (req, res) => {
                 fileType: mimetype,
                 bufferLength: buffer.length
             });
+
+            let customMessage = 'Failed to extract text from the file. This file appears to be empty, a scanned image, or a protected PDF.';
+
+            if (!process.env.GOOGLE_API_KEY) {
+                customMessage += ' Please provide a GOOGLE_API_KEY in the backend .env to enable AI-powered OCR fallback.';
+            } else {
+                customMessage += ' The AI fallback also failed to read this file.';
+            }
+
             return res.status(400).json({
                 success: false,
-                message: 'Failed to extract text from the file. Please ensure the file is not empty or a scanned image/protected PDF.'
+                message: customMessage
             });
         }
+
+        const validationResult = validateResumeContent(extractedText);
+        isResume = validationResult.isResume;
+        anomalies = validationResult.anomalies;
 
         const resume = new Resume({
             userId: req.user?._id || 'anonymous',
@@ -76,9 +161,10 @@ exports.parseResume = async (req, res) => {
         });
     } catch (error) {
         console.error('Resume parsing error:', error);
-        return res.status(500).json({ success: false, message: 'Failed to parse resume', error: error.message });
+        return res.status(500).json({ success: false, message: 'An unexpected error occurred while parsing the resume.', error: error.message });
     }
 };
+
 
 exports.getResumes = async (req, res) => {
     try {

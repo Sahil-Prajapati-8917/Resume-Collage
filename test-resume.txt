@@ -1,0 +1,25 @@
+John Doe
+Email: john.doe@example.com
+Phone: (555) 123-4567
+Address: 123 Tech Lane, Silicon Valley, CA
+
+Summary
+Highly motivated software engineer with 5+ years of experience in full-stack development.
+
+Experience
+Senior Developer | Tech Corp | 2020 - Present
+- Led a team of 5 developers to build a scalable resumes parsing engine.
+- Implemented AI-driven features using Google Gemini.
+
+Software Engineer | Dev Solutions | 2018 - 2020
+- Developed RESTful APIs using Node.js and Express.
+- Optimized database queries, reducing latency by 30%.
+
+Education
+Bachelor of Science in Computer Science | University of Technology | 2014 - 2018
+
+Skills
+Languages: JavaScript, TypeScript, Python, Java
+Frameworks: React, Node.js, Express, Next.js
+Databases: MongoDB, PostgreSQL, Redis
+Tools: Docker, Kubernetes, AWS, Git

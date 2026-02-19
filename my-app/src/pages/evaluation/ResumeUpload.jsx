@@ -55,11 +55,17 @@ const ResumeUpload = () => {
   const handleFileSelect = (event) => {
     setErrorMessage('')
     const files = Array.from(event.target.files)
-    const acceptedTypes = ['application/pdf', 'application/msword', 'application/vnd.openxmlformats-officedocument.wordprocessingml.document']
+    const acceptedTypes = [
+      'application/pdf',
+      'application/msword',
+      'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+      'text/plain'
+    ]
     const maxSize = 10 * 1024 * 1024 // 10MB
 
     const validFiles = files.filter(file => {
-      if (!acceptedTypes.includes(file.type)) return false
+      console.log('Selected file:', file.name, 'Type:', file.type, 'Size:', file.size);
+      if (!acceptedTypes.includes(file.type) && !file.name.endsWith('.txt')) return false
       if (file.size > maxSize) return false
       return true
     })
@@ -181,7 +187,7 @@ const ResumeUpload = () => {
                   }
                 }}
                 onChange={handleFileSelect}
-                accept=".pdf,.doc,.docx"
+                accept=".pdf,.doc,.docx,.txt"
                 multiple
                 className="hidden"
               />
